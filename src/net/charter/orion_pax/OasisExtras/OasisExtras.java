@@ -3,6 +3,7 @@ package net.charter.orion_pax.OasisExtras;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -21,11 +23,14 @@ public class OasisExtras extends JavaPlugin{
 	ConsoleCommandSender console;
 	HashMap<String, Location> frozen = new HashMap<String, Location>();
 	HashMap<String, Set<String>> mounted = new HashMap<String, Set<String>>();
+	List<Location> appletree = new ArrayList<Location>();
 	String effectslist,savemsg1,savemsg2,newbiejoin;
 	List<Integer> newbiekit;
 	int default_min, default_max, ndt,bcastcount,warningtime;
+	int treecount=0;
 	long  savealltimer,bcasttimer;
 	List<String> bcastmsgs;
+	MyConfigFile appletreefile;
 
 	OasisExtrasCMD extras = new OasisExtrasCMD(this);
 	OasisExtrasTask task = new OasisExtrasTask(this);
@@ -47,6 +52,7 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("unmount").setExecutor(new OasisExtrasCommand(this));
 		getCommand("chant").setExecutor(new OasisExtrasCommand(this));
 		getCommand("thunderstruck").setExecutor(new OasisExtrasCommand(this));
+		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		effectslist = extras.effects();
 		console = Bukkit.getServer().getConsoleSender();
@@ -60,6 +66,7 @@ public class OasisExtras extends JavaPlugin{
 		task.bcasttask.cancel();
 		task.remindmetask.cancel();
 		this.saveConfig();
+		this.appletreefile.saveConfig();
 		getLogger().info("OasisExtras has been disabled!");
 	}
 
@@ -84,9 +91,13 @@ public class OasisExtras extends JavaPlugin{
 		ndt = Integer.parseInt(getConfig().getString("default_invulnerability_ticks"));
 		bcastcount = 0;
 		task.savethistask.runTaskTimer(this, 10, 12000);
+		task.appledroptask.runTaskTimer(this, 10, 0);
 		task.savethisworld.runTaskTimer(this, savealltimer, savealltimer);
 		task.bcasttask.runTaskTimer(this, extras.randomNum(0, 18000), bcasttimer);
 		task.remindmetask.runTaskTimer(this, savealltimer-warningtime, savealltimer);
+		if (!appletreefile.getConfig().contains("appletrees")){
+			appletreefile.getConfig().createSection("appletrees");
+		}
 	}
 
 	public void savefrozen(Player player){
@@ -99,5 +110,25 @@ public class OasisExtras extends JavaPlugin{
 	public void removefrozen(Player player){
 		getConfig().set("frozen." + player.getName(), null);
 
+	}
+	
+	public void saveTree(Location loc){
+		treecount++;
+		appletreefile.getConfig().set("appletrees." + treecount + ".world", loc.getWorld().getName());
+		appletreefile.getConfig().set("appletrees." + treecount + ".x", loc.getBlockX());
+		appletreefile.getConfig().set("appletrees." + treecount + ".y", loc.getBlockY());
+		appletreefile.getConfig().set("appletrees." + treecount + ".z", loc.getBlockZ());
+	}
+	
+	public void loadTree(){
+		List applesection = (List) appletreefile.getConfig().getConfigurationSection("appletrees");
+		treecount = applesection.size();
+		for (int i=1;i==treecount;i++){
+			World world = Bukkit.getWorld(appletreefile.getConfig().getString("appletrees." + i + ".world"));
+			int x = appletreefile.getConfig().getInt("appletrees." + i + ".x");
+			int y = appletreefile.getConfig().getInt("appletrees." + i + ".y");
+			int z = appletreefile.getConfig().getInt("appletrees." + i + ".z");
+			appletree.add(new Location(world,x,y,z));
+		}
 	}
 }

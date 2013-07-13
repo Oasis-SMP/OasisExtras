@@ -14,6 +14,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -33,7 +35,7 @@ public class OasisExtrasCommand implements CommandExecutor{
 	int time;
 
 	enum Commands {
-		SLAP, FREEZE, DRUNK, SPOOK, ENABLEME, MOUNT, UNMOUNT, TIMER,
+		SLAP, FREEZE, DRUNK, SPOOK, ENABLEME, MOUNT, UNMOUNT, TIMER, ANIMALREGEN,
 		DISABLEME, BROCAST, RANDOM, OASISEXTRAS, CHANT, THUNDERSTRUCK
 	}
 
@@ -75,6 +77,23 @@ public class OasisExtrasCommand implements CommandExecutor{
 		}
 
 		switch (mycommand) {
+		case ANIMALREGEN:
+			if (args.length==2){
+				try { 
+					Integer.parseInt(args[0]); 
+				} catch(NumberFormatException e) { 
+					sender.sendMessage(ChatColor.GOLD + args[1] + " is not an integer!");
+					return true; 
+				}
+				try { 
+					Integer.parseInt(args[1]); 
+				} catch(NumberFormatException e) { 
+					sender.sendMessage(ChatColor.GOLD + args[1] + " is not an integer!");
+					return true; 
+				}
+				spawnme(player,Integer.parseInt(args[0]),Integer.parseInt(args[1]));
+				
+			}
 		case TIMER:
 			if (args.length>1){
 				StringBuffer buffer = new StringBuffer();
@@ -172,10 +191,7 @@ public class OasisExtrasCommand implements CommandExecutor{
 				return true;
 
 			case RELOAD:
-				plugin.task.bcasttask.cancel();
-				plugin.task.remindmetask.cancel();
-				plugin.task.savethistask.cancel();
-				plugin.task.savethisworld.cancel();
+				plugin.getServer().getScheduler().cancelTasks(plugin);
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
 				plugin.reloadConfig();
 				plugin.getServer().getPluginManager().enablePlugin(plugin);
@@ -255,7 +271,15 @@ public class OasisExtrasCommand implements CommandExecutor{
 					}
 					World rplayerworld=rplayer.getWorld();
 					rplayer.setNoDamageTicks(plugin.ndt);
-					rplayer.teleport(plugin.extras.getRandomLoc(null, plugin.default_min, plugin.default_max, rplayerworld));
+					if (rplayer.isInsideVehicle() && rplayer.getVehicle() instanceof Horse) {
+						Entity horse = rplayer.getVehicle();
+						horse.eject();
+						rplayer.teleport(plugin.extras.getRandomLoc(rplayer.getLocation(), plugin.default_min, plugin.default_max, rplayerworld));
+						horse.teleport(rplayer.getLocation());
+						horse.setPassenger(rplayer);
+					} else {
+						rplayer.teleport(plugin.extras.getRandomLoc(rplayer.getLocation(), plugin.default_min, plugin.default_max, rplayerworld));
+					}
 					rplayer.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
 					return true;
 				} else {
@@ -266,7 +290,15 @@ public class OasisExtrasCommand implements CommandExecutor{
 			if (args.length == 0) {
 				World default_world = player.getWorld();
 				player.setNoDamageTicks(plugin.ndt);
-				player.teleport(plugin.extras.getRandomLoc(null, plugin.default_min, plugin.default_max, default_world));
+				if (player.isInsideVehicle() && player.getVehicle() instanceof Horse) {
+					Entity horse = player.getVehicle();
+					horse.eject();
+					player.teleport(plugin.extras.getRandomLoc(player.getLocation(), plugin.default_min, plugin.default_max, default_world));
+					horse.teleport(player.getLocation());
+					horse.setPassenger(player);
+				} else {
+					player.teleport(plugin.extras.getRandomLoc(player.getLocation(), plugin.default_min, plugin.default_max, default_world));
+				}
 				player.sendMessage(ChatColor.GOLD+"You have been randomly teleported!");
 				return true;
 			} else if(args.length==1){
@@ -274,7 +306,15 @@ public class OasisExtrasCommand implements CommandExecutor{
 					Player bcsplayer = plugin.getServer().getPlayer(args[0]);
 					World bcsplayerworld = bcsplayer.getWorld();
 					bcsplayer.setNoDamageTicks(plugin.ndt);
-					bcsplayer.teleport(plugin.extras.getRandomLoc(null, plugin.default_min, plugin.default_max, bcsplayerworld));
+					if (bcsplayer.isInsideVehicle() && bcsplayer.getVehicle() instanceof Horse) {
+						Entity horse = bcsplayer.getVehicle();
+						horse.eject();
+						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+						horse.teleport(bcsplayer.getLocation());
+						horse.setPassenger(bcsplayer);
+					} else {
+						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+					}
 					player.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
 					return true;
 				} else if(sender.hasPermission("oasischat.staff.a")){
@@ -286,9 +326,15 @@ public class OasisExtrasCommand implements CommandExecutor{
 					if (!bcsplayer.isOp()) {
 						World bcsplayerworld = bcsplayer.getWorld();
 						bcsplayer.setNoDamageTicks(plugin.ndt);
-						bcsplayer.teleport(plugin.extras.getRandomLoc(null,
-								plugin.default_min, plugin.default_max,
-								bcsplayerworld));
+						if (bcsplayer.isInsideVehicle() && bcsplayer.getVehicle() instanceof Horse) {
+							Entity horse = bcsplayer.getVehicle();
+							horse.eject();
+							bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+							horse.teleport(bcsplayer.getLocation());
+							horse.setPassenger(bcsplayer);
+						} else {
+							bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+						}
 						bcsplayer.sendMessage(ChatColor.GOLD
 								+ "You have been randomly teleported!");
 						sender.sendMessage(ChatColor.GOLD + bcsplayer.getName()
@@ -557,6 +603,19 @@ public class OasisExtrasCommand implements CommandExecutor{
 				time--;
 			}
 		},0L, 20L);
+	}
+
+	public void spawnme(final Player player, final int density, final int radius){
+		plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+			public void run() {
+				for (int i=1; i == density; i++){
+					player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.COW);
+					player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.PIG);
+					player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.CHICKEN);
+					player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.HORSE);
+				}
+			}
+		});
 	}
 
 }

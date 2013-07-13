@@ -64,22 +64,24 @@ public class OasisExtrasCMD {
 	}
 
 	public int randomNum(Integer lownum, Integer highnum) {
-		Random rand = new Random();
-		int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
+		//Random rand = new Random();
+		int randomNum = lownum + (int)(Math.random() * ((highnum - lownum) + 1));
+		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
 		return randomNum;
 	}
 
 	public Location getRandomLoc(Location loc, int min, int max, World world) {
-		// Location coordinates  
+		// Location coordinates
+		Location newloc = null;
 		boolean test = false;// variable to tell while loop that we found good area
 		//int loop=0;
 		while (test == false){
 			//loop++;
-			double x = this.randomNum(min, max) + 0.5;
-			double y = this.randomNum(64, 75);
-			double z = this.randomNum(min, max) + 0.5;
+			int x = this.randomNum(min, max);
+			int y = this.randomNum(64, 75);
+			int z = this.randomNum(min, max);
 
-			loc = new Location(world, x, y, z);//Location to tp to, and players bottom half
+			newloc = new Location(world, loc.getBlockX()+x, y, loc.getBlockZ()+z);//Location to tp to, and players bottom half
 			Location block1 = new Location(world, x, (y-1), z);//Block under player
 			Location block2 = new Location(world, x, (y + 1), z);//player location top
 			if ((block2.getBlock().isEmpty() == true) && //is this air at top of player?
@@ -89,8 +91,8 @@ public class OasisExtrasCMD {
 				test=true;
 			}
 		}
-		Chunk thischunk = loc.getChunk();
+		Chunk thischunk = newloc.getChunk();
 		thischunk.load(true);
-		return loc;
+		return newloc;
 	}
 }

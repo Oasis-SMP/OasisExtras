@@ -5,10 +5,22 @@ description: Oasis Extra commands!
 author: Paxination
 depend: [Essentials]
 commands:
+  animalregen:
+    description:  Randomly spawns animals in a radius.
+    usage:
+    permission: oasisextras.staff.animalregen
+    permission: You don't have permissions for <permission>
+    
+  timer:
+    description:  Starts an in game timer!
+    usage:
+    permission: oasisextras.staff.timer
+    permission-message: You don't have permissions for <permission>
+    
   oasisextras:
     description:  Reloads OasisExtras config
     usage:
-    permission: oasisextras.staff.extrasreload
+    permission: oasisextras.staff.oasisextras
     permission-message: You don't have permissions for <permission>
     
   random:

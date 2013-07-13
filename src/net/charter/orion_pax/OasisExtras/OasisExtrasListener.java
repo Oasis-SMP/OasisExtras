@@ -10,13 +10,18 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.TreeType;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -29,6 +34,24 @@ public class OasisExtrasListener implements Listener{
 
 	public OasisExtrasListener(OasisExtras plugin){
 		this.plugin = plugin;
+	}
+	
+	@EventHandler
+	public void OnPlayerInteract(PlayerInteractEvent event){
+		Player player = event.getPlayer();
+		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
+			if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){
+				if (player.getItemInHand().getType() == Material.APPLE && player.getItemInHand().getAmount() == 16){
+					int y = event.getClickedBlock().getY();
+					Location loc = new Location(event.getClickedBlock().getWorld(), event.getClickedBlock().getX(), y+1, event.getClickedBlock().getZ());
+					if (loc.getWorld().generateTree(loc, TreeType.BIG_TREE)){
+						plugin.saveTree(loc);
+						plugin.appletree.add(loc);
+						player.getInventory().setItemInHand(null);
+					}
+				}
+			}
+		}
 	}
 	
 	@EventHandler
@@ -78,7 +101,14 @@ public class OasisExtrasListener implements Listener{
 			if (plugin.frozen.containsKey(event.getPlayer().getName())){
 				event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT DESTROY BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 				event.setCancelled(true);
+				return;
 			}
+			
+			if (plugin.appletree.contains(event.getBlock().getLocation())){
+				plugin.appletree.remove(event.getBlock().getLocation());
+				return;
+			}
+			
 			Set<Entry<String, Location>> set = plugin.frozen.entrySet();
 			Iterator<Entry<String, Location>> i = set.iterator();
 			while(i.hasNext()) {
@@ -98,6 +128,7 @@ public class OasisExtrasListener implements Listener{
 										+ ChatColor.RED
 										+ " PLAYER!");
 								event.setCancelled(true);
+								return;
 							}
 						}
 					}
