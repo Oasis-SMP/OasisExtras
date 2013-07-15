@@ -34,7 +34,9 @@ newbiekit:
   - 270
   - 271
   - 290
-
-# Frozen players
-#frozen: {} to clear the list
-frozen: {}
+  
+#Apple Tree settings
+#Delay before a new tree produces apples, in ticks.
+# 1 min = 1200, 1 MC day = 20 mins = 24000 ticks
+AppleProduceDelay: 24000
+Percent: 20

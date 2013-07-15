@@ -96,14 +96,22 @@ commands:
     permission-message: You don't have permissions for <permission>
     
 permissions:
-    oasisextras.staff.*:
+    oasisextras.staff.mod:
         description: Gives access to all staff commands
+        children:
+            oasisextras.staff.thunderstruck: true
+            oasisextras.staff.bcastadd: true
+            oasisextras.staff.bcastdel: true
+            oasisextras.staff.bcastlist: true
+            oasisextras.staff.mount: true
+            oasisextras.staff.unmount: true
+            
+    oasisextras.staff.guide:
+        description: Guide perm nodes
         children:
             oasisextras.staff.enableme: true
             oasisextras.staff.disableme: true
-            oasisextras.staff.brocast: true
             oasisextras.staff.freeze: true
             oasisextras.staff.drunk: true
             oasisextras.staff.slap: true
             oasisextras.staff.spook: true
-            oasisextras.staff.thunderstruck: true

@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,6 +28,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 public class OasisExtrasListener implements Listener{
 
@@ -40,14 +42,22 @@ public class OasisExtrasListener implements Listener{
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
-			if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){
-				if (player.getItemInHand().getType() == Material.APPLE && player.getItemInHand().getAmount() == 16){
-					int y = event.getClickedBlock().getY();
-					Location loc = new Location(event.getClickedBlock().getWorld(), event.getClickedBlock().getX(), y+1, event.getClickedBlock().getZ());
-					if (loc.getWorld().generateTree(loc, TreeType.BIG_TREE)){
-						plugin.saveTree(loc);
-						plugin.appletree.add(loc);
-						player.getInventory().setItemInHand(null);
+			if (player.hasPermission("oasisextras.player.appletree")) {
+				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT) {
+					if (player.getItemInHand().getType() == Material.APPLE && player.getItemInHand().getAmount() > 15) {
+						Location loc = new Location(event.getClickedBlock().getWorld(), event.getClickedBlock().getX(), event.getClickedBlock().getY() + 1, event.getClickedBlock().getZ());
+						if (loc.getWorld().generateTree(loc, TreeType.BIG_TREE)) {
+							plugin.treecount++;
+							plugin.saveTree(loc, player.getName());
+							plugin.appletree.put(loc, new TreeTask(plugin, loc, plugin.AppleDelay, "tree" + plugin.treecount, player.getName()));
+							if (player.getItemInHand().getAmount() == 16) {
+								player.getInventory().setItemInHand(null);
+								return;
+							} else {
+								player.getItemInHand().setAmount(player.getItemInHand().getAmount() - 16);
+								return;
+							}
+						}
 					}
 				}
 			}
@@ -104,7 +114,9 @@ public class OasisExtrasListener implements Listener{
 				return;
 			}
 			
-			if (plugin.appletree.contains(event.getBlock().getLocation())){
+			if (plugin.appletree.containsKey(event.getBlock().getLocation())){
+				TreeTask temp = (TreeTask) plugin.appletree.get(event.getBlock().getLocation());
+				plugin.delTree(temp.mytree());
 				plugin.appletree.remove(event.getBlock().getLocation());
 				return;
 			}

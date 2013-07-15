@@ -1,15 +1,12 @@
 package net.charter.orion_pax.OasisExtras;
 
-import java.util.Random;
-import java.util.Set;
+import java.lang.Math;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -35,7 +32,8 @@ public class OasisExtrasCMD {
 			message = ChatColor.RED + sender.getName() + " Slapped you for" + msg + "!";
 			message2 = ChatColor.GRAY + "You slapped " + player.getName() + " for " + msg + "!";
 		}
-		((LivingEntity) player).damage(0);
+		double d = 0;
+		((LivingEntity) player).damage(d);
 		player.setNoDamageTicks(200);
 		player.setVelocity(vector);
 		player.sendMessage(message);
@@ -63,9 +61,9 @@ public class OasisExtrasCMD {
 		return sb.toString();
 	}
 
-	public int randomNum(Integer lownum, Integer highnum) {
+	public int randomNum(Integer lownum, double d) {
 		//Random rand = new Random();
-		int randomNum = lownum + (int)(Math.random() * ((highnum - lownum) + 1));
+		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
 		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
 		return randomNum;
 	}
@@ -80,7 +78,7 @@ public class OasisExtrasCMD {
 			int x = this.randomNum(min, max);
 			int y = this.randomNum(64, 75);
 			int z = this.randomNum(min, max);
-
+			
 			newloc = new Location(world, loc.getBlockX()+x, y, loc.getBlockZ()+z);//Location to tp to, and players bottom half
 			Location block1 = new Location(world, x, (y-1), z);//Block under player
 			Location block2 = new Location(world, x, (y + 1), z);//player location top

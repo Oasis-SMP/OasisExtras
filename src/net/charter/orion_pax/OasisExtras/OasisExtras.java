@@ -1,58 +1,85 @@
 package net.charter.orion_pax.OasisExtras;
 
-import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
+
+import net.charter.orion_pax.OasisExtras.Commands.*;
 
 public class OasisExtras extends JavaPlugin{
 
 	ConsoleCommandSender console;
-	HashMap<String, Location> frozen = new HashMap<String, Location>();
-	HashMap<String, Set<String>> mounted = new HashMap<String, Set<String>>();
-	List<Location> appletree = new ArrayList<Location>();
+	public HashMap<String, Location> frozen = new HashMap<String, Location>();
+	HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	String effectslist,savemsg1,savemsg2,newbiejoin;
 	List<Integer> newbiekit;
-	int default_min, default_max, ndt,bcastcount,warningtime;
-	int treecount=0;
+	public int default_min;
+	public int default_max;
+	public int ndt;
+	int bcastcount;
+	int warningtime;
+	int treecount=0, AppleDelay;
+	double percent;
 	long  savealltimer,bcasttimer;
-	List<String> bcastmsgs;
-	MyConfigFile appletreefile;
+	public List<String> bcastmsgs;
+	public MyConfigFile appletreefile;
+	public MyConfigFile frozenfile;
+	public boolean taskdisabled=false;
+	
+	public String[] oasisextrassub = {
+			ChatColor.GOLD + "Usage: /oasisextras subcommand subcommand"
+			,ChatColor.GOLD + "SubCommands:"
+			,ChatColor.GOLD + "THAW - Clears Frozen player list in cfg"
+			,ChatColor.GOLD + "RELOAD - Reloads config"
+			,ChatColor.GOLD + "CANCEL SAVEALL/BCAST/CONFIG"
+			,ChatColor.GOLD + "START SAVEALL/BCAST/CONFIG"
+			,ChatColor.GOLD + "BCAST LIST/ADD/REMOVE"
+			,ChatColor.GOLD + "Do /oasisextras [subcommand] for more info"
+	}; 
 
-	OasisExtrasCMD extras = new OasisExtrasCMD(this);
-	OasisExtrasTask task = new OasisExtrasTask(this);
+	String[] oasisextrassub2 = {
+			ChatColor.GOLD + "Usage as follows...."
+			,ChatColor.GOLD + "/oasisextras CANCEL BCAST - Cancels auto broadcast"
+			,ChatColor.GOLD + "/oasisextras CANCEL SAVEALL - Cancels auto saveall"
+			,ChatColor.GOLD + "/oasisextras CANCEL CONFIG - Cancels auto save config"
+			,ChatColor.GOLD + "/oasisextras START BCAST - Starts auto broadcast"
+			,ChatColor.GOLD + "/oasisextras START SAVEALL - Starts auto saveall"
+			,ChatColor.GOLD + "/oasisextras START CONFIG - Starts auto save config"
+			,ChatColor.GOLD + "/oasisextras BCAST LIST - List auto bcast msgs"
+			,ChatColor.GOLD + "/oasisextras BCAST ADD - Adds a msg to the auto bcast list"
+			,ChatColor.GOLD + "/oasisextras BCAST REMOVE - Removes a msg from the auto bcast list"
+	};
+
+	public OasisExtrasCMD extras = new OasisExtrasCMD(this);
+	public OasisExtrasTask task = new OasisExtrasTask(this);
 
 	@Override
 	public void onEnable() {
 		saveDefaultConfig();
 		Bukkit.getPluginManager().registerEvents(new OasisExtrasListener(this), this);
-		getCommand("enableme").setExecutor(new OasisExtrasCommand(this));
-		getCommand("disableme").setExecutor(new OasisExtrasCommand(this));
-		getCommand("brocast").setExecutor(new OasisExtrasCommand(this));
-		getCommand("spook").setExecutor(new OasisExtrasCommand(this));
-		getCommand("freeze").setExecutor(new OasisExtrasCommand(this));
-		getCommand("drunk").setExecutor(new OasisExtrasCommand(this));
-		getCommand("slap").setExecutor(new OasisExtrasCommand(this));
-		getCommand("random").setExecutor(new OasisExtrasCommand(this));
-		getCommand("oasisextras").setExecutor(new OasisExtrasCommand(this));
-		getCommand("mount").setExecutor(new OasisExtrasCommand(this));
-		getCommand("unmount").setExecutor(new OasisExtrasCommand(this));
-		getCommand("chant").setExecutor(new OasisExtrasCommand(this));
-		getCommand("thunderstruck").setExecutor(new OasisExtrasCommand(this));
+		getCommand("enableme").setExecutor(new EnableMeCommand(this));
+		getCommand("disableme").setExecutor(new DisableMeCommand(this));
+		getCommand("brocast").setExecutor(new BroCastCommand(this));
+		getCommand("spook").setExecutor(new SpookCommand(this));
+		getCommand("freeze").setExecutor(new FreezeCommand(this));
+		getCommand("drunk").setExecutor(new DrunkCommand(this));
+		getCommand("slap").setExecutor(new SlapCommand(this));
+		getCommand("random").setExecutor(new RandomCommand(this));
+		getCommand("oasisextras").setExecutor(new OECommand(this));
+		getCommand("mount").setExecutor(new MountCommand(this));
+		getCommand("unmount").setExecutor(new UnMountCommand(this));
+		getCommand("chant").setExecutor(new ChantCommand(this));
+		getCommand("thunderstruck").setExecutor(new ThunderStruckCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
+		frozenfile = new MyConfigFile(this,"frozen.yml");
 		setup();
 		effectslist = extras.effects();
 		console = Bukkit.getServer().getConsoleSender();
@@ -71,13 +98,18 @@ public class OasisExtras extends JavaPlugin{
 	}
 
 	public void setup(){
-		Set<String> flist = getConfig().getConfigurationSection("frozen").getKeys(false);
+		if (!frozenfile.getConfig().contains("frozen")){
+			frozenfile.getConfig().createSection("frozen");
+		}
+		Set<String> flist = frozenfile.getConfig().getConfigurationSection("frozen").getKeys(false);
 		for (String playername : flist){
-			String fworld = getConfig().getString("frozen." + playername + ".world");
-			Location loc = new Location(Bukkit.getWorld(fworld), getConfig().getDouble("frozen." + playername + ".x"), getConfig().getDouble("frozen." + playername + ".y"), getConfig().getDouble("frozen." + playername + ".z"));
+			String fworld = frozenfile.getConfig().getString("frozen." + playername + ".world");
+			Location loc = new Location(Bukkit.getWorld(fworld), frozenfile.getConfig().getDouble("frozen." + playername + ".x"), frozenfile.getConfig().getDouble("frozen." + playername + ".y"), frozenfile.getConfig().getDouble("frozen." + playername + ".z"));
 			frozen.put(playername, loc);
 			loc=null;
 		}
+		percent = getConfig().getDouble("Percent")/100;
+		AppleDelay = getConfig().getInt("AppleProduceDelay");
 		newbiekit = getConfig().getIntegerList("newbiekit");
 		newbiejoin = getConfig().getString("newplayermsg");
 		warningtime = getConfig().getInt("warningdelay")*1200;
@@ -91,44 +123,51 @@ public class OasisExtras extends JavaPlugin{
 		ndt = Integer.parseInt(getConfig().getString("default_invulnerability_ticks"));
 		bcastcount = 0;
 		task.savethistask.runTaskTimer(this, 10, 12000);
-		task.appledroptask.runTaskTimer(this, 10, 0);
 		task.savethisworld.runTaskTimer(this, savealltimer, savealltimer);
 		task.bcasttask.runTaskTimer(this, extras.randomNum(0, 18000), bcasttimer);
 		task.remindmetask.runTaskTimer(this, savealltimer-warningtime, savealltimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
 		}
+		loadTree();
 	}
 
 	public void savefrozen(Player player){
-		getConfig().set("frozen." + player.getName() + ".world", player.getLocation().getWorld().getName());
-		getConfig().set("frozen." + player.getName() + ".x", player.getLocation().getBlockX());
-		getConfig().set("frozen." + player.getName() + ".y", player.getLocation().getBlockY());
-		getConfig().set("frozen." + player.getName() + ".z", player.getLocation().getBlockZ());
+		frozenfile.getConfig().set("frozen." + player.getName() + ".world", player.getLocation().getWorld().getName());
+		frozenfile.getConfig().set("frozen." + player.getName() + ".x", player.getLocation().getBlockX());
+		frozenfile.getConfig().set("frozen." + player.getName() + ".y", player.getLocation().getBlockY());
+		frozenfile.getConfig().set("frozen." + player.getName() + ".z", player.getLocation().getBlockZ());
 	}
 
 	public void removefrozen(Player player){
-		getConfig().set("frozen." + player.getName(), null);
+		frozenfile.getConfig().set("frozen." + player.getName(), null);
 
 	}
 	
-	public void saveTree(Location loc){
-		treecount++;
-		appletreefile.getConfig().set("appletrees." + treecount + ".world", loc.getWorld().getName());
-		appletreefile.getConfig().set("appletrees." + treecount + ".x", loc.getBlockX());
-		appletreefile.getConfig().set("appletrees." + treecount + ".y", loc.getBlockY());
-		appletreefile.getConfig().set("appletrees." + treecount + ".z", loc.getBlockZ());
+	public void saveTree(Location loc,String owner){
+		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".world", loc.getWorld().getName());
+		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".x", loc.getBlockX());
+		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".y", loc.getBlockY());
+		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".z", loc.getBlockZ());
+		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".owner", owner);
+	}
+	
+	public void delTree(String string){
+		treecount--;
+		appletreefile.getConfig().set("appletrees.tree" + string, null);
 	}
 	
 	public void loadTree(){
-		List applesection = (List) appletreefile.getConfig().getConfigurationSection("appletrees");
+		Set<String> applesection = appletreefile.getConfig().getConfigurationSection("appletrees").getKeys(false);
 		treecount = applesection.size();
-		for (int i=1;i==treecount;i++){
-			World world = Bukkit.getWorld(appletreefile.getConfig().getString("appletrees." + i + ".world"));
-			int x = appletreefile.getConfig().getInt("appletrees." + i + ".x");
-			int y = appletreefile.getConfig().getInt("appletrees." + i + ".y");
-			int z = appletreefile.getConfig().getInt("appletrees." + i + ".z");
-			appletree.add(new Location(world,x,y,z));
+		for (String tree : applesection){
+			World world = Bukkit.getWorld(appletreefile.getConfig().getString("appletrees." + tree + ".world"));
+			int x = appletreefile.getConfig().getInt("appletrees." + tree + ".x");
+			int y = appletreefile.getConfig().getInt("appletrees." + tree + ".y");
+			int z = appletreefile.getConfig().getInt("appletrees." + tree + ".z");
+			String owner = appletreefile.getConfig().getString("appletrees." + tree + ".owner");
+			Location loc = new Location(world,x,y,z);
+			appletree.put(loc, new TreeTask(this,loc, 0,tree,owner));
 		}
 	}
 }

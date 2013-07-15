@@ -51,20 +51,4 @@ public class OasisExtrasTask {
 			plugin.getServer().broadcast(ChatColor.RED + "Save-All in " + plugin.warningtime/1200 + " mins!", "oasischat.staff.a");
 		}
 	};
-	
-	BukkitRunnable appledroptask = new BukkitRunnable(){
-		@Override
-		public void run(){
-			if (plugin.appletree!=null) {
-				int size = plugin.appletree.size();
-				for (int i = 0; i < size - 1; i++) {
-					int chance = plugin.extras.randomNum(1, 20);
-					if (7 == 7) {
-						Location loc = plugin.extras.getRandomLoc(plugin.appletree.get(i), 1, 4, plugin.appletree.get(i).getWorld());
-						loc.getWorld().dropItemNaturally(loc, new ItemStack(260));
-					}
-				}
-			}
-		}
-	};
 }
