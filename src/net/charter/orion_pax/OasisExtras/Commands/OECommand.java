@@ -35,10 +35,6 @@ public class OECommand implements CommandExecutor{
 			StartSubCommand start = new StartSubCommand(plugin,sender);
 		}
 		
-		if (args[0].equalsIgnoreCase("thaw")){
-			ThawSubCommand thaw = new ThawSubCommand(plugin,sender);
-		}
-		
 		if (args[0].equalsIgnoreCase("add")){
 			if (sender.hasPermission("oasisextras.staff.bcastadd")) {
 				StringBuffer buffer = new StringBuffer();

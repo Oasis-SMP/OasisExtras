@@ -8,10 +8,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 public class TimerCommand implements CommandExecutor{
 	
 	int time;
+	public BukkitTask tasktimer;
 	private OasisExtras plugin;
 	
 	public TimerCommand (OasisExtras plugin){
@@ -48,12 +50,12 @@ public class TimerCommand implements CommandExecutor{
 	}
 	
 	public void timer(final World world, final String msg){
-		int tasktimer = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable(){
+		tasktimer = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
 			@Override
 			public void run(){
 				final int minutes = time / 60;
 				Player[] players = plugin.getServer().getOnlinePlayers();
-				if (time % 60 == 0 && time > 60 && Integer.toString(minutes).endsWith("0")){
+				if (time % 60 == 0 && time > 60){
 					for (Player player : players){
 						if (player.getWorld().equals(world)){
 							player.sendMessage(ChatColor.RED + Integer.toString(minutes) + " MINUTES!");
@@ -70,21 +72,21 @@ public class TimerCommand implements CommandExecutor{
 				else if (time == 30){
 					for (Player player : players){
 						if (player.getWorld().equals(world)){
-							player.sendMessage(ChatColor.RED + Integer.toString(minutes) + " SECONDS!");
+							player.sendMessage(ChatColor.RED + Integer.toString(time) + " SECONDS!");
 						}
 					}
 				}
 				else if (time == 15){
 					for (Player player : players){
 						if (player.getWorld().equals(world)){
-							player.sendMessage(ChatColor.RED + Integer.toString(minutes) + " SECONDS!");
+							player.sendMessage(ChatColor.RED + Integer.toString(time) + " SECONDS!");
 						}
 					}
 				}
 				else if (time < 11 && time > 0){
 					for (Player player : players){
 						if (player.getWorld().equals(world)){
-							player.sendMessage(ChatColor.RED + Integer.toString(minutes) + " SECONDS!");
+							player.sendMessage(ChatColor.RED + Integer.toString(time) + " SECONDS!");
 						}
 					}
 				}
@@ -94,6 +96,7 @@ public class TimerCommand implements CommandExecutor{
 							player.sendMessage(ChatColor.RED + msg);
 						}
 					}
+					tasktimer.cancel();
 				}
 				time--;
 			}

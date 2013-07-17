@@ -78,10 +78,9 @@ public class OasisExtrasCMD {
 			int x = this.randomNum(min, max);
 			int y = this.randomNum(64, 75);
 			int z = this.randomNum(min, max);
-			
 			newloc = new Location(world, loc.getBlockX()+x, y, loc.getBlockZ()+z);//Location to tp to, and players bottom half
-			Location block1 = new Location(world, x, (y-1), z);//Block under player
-			Location block2 = new Location(world, x, (y + 1), z);//player location top
+			Location block1 = new Location(world, newloc.getBlockX(), (y-1), newloc.getBlockZ());//Block under player
+			Location block2 = new Location(world, newloc.getBlockX(), (y + 1), newloc.getBlockZ());//player location top
 			if ((block2.getBlock().isEmpty() == true) && //is this air at top of player?
 					(loc.getBlock().isEmpty() == true) && //is this air at bottom of player?
 					(block1.getBlock().isLiquid() == false) && // lava n water

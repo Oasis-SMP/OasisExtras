@@ -28,6 +28,14 @@ public class MyConfigFile {
 		this.configFile = new File(plugin.getDataFolder(), fileName);
 		fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
 	}
+	
+	public boolean exist(){
+		if (configFile.exists()){
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public void reloadConfig() {
 

@@ -1,15 +1,36 @@
 name: OasisExtras
 main: net.charter.orion_pax.OasisExtras.OasisExtras
-version: 1.0
+version: 2.0
 description: Oasis Extra commands!
 author: Paxination
 depend: [Essentials]
 commands:
+  alock:
+    description:  Locks animal to a player.
+    usage:
+    permission: oasisextras.player.alock
+    permission-message: You don't have permissions for <permission>
+  aunlock:
+    description:  Unlocks a locked animal.
+    usage:
+    permission: oasisextras.player.aunlock
+    permission-message: You don't have permissions for <permission>
+  aladd:
+    description:  Adds other users to the list of perms to use/kill locked animals.
+    usage:
+    permission: oasisextras.player.aladd
+    permission-message: You don't have permissions for <permission>
+  aldel:
+    description:  Removes other users from the list of perms to use/kill locked animals.
+    usage:
+    permission: oasisextras.player.aldel
+    permission-message: You don't have permissions for <permission>
   animalregen:
     description:  Randomly spawns animals in a radius.
+    aliases: ar
     usage:
     permission: oasisextras.staff.animalregen
-    permission: You don't have permissions for <permission>
+    permission-message: You don't have permissions for <permission>
     
   timer:
     description:  Starts an in game timer!
@@ -19,6 +40,7 @@ commands:
     
   oasisextras:
     description:  Reloads OasisExtras config
+    aliases: oe
     usage:
     permission: oasisextras.staff.oasisextras
     permission-message: You don't have permissions for <permission>
@@ -26,17 +48,19 @@ commands:
   random:
     description:  TP to a random location!
     usage:
-    permission: oasisextras.random
+    permission: oasisextras.player.random
     permission-message: You don't have permissions for <permission>
     
   enableme:
     description:  Funny broadcast message!
+    aliases: eme
     usage:
     permission: oasisextras.staff.enableme
     permission-message: You don't have permissions for <permission>
     
   disableme:
     description:  Funny broadcast message!
+    aliases: dme
     usage:
     permission: oasisextras.staff.disableme
     permission-message: You don't have permissions for <permission>
@@ -55,6 +79,7 @@ commands:
     
   thunderstruck:
     description: Broadcasts a msg
+    aliases: strike
     usage: "Usage: /<command> Your message here!"
     permission: oasisextras.staff.thunderstruck
     permission-message: You don't have permissions for <permission>
@@ -96,6 +121,13 @@ commands:
     permission-message: You don't have permissions for <permission>
     
 permissions:
+    oasisextras.player.*:
+        description: Gives access to all player commands
+        children:
+            oasisextras.player.appletree: true
+            oasisextras.player.catndog: true
+            oasisextras.player.random: true
+            
     oasisextras.staff.mod:
         description: Gives access to all staff commands
         children:

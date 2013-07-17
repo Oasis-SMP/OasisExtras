@@ -3,6 +3,7 @@ package net.charter.orion_pax.OasisExtras;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -19,6 +20,9 @@ public class OasisExtrasTask {
 		public void run(){
 			plugin.saveConfig();
 			plugin.appletreefile.saveConfig();
+			for (Player player : plugin.getServer().getOnlinePlayers()){
+				plugin.oasisplayer.get(player.getName()).saveConfig();
+			}
 		}
 	};
 	
