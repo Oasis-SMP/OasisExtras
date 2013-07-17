@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Cow;
 import org.bukkit.entity.Entity;
@@ -54,6 +55,7 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
+		plugin.getServer().broadcast(event.getEventName().toString(), "oasischat.staff.a");
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
 			if (player.hasPermission("oasisextras.player.catndog")){
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){
@@ -91,6 +93,7 @@ public class OasisExtrasListener implements Listener{
 							plugin.treecount++;
 							plugin.saveTree(loc, player.getName());
 							plugin.appletree.put(loc, new TreeTask(plugin, loc, plugin.AppleDelay, "tree" + plugin.treecount));
+							plugin.appletreefile.saveConfig();
 							if (player.getItemInHand().getAmount() == 16) {
 								player.getInventory().setItemInHand(null);
 								return;
@@ -107,11 +110,13 @@ public class OasisExtrasListener implements Listener{
 	
 	@EventHandler
 	public void OnPlayerQuit(PlayerQuitEvent event){
+		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
 		plugin.oasisplayer.remove(event.getPlayer().getName());
 	}
 	
 	@EventHandler
 	public void OnPlayerKick(PlayerKickEvent event){
+		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
 		plugin.oasisplayer.remove(event.getPlayer().getName());
 	}
 
@@ -163,33 +168,47 @@ public class OasisExtrasListener implements Listener{
 		if (event.getDamager() instanceof Player){
 			if (plugin.oasisplayer.get(((Player) event.getDamager()).getName()).isFrozen()){
 				event.setCancelled(true);
+				return;
 			}
 		}
+		
+		//protecting animal code
 		Iterator i = plugin.oasisplayer.entrySet().iterator();
 		while(i.hasNext()){
 			Entry entry = (Entry) i.next();
-			if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(event.getEntity().getUniqueId())){
+			if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(event.getEntity().getUniqueId().toString())){
 				if (event.getDamager() instanceof Player){
 					if (((Player) event.getDamager()).getName()!= (String) entry.getKey()){
 						event.setCancelled(true);
+						return;
+					}
+				} else if(event.getDamager() instanceof Arrow){
+					Entity shooter = ((Arrow)event.getDamager()).getShooter();
+					if( shooter instanceof Player){
+						Player player = (Player) shooter;
+						if (((Player) event.getDamager()).getName()!= (String) entry.getKey()){
+							event.setCancelled(true);
+							return;
+						}
 					}
 				}
 			}
 		}
+		
+		//Tagging code
 		if (event.getDamager() instanceof Player){
 			Player player = (Player) event.getDamager();
 			if (plugin.oasisplayer.get(player.getName()).isTagging()){
 				Entity entity = event.getEntity();
 				if (getMobs(entity)) {
-					plugin.oasisplayer.get(player.getName()).lockAnimal(entity.getUniqueId());
-					LivingEntity living = (LivingEntity) entity;
-					living.setCustomNameVisible(true);
-					living.setCustomName(player.getName() + "'s " + living.getType().toString());
-					player.sendMessage(ChatColor.RED + "LOCKED!");
+					plugin.oasisplayer.get(player.getName()).lockAnimal(entity.getUniqueId().toString());
+					plugin.oasisplayer.get(player.getName()).setTagging(false);
+					plugin.oasisplayer.get(player.getName()).saveMe();
+					event.setCancelled(true);
+					return;
 				} else {
 					player.sendMessage(ChatColor.RED + "That mob type cant be LOCKED!");
 				}
-				event.setCancelled(true);
 			}
 		}
 	}
@@ -206,6 +225,7 @@ public class OasisExtrasListener implements Listener{
 			TreeTask temp = (TreeTask) plugin.appletree.get(event.getBlock().getLocation());
 			plugin.delTree(temp.mytree());
 			plugin.appletree.remove(event.getBlock().getLocation());
+			plugin.appletreefile.saveConfig();
 			return;
 		}
 

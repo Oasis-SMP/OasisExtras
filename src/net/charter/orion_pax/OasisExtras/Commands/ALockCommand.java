@@ -31,6 +31,7 @@ public class ALockCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = (Player) sender;
 		if (args.length==0){
+			plugin.oasisplayer.get(player.getName()).setTagging(true);
 			timer(player);
 			return true;
 		}
@@ -49,6 +50,9 @@ public class ALockCommand implements CommandExecutor {
 			int count =1;
 			@Override
 			public void run() {
+				if (!plugin.oasisplayer.get(player.getName()).isTagging()){
+					task.cancel();
+				}
 				player.sendMessage(ChatColor.GREEN + Integer.toString(i) + "!");
 				i--;
 				if (count>i){

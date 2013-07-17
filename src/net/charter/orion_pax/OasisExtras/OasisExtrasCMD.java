@@ -32,8 +32,7 @@ public class OasisExtrasCMD {
 			message = ChatColor.RED + sender.getName() + " Slapped you for" + msg + "!";
 			message2 = ChatColor.GRAY + "You slapped " + player.getName() + " for " + msg + "!";
 		}
-		double d = 0;
-		((LivingEntity) player).damage(d);
+		((LivingEntity) player).damage(0D);
 		player.setNoDamageTicks(200);
 		player.setVelocity(vector);
 		player.sendMessage(message);

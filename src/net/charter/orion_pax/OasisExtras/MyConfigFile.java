@@ -26,7 +26,6 @@ public class MyConfigFile {
 		if (dataFolder == null)
 			throw new IllegalStateException();
 		this.configFile = new File(plugin.getDataFolder(), fileName);
-		fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
 	}
 	
 	public boolean exist(){
@@ -38,7 +37,7 @@ public class MyConfigFile {
 	}
 
 	public void reloadConfig() {
-
+		fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
 		// Look for defaults in the jar
 		InputStream defConfigStream = plugin.getResource(fileName);
 		if (defConfigStream != null) {
@@ -61,6 +60,7 @@ public class MyConfigFile {
 		} else {
 			try {
 				getConfig().save(configFile);
+				plugin.getLogger().info("Config saved");
 			} catch (IOException ex) {
 				plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);
 			}

@@ -19,5 +19,6 @@ public class AddSubCommand {
 		plugin.getConfig().set("broadcastmessages", msglist);
 		plugin.bcastmsgs = plugin.getConfig().getStringList("broadcastmessages");
 		sender.sendMessage(ChatColor.GOLD + "New message added to broadcast rotation!");
+		plugin.saveConfig();
 	}
 }

@@ -18,5 +18,6 @@ public class DelSubCommand {
 		plugin.getConfig().set("broadcastmessages", msglist);
 		plugin.bcastmsgs = plugin.getConfig().getStringList("broadcastmessages");
 		sender.sendMessage(ChatColor.GOLD + "Message deleted!");
+		plugin.saveConfig();
 	}
 }

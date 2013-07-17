@@ -80,7 +80,6 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("timer").setExecutor(new TimerCommand(this));
 		getCommand("animalregen").setExecutor(new AnimalRegenCommand(this));
 		getCommand("alock").setExecutor(new ALockCommand(this));
-		getCommand("aunlock").setExecutor(new AUnLockCommand(this));
 		getCommand("aladd").setExecutor(new ALAddCommand(this));
 		getCommand("aldel").setExecutor(new ALDelCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
@@ -92,7 +91,6 @@ public class OasisExtras extends JavaPlugin{
 
 	@Override
 	public void onDisable(){
-		task.savethistask.cancel();
 		task.savethisworld.cancel();
 		task.bcasttask.cancel();
 		task.remindmetask.cancel();
@@ -116,7 +114,6 @@ public class OasisExtras extends JavaPlugin{
 		default_max = Integer.parseInt(getConfig().getString("max_default_location"));
 		ndt = Integer.parseInt(getConfig().getString("default_invulnerability_ticks"));
 		bcastcount = 0;
-		task.savethistask.runTaskTimer(this, 10, 1200);
 		task.savethisworld.runTaskTimer(this, savealltimer, savealltimer);
 		task.bcasttask.runTaskTimer(this, extras.randomNum(0, 18000), bcasttimer);
 		task.remindmetask.runTaskTimer(this, savealltimer-warningtime, savealltimer);

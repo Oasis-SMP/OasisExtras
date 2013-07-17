@@ -22,11 +22,12 @@ public class RadiusSubCommand {
 		List<Entity> entities = player.getNearbyEntities(10, 10, 10);
 		for (Entity entity : entities){
 			if(getMobs(entity)){
-				plugin.oasisplayer.get(player.getName()).lockAnimal(entity.getUniqueId());
+				plugin.oasisplayer.get(player.getName()).lockAnimal(entity.getUniqueId().toString());
 				LivingEntity living = (LivingEntity) entity;
 				living.setCustomName(player.getName() + "'s " + living.getType().toString());
 				living.setCustomNameVisible(true);
 				player.sendMessage(ChatColor.RED + living.getType().toString() + " locked!");
+				plugin.oasisplayer.get(player.getName()).saveMe();
 			}
 		}
 	}

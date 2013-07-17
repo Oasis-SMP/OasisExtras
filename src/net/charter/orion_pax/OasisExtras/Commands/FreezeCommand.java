@@ -25,11 +25,13 @@ public class FreezeCommand implements CommandExecutor{
 					plugin.oasisplayer.get(target.getName()).unFreezeMe();
 					sender.sendMessage(ChatColor.RED + target.getName() + ChatColor.BLUE + " is now THAWED!");
 					target.sendMessage(ChatColor.GOLD + "You are now " + ChatColor.BLUE + "THAWED!");
+					plugin.oasisplayer.get(target.getName()).saveMe();
 					return true;
 				} else {
 					if (plugin.oasisplayer.get(target.getName()).freezeMe()){
 						sender.sendMessage(ChatColor.RED + target.getName() + ChatColor.AQUA + " is now FROZEN!");
 						target.sendMessage(ChatColor.GOLD + "You are now " + ChatColor.AQUA + "FROZEN!");
+						plugin.oasisplayer.get(target.getName()).saveMe();
 						return true;
 					} else {
 						sender.sendMessage("Can not freeze staff");

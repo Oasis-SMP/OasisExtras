@@ -15,18 +15,6 @@ public class OasisExtrasTask {
 		this.plugin = plugin;
 	}
 	
-	BukkitRunnable savethistask = new BukkitRunnable(){
-		@Override
-		public void run(){
-			plugin.saveConfig();
-			plugin.appletreefile.saveConfig();
-			for (Player player : plugin.getServer().getOnlinePlayers()){
-				plugin.oasisplayer.get(player.getName()).saveConfig();
-			}
-		}
-	};
-	
-	
 	BukkitRunnable savethisworld = new BukkitRunnable(){
 		@Override
 		public void run(){
