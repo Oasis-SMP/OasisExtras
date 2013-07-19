@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Cow;
@@ -27,6 +28,7 @@ import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Wolf;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,6 +36,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -41,6 +44,7 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.HorseInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -55,7 +59,7 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
-		plugin.getServer().broadcast(event.getEventName().toString(), "oasischat.staff.a");
+		plugin.getServer().broadcast(event.getEventName().toString(), "debug");
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
 			if (player.hasPermission("oasisextras.player.catndog")){
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){
@@ -92,7 +96,7 @@ public class OasisExtrasListener implements Listener{
 						if (loc.getWorld().generateTree(loc, TreeType.BIG_TREE)) {
 							plugin.treecount++;
 							plugin.saveTree(loc, player.getName());
-							plugin.appletree.put(loc, new TreeTask(plugin, loc, plugin.AppleDelay, "tree" + plugin.treecount));
+							plugin.appletree.put(loc, new TreeTask(plugin, loc, "tree" + plugin.treecount));
 							plugin.appletreefile.saveConfig();
 							if (player.getItemInHand().getAmount() == 16) {
 								player.getInventory().setItemInHand(null);
@@ -163,6 +167,23 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 	
+//	@EventHandler(priority = EventPriority.MONITOR)
+//	public void TestEvent(Event event){
+//		plugin.getServer().broadcast(event.getEventName().toString(), "debug");
+//	}
+	
+	@EventHandler()
+	public void OnPlayerOpenInventory(InventoryOpenEvent event){
+		Player player = (Player) event.getPlayer();
+		if (event.getInventory().getHolder() instanceof Horse){
+			player.sendMessage("YES");
+		}
+		
+		if (event.getInventory().getHolder() instanceof Chest){
+			player.sendMessage("YES");
+		}
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerAttack(EntityDamageByEntityEvent event){
 		if (event.getDamager() instanceof Player){
@@ -186,7 +207,7 @@ public class OasisExtrasListener implements Listener{
 					Entity shooter = ((Arrow)event.getDamager()).getShooter();
 					if( shooter instanceof Player){
 						Player player = (Player) shooter;
-						if (((Player) event.getDamager()).getName()!= (String) entry.getKey()){
+						if (player.getName()!= (String) entry.getKey()){
 							event.setCancelled(true);
 							return;
 						}

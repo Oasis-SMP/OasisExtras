@@ -67,8 +67,10 @@ public class OasisExtrasCMD {
 		return randomNum;
 	}
 
-	public Location getRandomLoc(Location loc, int min, int max, World world) {
+	public Location getRandomLoc(Player player, int min, int max) {
 		// Location coordinates
+		Location loc = player.getLocation();
+		World world = player.getWorld();
 		Location newloc = null;
 		boolean test = false;// variable to tell while loop that we found good area
 		//int loop=0;
@@ -87,8 +89,30 @@ public class OasisExtrasCMD {
 				test=true;
 			}
 		}
-		Chunk thischunk = newloc.getChunk();
-		thischunk.load(true);
+		return newloc;
+	}
+	
+	public Location getRandomMobLoc(Player player, int min, int max) {
+		// Location coordinates
+		Location loc = player.getLocation();
+		World world = player.getWorld();
+		Location newloc = null;
+		boolean test = false;// variable to tell while loop that we found good area
+		//int loop=0;
+		while (test == false){
+			//loop++;
+			int x = this.randomNum(min, max);
+			int z = this.randomNum(min, max);
+			newloc = new Location(world, loc.getBlockX()+x, loc.getBlockY(), loc.getBlockZ()+z);//Location to tp to, and players bottom half
+			Location block1 = new Location(world, newloc.getBlockX(), loc.getBlockY()-1, newloc.getBlockZ());//Block under player
+			Location block2 = new Location(world, newloc.getBlockX(), loc.getBlockY()+1, newloc.getBlockZ());//player location top
+			if ((block2.getBlock().isEmpty() == true) && //is this air at top of player?
+					(loc.getBlock().isEmpty() == true) && //is this air at bottom of player?
+					(block1.getBlock().isLiquid() == false) && // lava n water
+					(block1.getBlock().getTypeId() !=0)){ // air under player
+				test=true;
+			}
+		}
 		return newloc;
 	}
 }

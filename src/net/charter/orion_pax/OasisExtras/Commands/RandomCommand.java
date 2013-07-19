@@ -38,11 +38,11 @@ public class RandomCommand implements CommandExecutor{
 				if (rplayer.isInsideVehicle() && rplayer.getVehicle() instanceof Horse) {
 					Entity horse = rplayer.getVehicle();
 					horse.eject();
-					rplayer.teleport(plugin.extras.getRandomLoc(rplayer.getLocation(), plugin.default_min, plugin.default_max, rplayerworld));
+					rplayer.teleport(plugin.extras.getRandomLoc(rplayer, plugin.default_min, plugin.default_max));
 					horse.teleport(rplayer.getLocation());
 					horse.setPassenger(rplayer);
 				} else {
-					rplayer.teleport(plugin.extras.getRandomLoc(rplayer.getLocation(), plugin.default_min, plugin.default_max, rplayerworld));
+					rplayer.teleport(plugin.extras.getRandomLoc(rplayer, plugin.default_min, plugin.default_max));
 				}
 				rplayer.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
 				return true;
@@ -57,11 +57,11 @@ public class RandomCommand implements CommandExecutor{
 			if (player.isInsideVehicle() && player.getVehicle() instanceof Horse) {
 				Entity horse = player.getVehicle();
 				horse.eject();
-				player.teleport(plugin.extras.getRandomLoc(player.getLocation(), plugin.default_min, plugin.default_max, default_world));
+				player.teleport(plugin.extras.getRandomLoc(player, plugin.default_min, plugin.default_max));
 				horse.teleport(player.getLocation());
 				horse.setPassenger(player);
 			} else {
-				player.teleport(plugin.extras.getRandomLoc(player.getLocation(), plugin.default_min, plugin.default_max, default_world));
+				player.teleport(plugin.extras.getRandomLoc(player, plugin.default_min, plugin.default_max));
 			}
 			player.sendMessage(ChatColor.GOLD+"You have been randomly teleported!");
 			return true;
@@ -73,11 +73,11 @@ public class RandomCommand implements CommandExecutor{
 				if (bcsplayer.isInsideVehicle() && bcsplayer.getVehicle() instanceof Horse) {
 					Entity horse = bcsplayer.getVehicle();
 					horse.eject();
-					bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+					bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
 					horse.teleport(bcsplayer.getLocation());
 					horse.setPassenger(bcsplayer);
 				} else {
-					bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+					bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
 				}
 				player.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
 				return true;
@@ -93,11 +93,11 @@ public class RandomCommand implements CommandExecutor{
 					if (bcsplayer.isInsideVehicle() && bcsplayer.getVehicle() instanceof Horse) {
 						Entity horse = bcsplayer.getVehicle();
 						horse.eject();
-						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
 						horse.teleport(bcsplayer.getLocation());
 						horse.setPassenger(bcsplayer);
 					} else {
-						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer.getLocation(), plugin.default_min, plugin.default_max, bcsplayerworld));
+						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
 					}
 					bcsplayer.sendMessage(ChatColor.GOLD
 							+ "You have been randomly teleported!");

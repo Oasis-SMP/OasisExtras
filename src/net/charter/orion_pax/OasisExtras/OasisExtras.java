@@ -26,8 +26,7 @@ public class OasisExtras extends JavaPlugin{
 	public int ndt;
 	int bcastcount;
 	int warningtime;
-	int treecount=0, AppleDelay;
-	double percent;
+	int treecount=0;
 	long  savealltimer,bcasttimer;
 	public List<String> bcastmsgs;
 	public MyConfigFile appletreefile;
@@ -79,9 +78,10 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("thunderstruck").setExecutor(new ThunderStruckCommand(this));
 		getCommand("timer").setExecutor(new TimerCommand(this));
 		getCommand("animalregen").setExecutor(new AnimalRegenCommand(this));
-		getCommand("alock").setExecutor(new ALockCommand(this));
-		getCommand("aladd").setExecutor(new ALAddCommand(this));
-		getCommand("aldel").setExecutor(new ALDelCommand(this));
+		if (this.getConfig().getBoolean("alock")) {
+			getCommand("alock").setExecutor(new ALockCommand(this));
+		}
+		getCommand("hoard").setExecutor(new HoardCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		effectslist = extras.effects();
@@ -100,8 +100,6 @@ public class OasisExtras extends JavaPlugin{
 	}
 
 	public void setup(){
-		percent = getConfig().getDouble("Percent")/100;
-		AppleDelay = getConfig().getInt("AppleProduceDelay");
 		newbiekit = getConfig().getIntegerList("newbiekit");
 		newbiejoin = getConfig().getString("newplayermsg");
 		warningtime = getConfig().getInt("warningdelay")*1200;
@@ -144,7 +142,7 @@ public class OasisExtras extends JavaPlugin{
 			int y = appletreefile.getConfig().getInt("appletrees." + tree + ".y");
 			int z = appletreefile.getConfig().getInt("appletrees." + tree + ".z");
 			Location loc = new Location(world,x,y,z);
-			appletree.put(loc, new TreeTask(this,loc, 0,tree));
+			appletree.put(loc, new TreeTask(this,loc,tree));
 		}
 	}
 }

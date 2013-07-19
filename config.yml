@@ -40,3 +40,11 @@ newbiekit:
 # 1 min = 1200, 1 MC day = 20 mins = 24000 ticks
 AppleProduceDelay: 24000
 Percent: 20
+maxdistance: 20
+
+#Hoard ownergame world
+gameworld: ownergame
+radius: 10
+
+#Animal Lock, true = enabled
+alock: true

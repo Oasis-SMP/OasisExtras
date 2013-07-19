@@ -52,10 +52,10 @@ public class AnimalRegenCommand implements CommandExecutor{
 			int count =0;
 			@Override
 			public void run() {
-				player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.COW);
-				player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.PIG);
-				player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.CHICKEN);
-				Horse horse = (Horse) player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player.getLocation(), 0, radius, player.getWorld()), EntityType.HORSE);
+				player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player, 0, radius), EntityType.COW);
+				player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player, 0, radius), EntityType.PIG);
+				player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player, 0, radius), EntityType.CHICKEN);
+				Horse horse = (Horse) player.getWorld().spawnEntity(plugin.extras.getRandomLoc(player, 0, radius), EntityType.HORSE);
 				horse.setVariant(getRandomVariant());
 				horse.setColor(getRandomColor());
 				horse.setStyle(getRandomStyle());

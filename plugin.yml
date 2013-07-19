@@ -10,20 +10,10 @@ commands:
     usage:
     permission: oasisextras.player.alock
     permission-message: You don't have permissions for <permission>
-  aunlock:
-    description:  Unlocks a locked animal.
+  hoard:
+    description:  Hoard command!
     usage:
-    permission: oasisextras.player.aunlock
-    permission-message: You don't have permissions for <permission>
-  aladd:
-    description:  Adds other users to the list of perms to use/kill locked animals.
-    usage:
-    permission: oasisextras.player.aladd
-    permission-message: You don't have permissions for <permission>
-  aldel:
-    description:  Removes other users from the list of perms to use/kill locked animals.
-    usage:
-    permission: oasisextras.player.aldel
+    permission: oasisextras.staff.hoard
     permission-message: You don't have permissions for <permission>
   animalregen:
     description:  Randomly spawns animals in a radius.
@@ -127,10 +117,12 @@ permissions:
             oasisextras.player.appletree: true
             oasisextras.player.catndog: true
             oasisextras.player.random: true
+            oasisextras.player.alock: true
             
     oasisextras.staff.mod:
         description: Gives access to all staff commands
         children:
+            oasisextras.staff.hoard: true
             oasisextras.staff.thunderstruck: true
             oasisextras.staff.bcastadd: true
             oasisextras.staff.bcastdel: true
@@ -141,6 +133,7 @@ permissions:
     oasisextras.staff.guide:
         description: Guide perm nodes
         children:
+            oasisextras.staff.timer: true
             oasisextras.staff.enableme: true
             oasisextras.staff.disableme: true
             oasisextras.staff.freeze: true
