@@ -3,7 +3,10 @@ package net.charter.orion_pax.OasisExtras.Commands;
 import net.charter.orion_pax.OasisExtras.OasisExtras;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -11,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 public class RandomCommand implements CommandExecutor{
 	
@@ -19,6 +23,10 @@ public class RandomCommand implements CommandExecutor{
 	public RandomCommand (OasisExtras plugin){
 		this.plugin = plugin;
 	}
+	
+	BukkitTask randomTask;
+	Location newloc;
+	Horse horse;
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -36,15 +44,10 @@ public class RandomCommand implements CommandExecutor{
 				World rplayerworld=rplayer.getWorld();
 				rplayer.setNoDamageTicks(plugin.ndt);
 				if (rplayer.isInsideVehicle() && rplayer.getVehicle() instanceof Horse) {
-					Entity horse = rplayer.getVehicle();
-					horse.eject();
-					rplayer.teleport(plugin.extras.getRandomLoc(rplayer, plugin.default_min, plugin.default_max));
-					horse.teleport(rplayer.getLocation());
-					horse.setPassenger(rplayer);
+					getRandomLoc(rplayer, plugin.default_min, plugin.default_max,true);
 				} else {
-					rplayer.teleport(plugin.extras.getRandomLoc(rplayer, plugin.default_min, plugin.default_max));
+					getRandomLoc(rplayer, plugin.default_min, plugin.default_max,false);
 				}
-				rplayer.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
 				return true;
 			} else {
 				sender.sendMessage("Too many arguments!");
@@ -55,15 +58,10 @@ public class RandomCommand implements CommandExecutor{
 			World default_world = player.getWorld();
 			player.setNoDamageTicks(plugin.ndt);
 			if (player.isInsideVehicle() && player.getVehicle() instanceof Horse) {
-				Entity horse = player.getVehicle();
-				horse.eject();
-				player.teleport(plugin.extras.getRandomLoc(player, plugin.default_min, plugin.default_max));
-				horse.teleport(player.getLocation());
-				horse.setPassenger(player);
+				getRandomLoc(player, plugin.default_min, plugin.default_max, true);
 			} else {
-				player.teleport(plugin.extras.getRandomLoc(player, plugin.default_min, plugin.default_max));
+				getRandomLoc(player, plugin.default_min, plugin.default_max, false);
 			}
-			player.sendMessage(ChatColor.GOLD+"You have been randomly teleported!");
 			return true;
 		} else if(args.length==1){
 			if (sender instanceof BlockCommandSender){
@@ -71,15 +69,10 @@ public class RandomCommand implements CommandExecutor{
 				World bcsplayerworld = bcsplayer.getWorld();
 				bcsplayer.setNoDamageTicks(plugin.ndt);
 				if (bcsplayer.isInsideVehicle() && bcsplayer.getVehicle() instanceof Horse) {
-					Entity horse = bcsplayer.getVehicle();
-					horse.eject();
-					bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
-					horse.teleport(bcsplayer.getLocation());
-					horse.setPassenger(bcsplayer);
+					getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max, true);
 				} else {
-					bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
+					getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max,false);
 				}
-				player.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
 				return true;
 			} else if(sender.hasPermission("oasischat.staff.a")){
 				Player bcsplayer = plugin.getServer().getPlayer(args[0]);
@@ -91,16 +84,10 @@ public class RandomCommand implements CommandExecutor{
 					World bcsplayerworld = bcsplayer.getWorld();
 					bcsplayer.setNoDamageTicks(plugin.ndt);
 					if (bcsplayer.isInsideVehicle() && bcsplayer.getVehicle() instanceof Horse) {
-						Entity horse = bcsplayer.getVehicle();
-						horse.eject();
-						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
-						horse.teleport(bcsplayer.getLocation());
-						horse.setPassenger(bcsplayer);
+						getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max,true);
 					} else {
-						bcsplayer.teleport(plugin.extras.getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max));
+						getRandomLoc(bcsplayer, plugin.default_min, plugin.default_max,false);
 					}
-					bcsplayer.sendMessage(ChatColor.GOLD
-							+ "You have been randomly teleported!");
 					sender.sendMessage(ChatColor.GOLD + bcsplayer.getName()
 							+ " has been randomly teleported!");
 					return true;
@@ -118,6 +105,104 @@ public class RandomCommand implements CommandExecutor{
 		}
 	}
 	
+	public int randomNum(Integer lownum, double d) {
+		//Random rand = new Random();
+		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
+		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
+		return randomNum;
+	}
 	
+	public void getRandomLoc(final Player player, final int min, final int max, final boolean vehicle){
+		final Location loc = player.getLocation();
+		final World world = player.getWorld();
+		
+		randomTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
+			@Override
+			public void run(){
+				double x = loc.getBlockX() + randomNum(min, max)+0.5;
+				double z = loc.getBlockZ() + randomNum(min, max)+0.5;
+				double y;
+				if (world.getEnvironment().equals(World.Environment.NETHER)){
+					y = loc.getBlockY() + randomNum(-100, 100);
+				} else {
+					y = loc.getWorld().getHighestBlockYAt((int)x,(int)z);
+				}
+				newloc = new Location(world, x, y, z);//Location to tp to, and players bottom half
+				 Block newblock=newloc.getBlock();
+				 Block underplayer = newblock.getRelative(0,-1,0);//Block under player
+				 Block topblock = newblock.getRelative(0,1,0);//player location top
+				 
+				 if (world.getEnvironment().equals(World.Environment.NETHER)){
+					 if (y>0 && y<128) {
+							if (newblock.isEmpty()) {
+								if (topblock.isEmpty()) {
+									if (!underplayer.isLiquid()) {
+										if (underplayer.isEmpty()==false) {
+											if (!newloc.equals(loc)) {
+												if (!underplayer.getType().equals(Material.CACTUS)) {
+													player.sendMessage(ChatColor.GOLD + "Prepare for teleport!");
+													newloc.getChunk().load();
+													plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+														@Override
+														public void run(){
+															if (vehicle) {
+																horse = (Horse) player.getVehicle();
+																horse.eject();
+															}
+															player.teleport(newloc);
+															if (vehicle) {
+																horse.teleport(player);
+																horse.setPassenger(player);
+															}
+															player.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
+														}
+													}, 40L);
+													randomTask.cancel();
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					} else {
+						if (y>0 && y<world.getMaxHeight()) {
+							if (newblock.isEmpty()) {
+								if (topblock.isEmpty()) {
+									if (!underplayer.isLiquid()) {
+										if (underplayer.isEmpty()==false) {
+											if (!newloc.equals(loc)) {
+												if (!underplayer.getType().equals(Material.CACTUS)) {
+													player.sendMessage(ChatColor.GOLD + "Prepare for teleport!");
+													newloc.getChunk().load();
+													plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+														@Override
+														public void run(){
+															if (vehicle) {
+																horse = (Horse) player.getVehicle();
+																horse.eject();
+															}
+															player.teleport(newloc);
+															if (vehicle) {
+																horse.teleport(player);
+																horse.setPassenger(player);
+															}
+															player.sendMessage(ChatColor.GOLD + "You have been randomly teleported!");
+														}
+													}, 40L);
+													randomTask.cancel();
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				 
+
+			}
+		},0L, 1L);
+	}
 
 }

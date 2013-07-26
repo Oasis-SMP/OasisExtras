@@ -25,8 +25,7 @@ public class BroCastCommand implements CommandExecutor{
 				buffer.append(args[i]);
 			}
 			String message = buffer.toString();
-			plugin.getServer().broadcastMessage(
-					ChatColor.RED + "[" + ChatColor.DARK_RED + "Brocast" + ChatColor.RED + "] " + ChatColor.GOLD + ChatColor.translateAlternateColorCodes('&', message));
+			plugin.getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', "&c[&4BroCast&c]&6 " + message));
 			return true;
 		} else {
 			return false;

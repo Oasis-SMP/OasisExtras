@@ -7,21 +7,20 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public class SlapCommand implements CommandExecutor{
-	
+
 	private OasisExtras plugin;
-	
+
 	public SlapCommand (OasisExtras plugin){
 		this.plugin = plugin;
 	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!(sender instanceof Player)){
-			plugin.getServer().broadcastMessage(ChatColor.RED + "CONSOLE has slapped " + args[0]);
-		}
 		if (args.length == 0){
 			return false;
 		}
@@ -30,7 +29,8 @@ public class SlapCommand implements CommandExecutor{
 			String msg;
 			if (args.length > 1){
 				StringBuffer buffer = new StringBuffer();
-				for (int i = 1; i < args.length; i++) {
+				buffer.append(args[1]);
+				for (int i = 2; i < args.length; i++) {
 					buffer.append(" ");
 					buffer.append(args[i]);
 				}
@@ -40,7 +40,7 @@ public class SlapCommand implements CommandExecutor{
 			}
 			Player[] onlinePlayers = Bukkit.getServer().getOnlinePlayers();
 			for (Player oplayer : onlinePlayers){
-				plugin.extras.slap(oplayer.getName(),sender,msg);
+				slap(oplayer.getName(),sender,msg);
 			}
 			return true;
 
@@ -48,7 +48,8 @@ public class SlapCommand implements CommandExecutor{
 			String msg;
 			if (args.length > 1){
 				StringBuffer buffer = new StringBuffer();
-				for (int i = 1; i < args.length; i++) {
+				buffer.append(args[1]);
+				for (int i = 2; i < args.length; i++) {
 					buffer.append(" ");
 					buffer.append(args[i]);
 				}
@@ -56,11 +57,36 @@ public class SlapCommand implements CommandExecutor{
 			} else {
 				msg = "none";
 			}
-			plugin.extras.slap(args[0],sender,msg);
+			slap(args[0],sender,msg);
 			return true;
 		}
 	}
-	
-	
+
+	public void slap(String name, CommandSender sender, String msg){
+		String message,message2;
+		Vector vector = new Vector(randomNum(-3,3), 0, randomNum(-3,3));
+		Player player = plugin.getServer().getPlayer(name);
+		if (msg.equalsIgnoreCase("none")){
+			message = ChatColor.RED + sender.getName() + " Slapped you!";
+			message2 = ChatColor.GRAY + "You slapped " + player.getName() + "!";
+		} else {
+			message = ChatColor.RED + sender.getName() + " Slapped you for" + msg + "!";
+			message2 = ChatColor.GRAY + "You slapped " + player.getName() + " for " + msg + "!";
+		}
+		((LivingEntity) player).damage(0D);
+		player.setNoDamageTicks(200);
+		player.setVelocity(vector);
+		player.sendMessage(message);
+		sender.sendMessage(message2);
+	}
+
+	public int randomNum(Integer lownum, double d) {
+		//Random rand = new Random();
+		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
+		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
+		return randomNum;
+	}
+
+
 
 }

@@ -33,7 +33,8 @@ public class OasisPlayer {
 		} else {
 			staff = false;
 		}
-		oasisplayer = new MyConfigFile(plugin, name + ".yml");
+		String filename = "players/" + name + ".yml";
+		oasisplayer = new MyConfigFile(plugin, "players/" + name + ".yml");
 
 		if (!oasisplayer.exist()){
 			oasisplayer.getConfig().createSection("frozenlocation");

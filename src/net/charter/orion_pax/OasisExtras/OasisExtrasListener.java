@@ -16,18 +16,8 @@ import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Chicken;
-import org.bukkit.entity.Cow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Horse;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Ocelot;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Sheep;
-import org.bukkit.entity.Wolf;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -35,18 +25,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.HorseInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 public class OasisExtrasListener implements Listener{
 
@@ -55,11 +41,12 @@ public class OasisExtrasListener implements Listener{
 	public OasisExtrasListener(OasisExtras plugin){
 		this.plugin = plugin;
 	}
+	
+	int joinTimer = 30;
 
 	@EventHandler
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
-		plugin.getServer().broadcast(event.getEventName().toString(), "debug");
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
 			if (player.hasPermission("oasisextras.player.catndog")){
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){
@@ -79,6 +66,7 @@ public class OasisExtrasListener implements Listener{
 						Ocelot cat = (Ocelot) player.getWorld().spawnEntity(event.getClickedBlock().getLocation().add(0, 1, 0), EntityType.OCELOT);
 						cat.setTamed(true);
 						cat.setOwner(player);
+						cat.setCatType(getCatType());
 						if (player.getItemInHand().getAmount() == 10) {
 							player.getInventory().setItemInHand(null);
 							return;
@@ -92,7 +80,7 @@ public class OasisExtrasListener implements Listener{
 			if (player.hasPermission("oasisextras.player.appletree")) {
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT) {
 					if (player.getItemInHand().getType() == Material.APPLE && player.getItemInHand().getAmount() > 15) {
-						Location loc = new Location(event.getClickedBlock().getWorld(), event.getClickedBlock().getX(), event.getClickedBlock().getY() + 1, event.getClickedBlock().getZ());
+						Location loc = event.getClickedBlock().getLocation().add(0, 1, 0);
 						if (loc.getWorld().generateTree(loc, TreeType.BIG_TREE)) {
 							plugin.treecount++;
 							plugin.saveTree(loc, player.getName());
@@ -111,13 +99,7 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
-	@EventHandler
-	public void OnPlayerQuit(PlayerQuitEvent event){
-		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
-		plugin.oasisplayer.remove(event.getPlayer().getName());
-	}
-	
+
 	@EventHandler
 	public void OnPlayerKick(PlayerKickEvent event){
 		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
@@ -125,9 +107,19 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler
+	public void OnPlayerQuit(PlayerQuitEvent event){
+		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
+		plugin.oasisplayer.remove(event.getPlayer().getName());
+	}
+
+	@EventHandler
 	public void OnPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
-		
+
+		if (plugin.paybacklist.containsKey(player.getName())){
+			slap(player.getName(), plugin.console, plugin.paybacklist.get(player.getName()));
+		}
+
 		plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin,player.getName()));
 		if (!player.hasPlayedBefore()){
 			if (!plugin.newbiejoin.isEmpty()) {
@@ -166,24 +158,24 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
-//	@EventHandler(priority = EventPriority.MONITOR)
-//	public void TestEvent(Event event){
-//		plugin.getServer().broadcast(event.getEventName().toString(), "debug");
-//	}
-	
+
+	//	@EventHandler(priority = EventPriority.MONITOR)
+	//	public void TestEvent(Event event){
+	//		plugin.getServer().broadcast(event.getEventName().toString(), "debug");
+	//	}
+
 	@EventHandler()
-	public void OnPlayerOpenInventory(InventoryOpenEvent event){
-		Player player = (Player) event.getPlayer();
-		if (event.getInventory().getHolder() instanceof Horse){
-			player.sendMessage("YES");
-		}
-		
-		if (event.getInventory().getHolder() instanceof Chest){
-			player.sendMessage("YES");
+	public void OnCreatureSpawn(CreatureSpawnEvent event){
+		if (event.getEntityType().equals(EntityType.ZOMBIE)){
+			int i = randomNum(1,333);
+			if (i == 127) {
+				event.getLocation().getWorld().spawnEntity(event.getLocation(), EntityType.GIANT);
+				event.getEntity().remove();
+				event.setCancelled(true);
+			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerAttack(EntityDamageByEntityEvent event){
 		if (event.getDamager() instanceof Player){
@@ -192,7 +184,7 @@ public class OasisExtrasListener implements Listener{
 				return;
 			}
 		}
-		
+
 		//protecting animal code
 		Iterator i = plugin.oasisplayer.entrySet().iterator();
 		while(i.hasNext()){
@@ -215,7 +207,7 @@ public class OasisExtrasListener implements Listener{
 				}
 			}
 		}
-		
+
 		//Tagging code
 		if (event.getDamager() instanceof Player){
 			Player player = (Player) event.getDamager();
@@ -298,28 +290,73 @@ public class OasisExtrasListener implements Listener{
 			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 		}
 	}
-	
+
+	public Ocelot.Type getCatType(){
+		int i = randomNum(1,4);
+		switch(i){
+		case 1:
+			return Ocelot.Type.BLACK_CAT;
+
+		case 2:
+			return Ocelot.Type.RED_CAT;
+
+		case 3:
+			return Ocelot.Type.SIAMESE_CAT;
+
+		case 4:
+			return Ocelot.Type.WILD_OCELOT;
+
+		default:
+			return Ocelot.Type.BLACK_CAT;
+		}
+	}
+
 	public boolean getMobs(Entity entity){
 		if (entity instanceof Horse){
 			return true;
 		}
-		
+
 		if (entity instanceof Cow){
 			return true;
 		}
-		
+
 		if (entity instanceof Pig){
 			return true;
 		}
-		
+
 		if (entity instanceof Chicken){
 			return true;
 		}
-		
+
 		if (entity instanceof Sheep){
 			return true;
 		}
 		return false;
+	}
+
+	public void slap(String name, CommandSender sender, String msg){
+		String message,message2;
+		Vector vector = new Vector(randomNum(-3,3), 0, randomNum(-3,3));
+		Player player = plugin.getServer().getPlayer(name);
+		if (msg.equalsIgnoreCase("none")){
+			message = ChatColor.RED + sender.getName() + " Slapped you!";
+			message2 = ChatColor.GRAY + "You slapped " + player.getName() + "!";
+		} else {
+			message = ChatColor.RED + sender.getName() + " Slapped you for" + msg + "!";
+			message2 = ChatColor.GRAY + "You slapped " + player.getName() + " for " + msg + "!";
+		}
+		((LivingEntity) player).damage(0D);
+		player.setNoDamageTicks(200);
+		player.setVelocity(vector);
+		player.sendMessage(message);
+		sender.sendMessage(message2);
+	}
+
+	public int randomNum(Integer lownum, double d) {
+		//Random rand = new Random();
+		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
+		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
+		return randomNum;
 	}
 
 }

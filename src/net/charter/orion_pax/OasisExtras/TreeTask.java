@@ -23,7 +23,7 @@ public class TreeTask implements Runnable{
 	{
 		this.plugin = plugin;
 		this.loc = loc;
-		this.lucky = plugin.extras.randomNum(1, 20);
+		this.lucky = randomNum(1, 20);
 		this.mytree = mytree;
 
 		percent = plugin.getConfig().getDouble("Percent")/100;
@@ -42,11 +42,11 @@ public class TreeTask implements Runnable{
 	}
 
 	public void run() {
-		int chance = plugin.extras.randomNum(1, 100 * percent);
+		int chance = randomNum(1, 100 * percent);
 		if (chance == lucky) {
 			if (hasNearbyPlayers(loc, maxdistance)) {
-				int x = loc.getBlockX() + plugin.extras.randomNum(-4, 4);
-				int z = loc.getBlockZ() + plugin.extras.randomNum(-4, 4);
+				int x = loc.getBlockX() + randomNum(-4, 4);
+				int z = loc.getBlockZ() + randomNum(-4, 4);
 				Location newloc = new Location(loc.getWorld(), x, loc.getBlockY(), z);
 				loc.getWorld().dropItemNaturally(newloc, apple);
 			}
@@ -62,5 +62,12 @@ public class TreeTask implements Runnable{
 			}
 		}
 		return false;
+	}
+	
+	public int randomNum(Integer lownum, double d) {
+		//Random rand = new Random();
+		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
+		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
+		return randomNum;
 	}
 }

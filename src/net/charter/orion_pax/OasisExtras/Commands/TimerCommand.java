@@ -32,7 +32,6 @@ public class TimerCommand implements CommandExecutor{
 				buffer.append(args[i]);
 			}
 			String message = buffer.toString();
-			int length = args[0].length();
 			if (args[0].endsWith("h")){
 				time=Integer.parseInt(args[0].substring(0, args[0].length()-1))*3600;
 				timer(player.getWorld(),message);

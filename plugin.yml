@@ -3,8 +3,38 @@ main: net.charter.orion_pax.OasisExtras.OasisExtras
 version: 2.0
 description: Oasis Extra commands!
 author: Paxination
-depend: [Essentials]
 commands:
+  kcast:
+    description: Voice of the PEOPLE!
+    usage: "Usage: /<command> Your message here!"
+    permission: oasisextras.staff.kcast
+    permission-message: You don't have permissions for <permission>
+  findme:
+    description: Find an offline user!
+    aliases: [os, offsearch, searchname, psearch]
+    usage:
+    permission: oasisextras.staff.findme
+    permission-message: You don't have permissions for <permission>
+  bdaccept:
+    description: Accept a buildoff invitation!
+    usage:
+    permission: oasisextras.player.bdaccept
+    permission-message: You don't have permissions for <permission>
+  bddeny:
+    description: Deny a buildoff invitation!
+    usage:
+    permission: oasisextras.player.bddeny
+    permission-message: You don't have permissions for <permission>
+  buildoff:
+    description: Start a buildoff!
+    usage:
+    permission: oasisextras.staff.buildoff
+    permission-message: You don't have permissions for <permission>
+  payback:
+    description:  Get yo payback on!
+    usage:
+    permission: oasisextras.staff.payback
+    permission-message: You don't have permissions for <permission>
   alock:
     description:  Locks animal to a player.
     usage:
@@ -118,10 +148,13 @@ permissions:
             oasisextras.player.catndog: true
             oasisextras.player.random: true
             oasisextras.player.alock: true
+            oasisextras.player.bdaccept: true
+            oasisextras.player.bddeny: true
             
     oasisextras.staff.mod:
         description: Gives access to all staff commands
         children:
+            oasisextras.staff.buildoff: true
             oasisextras.staff.hoard: true
             oasisextras.staff.thunderstruck: true
             oasisextras.staff.bcastadd: true

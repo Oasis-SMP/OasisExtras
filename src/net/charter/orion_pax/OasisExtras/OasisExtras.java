@@ -16,9 +16,12 @@ import net.charter.orion_pax.OasisExtras.Commands.*;
 
 public class OasisExtras extends JavaPlugin{
 
-	ConsoleCommandSender console;
+	public ConsoleCommandSender console;
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
 	HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
+	public HashMap<String, String> paybacklist = new HashMap<String, String>();
+	public HashMap<String, Boolean> buildoffinvite = new HashMap<String, Boolean>();
+	public HashMap<String, String> buildofflist = new HashMap<String, String>();
 	String effectslist,savemsg1,savemsg2,newbiejoin;
 	List<Integer> newbiekit;
 	public int default_min;
@@ -56,7 +59,6 @@ public class OasisExtras extends JavaPlugin{
 			,ChatColor.GOLD + "/oasisextras BCAST REMOVE - Removes a msg from the auto bcast list"
 	};
 
-	public OasisExtrasCMD extras = new OasisExtrasCMD(this);
 	public OasisExtrasTask task = new OasisExtrasTask(this);
 
 	@Override
@@ -82,9 +84,14 @@ public class OasisExtras extends JavaPlugin{
 			getCommand("alock").setExecutor(new ALockCommand(this));
 		}
 		getCommand("hoard").setExecutor(new HoardCommand(this));
+		getCommand("payback").setExecutor(new PayBackCommand(this));
+		getCommand("buildoff").setExecutor(new BuildOffCommand(this));
+		getCommand("bdaccept").setExecutor(new BDAcceptCommand(this));
+		getCommand("bddeny").setExecutor(new BDDenyCommand(this));
+		getCommand("findme").setExecutor(new FindMeCommand(this));
+		getCommand("kcast").setExecutor(new KCastCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
-		effectslist = extras.effects();
 		console = Bukkit.getServer().getConsoleSender();
 		getLogger().info("OasisExtras has been enabled!");
 	}
@@ -113,7 +120,7 @@ public class OasisExtras extends JavaPlugin{
 		ndt = Integer.parseInt(getConfig().getString("default_invulnerability_ticks"));
 		bcastcount = 0;
 		task.savethisworld.runTaskTimer(this, savealltimer, savealltimer);
-		task.bcasttask.runTaskTimer(this, extras.randomNum(0, 18000), bcasttimer);
+		task.bcasttask.runTaskTimer(this, randomNum(0, 18000), bcasttimer);
 		task.remindmetask.runTaskTimer(this, savealltimer-warningtime, savealltimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
@@ -131,6 +138,13 @@ public class OasisExtras extends JavaPlugin{
 	public void delTree(String string){
 		treecount--;
 		appletreefile.getConfig().set("appletrees.tree" + string, null);
+	}
+	
+	public int randomNum(Integer lownum, double d) {
+		//Random rand = new Random();
+		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
+		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
+		return randomNum;
 	}
 	
 	public void loadTree(){
