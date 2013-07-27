@@ -1,24 +1,13 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -27,11 +16,12 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.HorseInventory;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 public class OasisExtrasListener implements Listener{
@@ -41,7 +31,7 @@ public class OasisExtrasListener implements Listener{
 	public OasisExtrasListener(OasisExtras plugin){
 		this.plugin = plugin;
 	}
-	
+
 	int joinTimer = 30;
 
 	@EventHandler
@@ -83,7 +73,7 @@ public class OasisExtrasListener implements Listener{
 						Location loc = event.getClickedBlock().getLocation().add(0, 1, 0);
 						if (loc.getWorld().generateTree(loc, TreeType.BIG_TREE)) {
 							plugin.treecount++;
-							plugin.saveTree(loc, player.getName());
+							plugin.saveTree(loc);
 							plugin.appletree.put(loc, new TreeTask(plugin, loc, "tree" + plugin.treecount));
 							plugin.appletreefile.saveConfig();
 							if (player.getItemInHand().getAmount() == 16) {
@@ -93,6 +83,58 @@ public class OasisExtrasListener implements Listener{
 								player.getItemInHand().setAmount(player.getItemInHand().getAmount() - 16);
 								return;
 							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public void OnPlayerOpenInventory(InventoryOpenEvent event){
+		plugin.getServer().broadcast(event.getInventory().getHolder().toString(), "debug");
+		if (event.getInventory().getHolder() instanceof Horse){
+			plugin.getServer().broadcast(event.getInventory().getHolder().toString(), "debug");
+			plugin.getServer().broadcast("OnPlayerOpenInventory - its a horse", "debug");
+			Horse horse = (Horse) event.getInventory().getHolder();
+			Iterator i = plugin.oasisplayer.entrySet().iterator();
+			while(i.hasNext()){
+				Entry entry = (Entry) i.next();
+				if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(horse.getUniqueId().toString())){
+					plugin.getServer().broadcast("and it belongs to some one....", "debug");
+					if (event.getPlayer() instanceof Player){
+						if (event.getPlayer().getName()!= (String) entry.getKey()){
+							plugin.getServer().broadcast("Belongs to " + (String) entry.getKey() + ", not " + event.getPlayer().getName(), "debug");
+							event.setCancelled(true);
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void Vehicletest(VehicleEvent event){
+		plugin.getServer().broadcast(event.getEventName(), "debug");
+	}
+	
+	public void Inventorytest(InventoryEvent event){
+		plugin.getServer().broadcast(event.getEventName(), "debug");
+	}
+
+	public void OnPlayerEnterVehicle(VehicleEnterEvent event){
+		plugin.getServer().broadcast(event.getVehicle().toString(), "debug");
+		if (event.getVehicle() instanceof Horse) {
+			plugin.getServer().broadcast(event.getVehicle().toString(), "debug");
+			Horse horse = (Horse) event.getVehicle();
+			//protecting animal code
+			Iterator i = plugin.oasisplayer.entrySet().iterator();
+			while (i.hasNext()) {
+				Entry entry = (Entry) i.next();
+				if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(horse.getUniqueId().toString())) {
+					if (event.getEntered() instanceof Player) {
+						if (((Player) event.getEntered()).getName() != (String) entry.getKey()) {
+							event.setCancelled(true);
+							return;
 						}
 					}
 				}

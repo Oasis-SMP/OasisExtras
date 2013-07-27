@@ -128,7 +128,7 @@ public class OasisExtras extends JavaPlugin{
 		loadTree();
 	}
 	
-	public void saveTree(Location loc,String owner){
+	public void saveTree(Location loc){
 		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".world", loc.getWorld().getName());
 		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".x", loc.getBlockX());
 		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".y", loc.getBlockY());

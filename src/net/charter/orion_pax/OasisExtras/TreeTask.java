@@ -1,5 +1,7 @@
 package net.charter.orion_pax.OasisExtras;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,10 +16,10 @@ public class TreeTask implements Runnable{
 	private Double percent;
 	private int AppleDelay;
 	private Double maxdistance;
-	
-	
 
-	private OasisExtras plugin;
+
+
+	private final OasisExtras plugin;
 
 	public TreeTask(OasisExtras plugin, Location loc, String mytree)
 	{
@@ -29,7 +31,7 @@ public class TreeTask implements Runnable{
 		percent = plugin.getConfig().getDouble("Percent")/100;
 		AppleDelay = plugin.getConfig().getInt("AppleProduceDelay");
 		maxdistance = plugin.getConfig().getDouble("maxdistance");
-		
+
 		taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, AppleDelay,20);
 	}
 
@@ -49,21 +51,21 @@ public class TreeTask implements Runnable{
 				int z = loc.getBlockZ() + randomNum(-4, 4);
 				Location newloc = new Location(loc.getWorld(), x, loc.getBlockY(), z);
 				loc.getWorld().dropItemNaturally(newloc, apple);
+				//plugin.getServer().broadcast(newloc.toString(), "debug");
+				//plugin.getServer().broadcast(loc.toString(), "debug");
 			}
 		}
 	}
 
 	boolean hasNearbyPlayers(Location loc, double radius) {
-		for(Player p : plugin.getServer().getOnlinePlayers()) {
-			if (p.getWorld().equals(loc.getWorld())) {
-				if (p.getLocation().distanceSquared(loc) <= radius * radius) {
-					return true;
-				}
+		for(Player player : loc.getWorld().getPlayers()) {
+			if (player.getLocation().distanceSquared(loc) <= radius * radius) {
+				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	public int randomNum(Integer lownum, double d) {
 		//Random rand = new Random();
 		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
