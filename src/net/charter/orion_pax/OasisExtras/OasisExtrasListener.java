@@ -90,6 +90,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
+	@EventHandler
 	public void OnPlayerOpenInventory(InventoryOpenEvent event){
 		plugin.getServer().broadcast(event.getInventory().getHolder().toString(), "debug");
 		if (event.getInventory().getHolder() instanceof Horse){
@@ -113,14 +114,17 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 	
+	@EventHandler
 	public void Vehicletest(VehicleEvent event){
 		plugin.getServer().broadcast(event.getEventName(), "debug");
 	}
 	
+	@EventHandler
 	public void Inventorytest(InventoryEvent event){
 		plugin.getServer().broadcast(event.getEventName(), "debug");
 	}
 
+	@EventHandler
 	public void OnPlayerEnterVehicle(VehicleEnterEvent event){
 		plugin.getServer().broadcast(event.getVehicle().toString(), "debug");
 		if (event.getVehicle() instanceof Horse) {
@@ -219,13 +223,17 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void OnPlayerAttack(EntityDamageByEntityEvent event){
+	public void OnFrozenAttack(EntityDamageByEntityEvent event){
 		if (event.getDamager() instanceof Player){
 			if (plugin.oasisplayer.get(((Player) event.getDamager()).getName()).isFrozen()){
 				event.setCancelled(true);
 				return;
 			}
 		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
 
 		//protecting animal code
 		Iterator i = plugin.oasisplayer.entrySet().iterator();
@@ -249,6 +257,10 @@ public class OasisExtrasListener implements Listener{
 				}
 			}
 		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void PlayerTagAnimal(EntityDamageByEntityEvent event){
 
 		//Tagging code
 		if (event.getDamager() instanceof Player){
@@ -269,13 +281,16 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void OnPlayerBreakBlock(BlockBreakEvent event) {
+	public void FrozenBlockBreak(BlockBreakEvent event) {
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
 			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT DESTROY BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 			event.setCancelled(true);
 			return;
 		}
-
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void AppleTreeBreak(BlockBreakEvent event) {
 		if (plugin.appletree.containsKey(event.getBlock().getLocation())){
 			TreeTask temp = (TreeTask) plugin.appletree.get(event.getBlock().getLocation());
 			plugin.delTree(temp.mytree());
@@ -283,6 +298,10 @@ public class OasisExtrasListener implements Listener{
 			plugin.appletreefile.saveConfig();
 			return;
 		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void UnderFrozenBlockBreak(BlockBreakEvent event){
 
 		Iterator i = plugin.oasisplayer.entrySet().iterator();
 		while(i.hasNext()) {
