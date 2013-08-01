@@ -1,7 +1,9 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -9,14 +11,29 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 import net.charter.orion_pax.OasisExtras.Commands.*;
 
 public class OasisExtras extends JavaPlugin{
 
 	public ConsoleCommandSender console;
+//	public ScoreboardManager manager;
+//	public Scoreboard board,emptyBoard;
+//	public Team team;
+//	public Objective objective;
+//	public Score bans,staff,players,kicks;
+	public HashMap<String,Horse> horsetp = new HashMap<String,Horse>();
+	public HashMap<String,Long> hfcooldowns = new HashMap<String,Long>();
+	public HashMap<String, String> highfive = new HashMap<String, String>();
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
 	HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	public HashMap<String, String> paybacklist = new HashMap<String, String>();
@@ -28,6 +45,7 @@ public class OasisExtras extends JavaPlugin{
 	public int default_max;
 	public int ndt;
 	int bcastcount;
+//	int bancount=0,kickcount=0;
 	int warningtime;
 	int treecount=0;
 	long  savealltimer,bcasttimer;
@@ -90,9 +108,33 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("bddeny").setExecutor(new BDDenyCommand(this));
 		getCommand("findme").setExecutor(new FindMeCommand(this));
 		getCommand("kcast").setExecutor(new KCastCommand(this));
+		getCommand("highfive").setExecutor(new HighFiveCommand(this));
+		getCommand("dashboard").setExecutor(new DashBoardCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();
+//		manager = Bukkit.getScoreboardManager();
+//		board = manager.getNewScoreboard();
+//		emptyBoard = manager.getNewScoreboard();
+//		team = board.registerNewTeam("Staff");
+//		objective = board.registerNewObjective("test", "dummy");
+//		players = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players:"));
+//		staff = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Staff:"));
+//		bans = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Bans:"));
+//		kicks = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kicks:"));
+//		team.setPrefix(ChatColor.translateAlternateColorCodes('&', "&4[Staff]&r "));
+//		team.setDisplayName("Team BAN HAMMER");
+//		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+//		objective.setDisplayName("Oasis-SMP");
+//		if(getConfig().contains("bancount")){
+//			bancount=getConfig().getInt("bancount");
+//			bans.setScore(bancount);
+//		}
+//		
+//		if(getConfig().contains("kickcount")){
+//			kickcount=getConfig().getInt("kickcount");
+//			kicks.setScore(kickcount);
+//		}
 		getLogger().info("OasisExtras has been enabled!");
 	}
 
@@ -133,11 +175,24 @@ public class OasisExtras extends JavaPlugin{
 		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".x", loc.getBlockX());
 		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".y", loc.getBlockY());
 		appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".z", loc.getBlockZ());
+		appletreefile.saveConfig();
 	}
 	
-	public void delTree(String string){
-		treecount--;
-		appletreefile.getConfig().set("appletrees.tree" + string, null);
+	public void delTree(){
+		appletreefile.getConfig().set("appletrees", null);
+		treecount=0;
+		Iterator it = appletree.entrySet().iterator();
+		while(it.hasNext()){
+			treecount++;
+			Entry entry = (Entry) it.next();
+			TreeTask mytree = (TreeTask) entry.getValue();
+			mytree.mytree="tree" + Integer.toString(treecount);
+			appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".world", mytree.loc.getWorld().getName());
+			appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".x", mytree.loc.getBlockX());
+			appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".y", mytree.loc.getBlockY());
+			appletreefile.getConfig().set("appletrees.tree" + Integer.toString(treecount) + ".z", mytree.loc.getBlockZ());
+		}
+		appletreefile.saveConfig();
 	}
 	
 	public int randomNum(Integer lownum, double d) {

@@ -7,6 +7,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -24,6 +31,12 @@ public class OasisPlayer {
 	private List<String> alockperm = new ArrayList<String>();
 	private MyConfigFile playerfile;
 	private boolean tag = false;
+	private boolean overriding = false;
+	private Team team;
+	private ScoreboardManager manager;
+	private Scoreboard board;
+	private Score horse,cow,chicken,pig,sheep,villager,ocelot,wolf;
+	private Objective objective;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		name = myname;
@@ -35,10 +48,24 @@ public class OasisPlayer {
 		}
 		String filename = "players/" + name + ".yml";
 		playerfile = new MyConfigFile(plugin, filename);
-
+		
+		manager = Bukkit.getScoreboardManager();
+		board = manager.getNewScoreboard();
+		team = board.registerNewTeam(name);
+		objective = board.registerNewObjective("test", "dummy");
+		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		horse = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Horses:"));
+		cow = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Cows:"));
+		pig = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Pigs:"));
+		sheep = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Sheep:"));
+		villager = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Villagers:"));
+		ocelot = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Ocelots:"));
+		wolf = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Wolves:"));
+		
 		if (!playerfile.exist()){
 			playerfile.getConfig().createSection("frozenlocation");
 			playerfile.getConfig().set("frozen", frozen);
+			playerfile.saveConfig();
 		} else {
 			if (playerfile.getConfig().contains("animals")){
 				animals= playerfile.getConfig().getStringList("animals");
@@ -62,6 +89,7 @@ public class OasisPlayer {
 			if (playerfile.getConfig().contains("alockperm")){
 				alockperm= playerfile.getConfig().getStringList("alockperm");
 			}
+			playerfile.saveConfig();
 		}
 
 	}
@@ -72,8 +100,24 @@ public class OasisPlayer {
 			playerfile.getConfig().set("frozenlocation.y", loc.getBlockY());
 			playerfile.getConfig().set("frozenlocation.z", loc.getBlockZ());
 			playerfile.getConfig().set("frozenlocation.world", loc.getWorld().toString());
+			playerfile.getConfig().set("alockperm",alockperm);
+			playerfile.getConfig().set("animals",animals);
 		}
 		playerfile.saveConfig();
+	}
+	
+	public void toggleOverride(){
+		if(overriding){
+			overriding=false;
+			this.sendMessage(ChatColor.GOLD + "Alock Override is disabled!");
+		} else {
+			overriding=true;
+			this.sendMessage(ChatColor.GOLD + "Alock Override is enabled!");
+		}
+	}
+	
+	public boolean isOverriding(){
+		return overriding;
 	}
 	
 	public boolean isTagging(){
@@ -87,6 +131,7 @@ public class OasisPlayer {
 	public void setPerms(List<String> list){
 		alockperm = list;
 		playerfile.getConfig().set("alockperm", alockperm);
+		playerfile.saveConfig();
 	}
 
 	public List<String> listPerms(){
@@ -98,6 +143,7 @@ public class OasisPlayer {
 			if (!alockperm.contains(name)) {
 				alockperm.add(name);
 				playerfile.getConfig().set("alockperm", alockperm);
+				playerfile.saveConfig();
 			}
 		}
 	}
@@ -107,6 +153,7 @@ public class OasisPlayer {
 			if (alockperm.contains(name)) {
 				alockperm.remove(name);
 				playerfile.getConfig().set("alockperm", alockperm);
+				playerfile.saveConfig();
 			}
 		}
 	}
@@ -127,6 +174,19 @@ public class OasisPlayer {
 	public void setAnimals(List<String> list){
 		animals=list;
 		playerfile.getConfig().set("animals", animals);
+		playerfile.saveConfig();
+	}
+	
+	public List<String> getAnimals(){
+		return animals;
+	}
+	
+	public String getName(){
+		return name;
+	}
+	
+	public void sendMessage(String msg){
+		plugin.getServer().getPlayer(name).sendMessage(msg);
 	}
 
 	public boolean isMyAnimal(String string){
@@ -148,6 +208,7 @@ public class OasisPlayer {
 			playerfile.getConfig().set("frozenlocation.y", loc.getBlockY());
 			playerfile.getConfig().set("frozenlocation.z", loc.getBlockZ());
 			playerfile.getConfig().set("frozenlocation.world", loc.getWorld().toString());
+			playerfile.saveConfig();
 			return true;
 		}
 	}
@@ -156,25 +217,20 @@ public class OasisPlayer {
 		frozen=false;
 		loc = null;
 		playerfile.getConfig().set("frozenlocation", null);
+		playerfile.saveConfig();
 	}
 
-	public void lockAnimal(String animal){
+	public void lockAnimal(Entity entity){
 		if (animals != null) {
-			if (!animals.contains(animal)) {
-				animals.add(animal);
+			if (!animals.contains(entity.getUniqueId().toString())) {
 				playerfile.getConfig().set("animals", animals);
-				Entity entity = getEntity(animal);
-				LivingEntity living = (LivingEntity) entity;
-				living.setCustomName(name + "'s " + living.getType().toString());
 				plugin.getServer().getPlayer(name).sendMessage(ChatColor.RED + "LOCKED!");
 			} else {
-				animals.remove(animal);
+				animals.remove(entity.getUniqueId().toString());
 				playerfile.getConfig().set("animals", animals);
-				Entity entity = getEntity(animal);
-				LivingEntity living = (LivingEntity) entity;
-				living.setCustomName(null);
 				plugin.getServer().getPlayer(name).sendMessage(ChatColor.RED + "UNLOCKED!");
 			}
+			playerfile.saveConfig();
 		}
 	}
 

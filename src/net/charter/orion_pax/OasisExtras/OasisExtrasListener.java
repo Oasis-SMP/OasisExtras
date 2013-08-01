@@ -3,6 +3,7 @@ package net.charter.orion_pax.OasisExtras;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
@@ -16,12 +17,15 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.vehicle.VehicleEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 public class OasisExtrasListener implements Listener{
@@ -33,6 +37,7 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	int joinTimer = 30;
+	int mytask;
 
 	@EventHandler
 	public void OnPlayerInteract(PlayerInteractEvent event){
@@ -91,82 +96,99 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler
-	public void OnPlayerOpenInventory(InventoryOpenEvent event){
-		plugin.getServer().broadcast(event.getInventory().getHolder().toString(), "debug");
-		if (event.getInventory().getHolder() instanceof Horse){
-			plugin.getServer().broadcast(event.getInventory().getHolder().toString(), "debug");
-			plugin.getServer().broadcast("OnPlayerOpenInventory - its a horse", "debug");
-			Horse horse = (Horse) event.getInventory().getHolder();
-			Iterator i = plugin.oasisplayer.entrySet().iterator();
-			while(i.hasNext()){
-				Entry entry = (Entry) i.next();
-				if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(horse.getUniqueId().toString())){
-					plugin.getServer().broadcast("and it belongs to some one....", "debug");
-					if (event.getPlayer() instanceof Player){
-						if (event.getPlayer().getName()!= (String) entry.getKey()){
-							plugin.getServer().broadcast("Belongs to " + (String) entry.getKey() + ", not " + event.getPlayer().getName(), "debug");
-							event.setCancelled(true);
-							return;
-						}
-					}
-				}
-			}
+	public void GrowAppleTree(StructureGrowEvent event){
+		plugin.getServer().broadcast(event.getLocation().toString(), "debug");
+		if (plugin.appletree.containsKey(event.getLocation())){
+			plugin.getServer().broadcast("its an appletree", "debug");
 		}
-	}
-	
-	@EventHandler
-	public void Vehicletest(VehicleEvent event){
-		plugin.getServer().broadcast(event.getEventName(), "debug");
-	}
-	
-	@EventHandler
-	public void Inventorytest(InventoryEvent event){
-		plugin.getServer().broadcast(event.getEventName(), "debug");
 	}
 
 	@EventHandler
-	public void OnPlayerEnterVehicle(VehicleEnterEvent event){
-		plugin.getServer().broadcast(event.getVehicle().toString(), "debug");
-		if (event.getVehicle() instanceof Horse) {
-			plugin.getServer().broadcast(event.getVehicle().toString(), "debug");
-			Horse horse = (Horse) event.getVehicle();
-			//protecting animal code
-			Iterator i = plugin.oasisplayer.entrySet().iterator();
-			while (i.hasNext()) {
-				Entry entry = (Entry) i.next();
-				if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(horse.getUniqueId().toString())) {
-					if (event.getEntered() instanceof Player) {
-						if (((Player) event.getEntered()).getName() != (String) entry.getKey()) {
-							event.setCancelled(true);
-							return;
-						}
-					}
+	public void OnPlayerOpenDonkeyInventory(InventoryOpenEvent event){
+		if(event.getInventory().getHolder() instanceof Horse){
+			Horse horse = (Horse) event.getInventory().getHolder();
+			plugin.getServer().broadcast(horse.getOwner().getName() + " : " + event.getPlayer().getName(), "debug");
+			if(horse.getOwner()!=null){
+				if(!horse.getOwner().getName().equals(event.getPlayer().getName()) && GetAnimalPerm(event.getPlayer().getName())==false){
+					event.setCancelled(true);
+					return;
 				}
 			}
 		}
+	}
+
+	@EventHandler
+	public void OnPlayerEnterHorse(VehicleEnterEvent event){
+		if (event.getVehicle() instanceof Horse) {
+			Player player = (Player) event.getEntered();
+			Horse horse = (Horse) event.getVehicle();
+			if(horse.getOwner()!=null){
+				if(horse.getOwner().getName()!=player.getName() && GetAnimalPerm(player.getName())==false){
+					event.setCancelled(true);
+					return;
+				}
+			}
+		}
+	}
+
+	public boolean GetAnimalPerm(String name){
+		Iterator it = plugin.oasisplayer.entrySet().iterator();
+		while(it.hasNext()){
+			Entry entry = (Entry) it.next();
+			if(((OasisPlayer) entry.getValue()).hasPerm(name)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@EventHandler
+	public void OnPlayerQuit(PlayerQuitEvent event){
+		if (plugin.oasisplayer.containsKey(event.getPlayer().getName())) {
+			plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
+			plugin.oasisplayer.remove(event.getPlayer().getName());
+		}
+
+//		int staffcount=0;
+//		int playercount=0;
+//		for(Player thaPlayer : plugin.getServer().getOnlinePlayers()){
+//			if(thaPlayer.hasPermission("oasischat.staff.a")){
+//				staffcount++;
+//			} else {
+//				playercount++;
+//			}
+//		}
+//		plugin.players.setScore(playercount);
+//		plugin.staff.setScore(staffcount);
 	}
 
 	@EventHandler
 	public void OnPlayerKick(PlayerKickEvent event){
 		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
 		plugin.oasisplayer.remove(event.getPlayer().getName());
-	}
 
-	@EventHandler
-	public void OnPlayerQuit(PlayerQuitEvent event){
-		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
-		plugin.oasisplayer.remove(event.getPlayer().getName());
+//		int staffcount=0;
+//		int playercount=0;
+//		for(Player thaPlayer : plugin.getServer().getOnlinePlayers()){
+//			if(thaPlayer.hasPermission("oasischat.staff.a")){
+//				staffcount++;
+//			} else {
+//				playercount++;
+//			}
+//		}
+//		plugin.players.setScore(playercount);
+//		plugin.staff.setScore(staffcount);
 	}
 
 	@EventHandler
 	public void OnPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
 
+		plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin,player.getName()));
+
 		if (plugin.paybacklist.containsKey(player.getName())){
 			slap(player.getName(), plugin.console, plugin.paybacklist.get(player.getName()));
 		}
-
-		plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin,player.getName()));
 		if (!player.hasPlayedBefore()){
 			if (!plugin.newbiejoin.isEmpty()) {
 				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -184,10 +206,30 @@ public class OasisExtrasListener implements Listener{
 				}
 			}
 		}
+
+//		int staffcount=0;
+//		int playercount=0;
+//		for(Player thaPlayer : plugin.getServer().getOnlinePlayers()){
+//			if(thaPlayer.hasPermission("oasischat.staff.a")){
+//				staffcount++;
+//			} else {
+//				playercount++;
+//			}
+//		}
+//		plugin.players.setScore(playercount);
+//		plugin.staff.setScore(staffcount);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerMove(PlayerMoveEvent event) {
+		//		if(event.getPlayer().isInsideVehicle()){
+		//			Player player = event.getPlayer();
+		//			if(player.getVehicle() instanceof Horse){
+		//				if(event.getFrom().getY()>event.getTo().getY()){
+		//					player.getVehicle().setVelocity(new Vector(player.getVehicle().getVelocity().getX(), 0D, player.getVehicle().getVelocity().getZ()));
+		//				}
+		//			}
+		//		}
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
 
 			int fromX=(int)event.getFrom().getX();
@@ -204,11 +246,6 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-
-	//	@EventHandler(priority = EventPriority.MONITOR)
-	//	public void TestEvent(Event event){
-	//		plugin.getServer().broadcast(event.getEventName().toString(), "debug");
-	//	}
 
 	@EventHandler()
 	public void OnCreatureSpawn(CreatureSpawnEvent event){
@@ -231,7 +268,7 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
 
@@ -239,17 +276,20 @@ public class OasisExtrasListener implements Listener{
 		Iterator i = plugin.oasisplayer.entrySet().iterator();
 		while(i.hasNext()){
 			Entry entry = (Entry) i.next();
-			if (plugin.oasisplayer.get(entry.getKey()).isMyAnimal(event.getEntity().getUniqueId().toString())){
+			OasisPlayer myplayer = (OasisPlayer) entry.getValue();
+			if (myplayer.isMyAnimal(event.getEntity().getUniqueId().toString())){
 				if (event.getDamager() instanceof Player){
-					if (((Player) event.getDamager()).getName()!= (String) entry.getKey()){
+					Player player = (Player) event.getDamager();
+					if (((Player) event.getDamager()).getName()!= (String) entry.getKey() || myplayer.hasPerm(player.getName())==false){
 						event.setCancelled(true);
 						return;
 					}
+
 				} else if(event.getDamager() instanceof Arrow){
 					Entity shooter = ((Arrow)event.getDamager()).getShooter();
 					if( shooter instanceof Player){
 						Player player = (Player) shooter;
-						if (player.getName()!= (String) entry.getKey()){
+						if (player.getName()!= (String) entry.getKey() || ((OasisPlayer) entry.getValue()).hasPerm(player.getName())==false){
 							event.setCancelled(true);
 							return;
 						}
@@ -258,23 +298,32 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void PlayerTagAnimal(EntityDamageByEntityEvent event){
-
 		//Tagging code
 		if (event.getDamager() instanceof Player){
+			Entity entity = event.getEntity();
 			Player player = (Player) event.getDamager();
-			if (plugin.oasisplayer.get(player.getName()).isTagging()){
-				Entity entity = event.getEntity();
+			if (player.getItemInHand().getType().equals(Material.STICK)){
 				if (getMobs(entity)) {
-					plugin.oasisplayer.get(player.getName()).lockAnimal(entity.getUniqueId().toString());
-					plugin.oasisplayer.get(player.getName()).setTagging(false);
+					plugin.oasisplayer.get(player.getName()).lockAnimal(entity);
 					plugin.oasisplayer.get(player.getName()).saveMe();
 					event.setCancelled(true);
 					return;
 				} else {
 					player.sendMessage(ChatColor.RED + "That mob type cant be LOCKED!");
+				}
+			}
+
+			if(plugin.oasisplayer.get(player.getName()).isOverriding()){
+				if(entity instanceof Horse){
+					Horse horse = (Horse) entity;
+					horse.setDomestication(0);
+					horse.setOwner(null);
+					horse.setCustomName(null);
+					event.setCancelled(true);
+					return;
 				}
 			}
 		}
@@ -288,18 +337,18 @@ public class OasisExtrasListener implements Listener{
 			return;
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void AppleTreeBreak(BlockBreakEvent event) {
 		if (plugin.appletree.containsKey(event.getBlock().getLocation())){
 			TreeTask temp = (TreeTask) plugin.appletree.get(event.getBlock().getLocation());
-			plugin.delTree(temp.mytree());
 			plugin.appletree.remove(event.getBlock().getLocation());
-			plugin.appletreefile.saveConfig();
+			temp.cancel();
+			plugin.delTree();
 			return;
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void UnderFrozenBlockBreak(BlockBreakEvent event){
 
@@ -333,16 +382,99 @@ public class OasisExtrasListener implements Listener{
 			event.getPlayer().sendMessage(ChatColor.RED + "RESPAWNED AT YOUR " + ChatColor.AQUA + "CHILLED " + ChatColor.RED + "LOCATION!");
 		}
 	}
+	
+	public void OnServerShutDown(ServerCommandEvent event){
+		if (event.getCommand().equals("stop")){
+			for(Player player : plugin.getServer().getOnlinePlayers()){
+				OasisPlayer myplayer = plugin.oasisplayer.get(player.getName());
+				myplayer.saveMe();
+			}
+		}
+	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerCommand(PlayerCommandPreprocessEvent event) {
+		if (event.getMessage().equals("/v")){
+			if(plugin.getConfig().getBoolean("IgnoreMadV")){
+				if(event.getPlayer().getName().equalsIgnoreCase("madscientist032")){
+					event.getPlayer().sendMessage(ChatColor.GOLD + "Forcing /vanish");
+					event.getPlayer().performCommand("vanish");
+					event.setCancelled(true);
+				}
+			}
+		}
+		if (event.getMessage().contains("/stop")){
+			if(plugin.getConfig().getBoolean("IgnorePaxStop")){
+				if(event.getPlayer().getName().equalsIgnoreCase("paxination")){
+					event.getPlayer().sendMessage(ChatColor.DARK_RED + "RETARD! You cant do that here!");
+					event.setCancelled(true);
+				}
+			}
+			
+			for(Player player : plugin.getServer().getOnlinePlayers()){
+				OasisPlayer myplayer = plugin.oasisplayer.get(player.getName());
+				myplayer.saveMe();
+			}
+		}
+//		if(event.getMessage().contains("/ban ")){
+//			plugin.bancount++;
+//			plugin.bans.setScore(plugin.bancount);
+//			plugin.getConfig().set("bancount", plugin.bancount);
+//			plugin.saveConfig();
+//		}
+//
+//		if(event.getMessage().contains("/kick ")){
+//			plugin.kickcount++;
+//			plugin.kicks.setScore(plugin.kickcount);
+//			plugin.getConfig().set("kickcount", plugin.kickcount);
+//			plugin.saveConfig();
+//		}
+
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
 			if (event.getMessage().contains("/")){
 				event.setCancelled(true);
 				event.getPlayer().sendMessage(ChatColor.RED + "COMMANDS ARE DISABLED WHILE " + ChatColor.AQUA + "FROZEN!");
 			}
 		}
+
+		//		if (event.getMessage().contains("/warp") || event.getMessage().contains("/tp") || event.getMessage().contains("/home") || event.getMessage().contains("/back") || event.getMessage().contains("/spawn")){
+		//			if (event.getPlayer().isInsideVehicle()) {
+		//				Player player = event.getPlayer();
+		//				if (player.getVehicle() instanceof Horse) {
+		//					Horse horse = (Horse) player.getVehicle();
+		//					horse.eject();
+		//					plugin.horsetp.put(player.getName(), horse);
+		//				}
+		//			}
+		//		}
+
 	}
+
+	//	@EventHandler
+	//	public void PlayerTeleported(PlayerTeleportEvent event){
+	//		if (event.getCause().equals(TeleportCause.COMMAND)) {
+	//			plugin.getServer().broadcast(event.getCause().toString(), "debug");
+	//			plugin.getServer().broadcast(event.getTo().toString(), "debug");
+	//			Player player = event.getPlayer();
+	//			if (plugin.horsetp.containsKey(player.getName())) {
+	//				plugin.horsetp.remove(player.getName());
+	//				Horse horse = (Horse) plugin.horsetp.get(player.getName());
+	//				plugin.getServer().broadcast(horse.getUniqueId().toString(), "debug");
+	//				horse.teleport(event.getTo());
+	//				sendHorse(horse, player);
+	//			}
+	//		}
+	//	}
+	//	
+	//	public void sendHorse(final Horse horse, final Player player){
+	//		mytask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+	//			@Override
+	//			public void run(){
+	//				horse.setPassenger(player);
+	//				plugin.getServer().getScheduler().cancelTask(mytask);
+	//			}
+	//		}, 40L);
+	//	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerPlaceBlock(BlockPlaceEvent event){
@@ -390,6 +522,18 @@ public class OasisExtrasListener implements Listener{
 		}
 
 		if (entity instanceof Sheep){
+			return true;
+		}
+
+		if (entity instanceof Ocelot){
+			return true;
+		}
+
+		if (entity instanceof Wolf){
+			return true;
+		}
+
+		if (entity instanceof Villager){
 			return true;
 		}
 		return false;

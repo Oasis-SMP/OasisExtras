@@ -41,12 +41,15 @@ newbiekit:
 #Delay before a new tree produces apples, in ticks.
 # 1 min = 1200, 1 MC day = 20 mins = 24000 ticks
 AppleProduceDelay: 24000
-Percent: 5
+Percent: 2
 maxdistance: 15
 
 #Hoard ownergame world
 gameworld: ownergames
-radius: 10
+radius: 30
 
 #Animal Lock, true = enabled
 alock: true
+
+IgnoreMadV: true
+IgnorePaxStop: true

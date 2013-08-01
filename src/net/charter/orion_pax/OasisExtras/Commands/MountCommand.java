@@ -27,6 +27,7 @@ public class MountCommand implements CommandExecutor{
 			vehicle=Bukkit.getPlayer(args[0]);
 			passenger = (Entity) sender;
 			if ((vehicle!=null) && (sender instanceof Player)){
+				passenger.teleport(vehicle);
 				vehicle.setPassenger(passenger);
 				sender.sendMessage(ChatColor.GOLD + "You have mounted " + Bukkit.getPlayer(args[0]).getName());
 				return true;

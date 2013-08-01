@@ -9,11 +9,11 @@ import org.bukkit.inventory.ItemStack;
 
 public class TreeTask implements Runnable{
 	private int taskId;
-	private Location loc;
+	public Location loc;
 	private ItemStack apple = new ItemStack(260,1);
 	private int lucky;
-	private String mytree;
-	private Double percent;
+	public String mytree;
+	private Integer percent;
 	private int AppleDelay;
 	private Double maxdistance;
 
@@ -23,14 +23,14 @@ public class TreeTask implements Runnable{
 
 	public TreeTask(OasisExtras plugin, Location loc, String mytree)
 	{
-		this.plugin = plugin;
-		this.loc = loc;
-		this.lucky = randomNum(1, 20);
-		this.mytree = mytree;
-
-		percent = plugin.getConfig().getDouble("Percent")/100;
+		percent = plugin.getConfig().getInt("Percent");
 		AppleDelay = plugin.getConfig().getInt("AppleProduceDelay");
 		maxdistance = plugin.getConfig().getDouble("maxdistance");
+		
+		this.plugin = plugin;
+		this.loc = loc;
+		this.lucky = randomNum(percent, 100);
+		this.mytree = mytree;
 
 		taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, AppleDelay,20);
 	}
@@ -44,15 +44,14 @@ public class TreeTask implements Runnable{
 	}
 
 	public void run() {
-		int chance = randomNum(1, 100 * percent);
+		int chance = randomNum(percent, 100);
 		if (chance == lucky) {
 			if (hasNearbyPlayers(loc, maxdistance)) {
 				int x = loc.getBlockX() + randomNum(-4, 4);
 				int z = loc.getBlockZ() + randomNum(-4, 4);
 				Location newloc = new Location(loc.getWorld(), x, loc.getBlockY(), z);
 				loc.getWorld().dropItemNaturally(newloc, apple);
-				//plugin.getServer().broadcast(newloc.toString(), "debug");
-				//plugin.getServer().broadcast(loc.toString(), "debug");
+				plugin.getServer().broadcast(mytree + " - " + newloc.getBlockX() + "," + newloc.getBlockY() + "," + newloc.getBlockZ(), "debug");
 			}
 		}
 	}

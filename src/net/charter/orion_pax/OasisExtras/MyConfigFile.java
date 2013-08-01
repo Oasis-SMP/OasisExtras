@@ -60,7 +60,6 @@ public class MyConfigFile {
 		} else {
 			try {
 				getConfig().save(configFile);
-				plugin.getLogger().info("Config saved");
 			} catch (IOException ex) {
 				plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);
 			}
