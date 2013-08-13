@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
@@ -31,14 +32,12 @@ public class OasisExtras extends JavaPlugin{
 //	public Team team;
 //	public Objective objective;
 //	public Score bans,staff,players,kicks;
-	public HashMap<String,Horse> horsetp = new HashMap<String,Horse>();
+	public HashMap<Chunk,Horse> horsetp = new HashMap<Chunk,Horse>();
 	public HashMap<String,Long> hfcooldowns = new HashMap<String,Long>();
 	public HashMap<String, String> highfive = new HashMap<String, String>();
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
-	HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
-	public HashMap<String, String> paybacklist = new HashMap<String, String>();
-	public HashMap<String, Boolean> buildoffinvite = new HashMap<String, Boolean>();
-	public HashMap<String, String> buildofflist = new HashMap<String, String>();
+	public HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
+	public HashMap<String, OasisPlayer> tptimer = new HashMap<String, OasisPlayer>();
 	String effectslist,savemsg1,savemsg2,newbiejoin;
 	List<Integer> newbiekit;
 	public int default_min;
@@ -62,7 +61,7 @@ public class OasisExtras extends JavaPlugin{
 			,ChatColor.GOLD + "START SAVEALL/BCAST/CONFIG"
 			,ChatColor.GOLD + "BCAST LIST/ADD/REMOVE"
 			,ChatColor.GOLD + "Do /oasisextras [subcommand] for more info"
-	}; 
+	};
 
 	String[] oasisextrassub2 = {
 			ChatColor.GOLD + "Usage as follows...."
@@ -102,10 +101,6 @@ public class OasisExtras extends JavaPlugin{
 			getCommand("alock").setExecutor(new ALockCommand(this));
 		}
 		getCommand("hoard").setExecutor(new HoardCommand(this));
-		getCommand("payback").setExecutor(new PayBackCommand(this));
-		getCommand("buildoff").setExecutor(new BuildOffCommand(this));
-		getCommand("bdaccept").setExecutor(new BDAcceptCommand(this));
-		getCommand("bddeny").setExecutor(new BDDenyCommand(this));
 		getCommand("findme").setExecutor(new FindMeCommand(this));
 		getCommand("kcast").setExecutor(new KCastCommand(this));
 		getCommand("highfive").setExecutor(new HighFiveCommand(this));

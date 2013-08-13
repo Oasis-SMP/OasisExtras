@@ -31,24 +31,6 @@ commands:
     permission: oasisextras.staff.findme
     permission-message: You don't have permissions for <permission>
     
-  bdaccept:
-    description: Accept a buildoff invitation!
-    usage:
-    permission: oasisextras.player.bdaccept
-    permission-message: You don't have permissions for <permission>
-    
-  bddeny:
-    description: Deny a buildoff invitation!
-    usage:
-    permission: oasisextras.player.bddeny
-    permission-message: You don't have permissions for <permission>
-    
-  buildoff:
-    description: Start a buildoff!
-    usage:
-    permission: oasisextras.staff.buildoff
-    permission-message: You don't have permissions for <permission>
-    
   payback:
     description:  Get yo payback on!
     usage:
@@ -174,8 +156,8 @@ permissions:
             oasisextras.player.bddeny: true
             oasisextras.player.highfive: true
             
-    oasisextras.staff.admin:
-        description: Gives access to all staff commands
+    oasisextras.staff.mod:
+        description: Mod perm nodes
         children:
             oasisextras.staff.buildoff: true
             oasisextras.staff.hoard: true
@@ -185,11 +167,14 @@ permissions:
             oasisextras.staff.bcastlist: true
             oasisextras.staff.mount: true
             oasisextras.staff.unmount: true
-            oasisextras.staff.override: true
                         
-    oasisextras.staff.mod:
-        description: Guide perm nodes
+    oasisextras.staff.jrmod:
+        description: JrMod perm nodes
         children:
+            oasisextras.staff.teleportall: true
+            oasisextras.staff.staff: true
+            oasisextras.staff.getowner: true
+            oasisextras.staff.override: true
             oasisextras.staff.dashboard: true
             oasisextras.staff.timer: true
             oasisextras.staff.enableme: true

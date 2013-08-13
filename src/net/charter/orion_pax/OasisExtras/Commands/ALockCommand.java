@@ -50,38 +50,11 @@ public class ALockCommand implements CommandExecutor {
 		}
 		
 		if (args.length==1) {
-			if (args[0].equalsIgnoreCase("override")) {
-				if(sender.hasPermission("oasisextras.staff.alockoverride")){
-					plugin.oasisplayer.get(player.getName()).toggleOverride();
-					return true;
-				}
-			}
-			
 			if (args[0].equalsIgnoreCase("list")){
 				new AlockListCommand(plugin, plugin.oasisplayer.get(player.getName()));
 			}
 		}
 		
 		return false;
-	}
-	
-	public void timer(final Player player){
-		task = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
-			int i=5;
-			int count =1;
-			@Override
-			public void run() {
-				if (!plugin.oasisplayer.get(player.getName()).isTagging()){
-					plugin.oasisplayer.get(player.getName()).setTagging(false);
-					task.cancel();
-				}
-				player.sendMessage(ChatColor.GREEN + Integer.toString(i) + "!");
-				i--;
-				if (count>i){
-					plugin.oasisplayer.get(player.getName()).setTagging(false);
-					task.cancel();
-				}
-			}
-		},0,20L);
 	}
 }
