@@ -14,10 +14,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.*;
 
-import com.bergerkiller.bukkit.common.entity.CommonEntity;
-
-//import com.bergerkiller.bukkit.common.entity.CommonEntity;
-
 public class OasisPlayer {
 
 	private final OasisExtras plugin;
