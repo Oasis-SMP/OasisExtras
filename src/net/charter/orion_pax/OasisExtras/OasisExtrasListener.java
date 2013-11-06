@@ -306,6 +306,9 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPlayerMove(PlayerMoveEvent event) {
+		if(event.isCancelled()){
+			event.setCancelled(false);
+		}
 		//		if(event.getPlayer().isInsideVehicle()){
 		//			Player player = event.getPlayer();
 		//			if(player.getVehicle() instanceof Horse){
