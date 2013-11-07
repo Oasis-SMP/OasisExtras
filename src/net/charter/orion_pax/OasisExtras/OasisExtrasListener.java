@@ -416,6 +416,12 @@ public class OasisExtrasListener implements Listener{
 			event.setCancelled(true);
 			return;
 		}
+		
+		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+			if(event.getPlayer().isOp()){
+				
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -551,6 +557,12 @@ public class OasisExtrasListener implements Listener{
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
 			event.setCancelled(true);
 			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
+		}
+		
+		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+			if(event.getPlayer().isOp()){
+				//save sign location here
+			}
 		}
 	}
 

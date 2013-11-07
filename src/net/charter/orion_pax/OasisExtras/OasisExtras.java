@@ -13,64 +13,37 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Horse;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
-import org.bukkit.scoreboard.Team;
-
 import net.charter.orion_pax.OasisExtras.Commands.*;
 
 public class OasisExtras extends JavaPlugin{
 
 	public ConsoleCommandSender console;
-//	public ScoreboardManager manager;
-//	public Scoreboard board,emptyBoard;
-//	public Team team;
-//	public Objective objective;
-//	public Score bans,staff,players,kicks;
 	public HashMap<Chunk,Horse> horsetp = new HashMap<Chunk,Horse>();
 	public HashMap<String,Long> hfcooldowns = new HashMap<String,Long>();
 	public HashMap<String, String> highfive = new HashMap<String, String>();
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
 	public HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	public HashMap<String, OasisPlayer> tptimer = new HashMap<String, OasisPlayer>();
-	String effectslist,savemsg1,savemsg2,newbiejoin;
+	String effectslist,newbiejoin;
 	List<Integer> newbiekit;
-	public int default_min;
-	public int default_max;
+	public int default_min, default_max;
 	public int ndt;
-	int bcastcount;
-//	int bancount=0,kickcount=0;
-	int warningtime;
-	int treecount=0;
-	long  savealltimer,bcasttimer;
+	int bcastcount, treecount=0;
+	long bcasttimer;
 	public List<String> bcastmsgs;
-	public MyConfigFile appletreefile;
-	public boolean taskdisabled=false;
+	public MyConfigFile appletreefile, signprotectfile;
 	
 	public String[] oasisextrassub = {
 			ChatColor.GOLD + "Usage: /oasisextras subcommand subcommand"
 			,ChatColor.GOLD + "SubCommands:"
-			,ChatColor.GOLD + "THAW - Clears Frozen player list in cfg"
 			,ChatColor.GOLD + "RELOAD - Reloads config"
-			,ChatColor.GOLD + "CANCEL SAVEALL/BCAST/CONFIG"
-			,ChatColor.GOLD + "START SAVEALL/BCAST/CONFIG"
 			,ChatColor.GOLD + "BCAST LIST/ADD/REMOVE"
 			,ChatColor.GOLD + "Do /oasisextras [subcommand] for more info"
 	};
 
 	String[] oasisextrassub2 = {
 			ChatColor.GOLD + "Usage as follows...."
-			,ChatColor.GOLD + "/oasisextras CANCEL BCAST - Cancels auto broadcast"
-			,ChatColor.GOLD + "/oasisextras CANCEL SAVEALL - Cancels auto saveall"
-			,ChatColor.GOLD + "/oasisextras CANCEL CONFIG - Cancels auto save config"
-			,ChatColor.GOLD + "/oasisextras START BCAST - Starts auto broadcast"
-			,ChatColor.GOLD + "/oasisextras START SAVEALL - Starts auto saveall"
-			,ChatColor.GOLD + "/oasisextras START CONFIG - Starts auto save config"
 			,ChatColor.GOLD + "/oasisextras BCAST LIST - List auto bcast msgs"
 			,ChatColor.GOLD + "/oasisextras BCAST ADD - Adds a msg to the auto bcast list"
 			,ChatColor.GOLD + "/oasisextras BCAST REMOVE - Removes a msg from the auto bcast list"
@@ -97,70 +70,41 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("thunderstruck").setExecutor(new ThunderStruckCommand(this));
 		getCommand("timer").setExecutor(new TimerCommand(this));
 		getCommand("animalregen").setExecutor(new AnimalRegenCommand(this));
-		if (this.getConfig().getBoolean("alock")) {
-			getCommand("alock").setExecutor(new ALockCommand(this));
-		}
 		getCommand("hoard").setExecutor(new HoardCommand(this));
 		getCommand("findme").setExecutor(new FindMeCommand(this));
 		getCommand("kcast").setExecutor(new KCastCommand(this));
 		getCommand("highfive").setExecutor(new HighFiveCommand(this));
-		getCommand("dashboard").setExecutor(new DashBoardCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
+		signprotectfile = new MyConfigFile(this,"signprotect.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();
-//		manager = Bukkit.getScoreboardManager();
-//		board = manager.getNewScoreboard();
-//		emptyBoard = manager.getNewScoreboard();
-//		team = board.registerNewTeam("Staff");
-//		objective = board.registerNewObjective("test", "dummy");
-//		players = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players:"));
-//		staff = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Staff:"));
-//		bans = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Bans:"));
-//		kicks = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kicks:"));
-//		team.setPrefix(ChatColor.translateAlternateColorCodes('&', "&4[Staff]&r "));
-//		team.setDisplayName("Team BAN HAMMER");
-//		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-//		objective.setDisplayName("Oasis-SMP");
-//		if(getConfig().contains("bancount")){
-//			bancount=getConfig().getInt("bancount");
-//			bans.setScore(bancount);
-//		}
-//		
-//		if(getConfig().contains("kickcount")){
-//			kickcount=getConfig().getInt("kickcount");
-//			kicks.setScore(kickcount);
-//		}
 		getLogger().info("OasisExtras has been enabled!");
 	}
 
 	@Override
 	public void onDisable(){
-		task.savethisworld.cancel();
 		task.bcasttask.cancel();
-		task.remindmetask.cancel();
 		this.saveConfig();
 		this.appletreefile.saveConfig();
+		this.signprotectfile.saveConfig();
 		getLogger().info("OasisExtras has been disabled!");
 	}
 
 	public void setup(){
 		newbiekit = getConfig().getIntegerList("newbiekit");
 		newbiejoin = getConfig().getString("newplayermsg");
-		warningtime = getConfig().getInt("warningdelay")*1200;
 		bcastmsgs = getConfig().getStringList("broadcastmessages");
 		bcasttimer = getConfig().getInt("broadcasttimer")*1200;
-		savemsg1 = getConfig().getString("saveingmsg");
-		savemsg2 = getConfig().getString("saveingmsgcomplete");
-		savealltimer = getConfig().getInt("savealltimer")*1200;
 		default_min = Integer.parseInt(getConfig().getString("min_default_location"));
 		default_max = Integer.parseInt(getConfig().getString("max_default_location"));
 		ndt = Integer.parseInt(getConfig().getString("default_invulnerability_ticks"));
 		bcastcount = 0;
-		task.savethisworld.runTaskTimer(this, savealltimer, savealltimer);
 		task.bcasttask.runTaskTimer(this, randomNum(0, 18000), bcasttimer);
-		task.remindmetask.runTaskTimer(this, savealltimer-warningtime, savealltimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
+		}
+		if (!signprotectfile.getConfig().contains("signs")){
+			signprotectfile.getConfig().createSection("signs");
 		}
 		loadTree();
 	}

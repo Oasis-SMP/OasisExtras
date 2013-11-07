@@ -5,17 +5,6 @@ max_default_location: 2500
 # random settings
 default_invulnerability_ticks: 6000
 
-# Auto Save-All settings
-# saving message
-saveingmsg: Saving...
-
-# saving complete message
-saveingmsgcomplete: Save complete!
-
-# savealltimer & warningdelay are in mins
-savealltimer: 60
-warningdelay: 10
-
 #Auto broadcast settings
 broadcastmessages:
   - Vote for OASIS at bit.ly/oasisv for 150 coins!

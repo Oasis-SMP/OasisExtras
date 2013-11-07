@@ -27,14 +27,6 @@ public class OECommand implements CommandExecutor{
 			ReloadSubCommand reload = new ReloadSubCommand(plugin,sender);
 		}
 		
-		if (args[0].equalsIgnoreCase("cancel")){
-			CancelSubCommand cancel = new CancelSubCommand(plugin,sender);
-		}
-		
-		if (args[0].equalsIgnoreCase("start")){
-			StartSubCommand start = new StartSubCommand(plugin,sender);
-		}
-		
 		if (args[0].equalsIgnoreCase("add")){
 			if (sender.hasPermission("oasisextras.staff.bcastadd")) {
 				StringBuffer buffer = new StringBuffer();
