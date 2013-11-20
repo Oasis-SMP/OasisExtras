@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.charter.orion_pax.OasisExtras.Commands.*;
 
@@ -68,12 +69,10 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("unmount").setExecutor(new UnMountCommand(this));
 		getCommand("chant").setExecutor(new ChantCommand(this));
 		getCommand("thunderstruck").setExecutor(new ThunderStruckCommand(this));
-		getCommand("timer").setExecutor(new TimerCommand(this));
-		getCommand("animalregen").setExecutor(new AnimalRegenCommand(this));
-		getCommand("hoard").setExecutor(new HoardCommand(this));
 		getCommand("findme").setExecutor(new FindMeCommand(this));
 		getCommand("kcast").setExecutor(new KCastCommand(this));
 		getCommand("highfive").setExecutor(new HighFiveCommand(this));
+		getCommand("blackmarket").setExecutor(new BlackMarketCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		signprotectfile = new MyConfigFile(this,"signprotect.yml");
 		setup();
@@ -87,6 +86,11 @@ public class OasisExtras extends JavaPlugin{
 		this.saveConfig();
 		this.appletreefile.saveConfig();
 		this.signprotectfile.saveConfig();
+		for(Player player : this.getServer().getOnlinePlayers()){
+			OasisPlayer myplayer = this.oasisplayer.get(player.getName());
+			myplayer.saveMe();
+			this.getLogger().info(myplayer.getName() + " is saved!");
+		}
 		getLogger().info("OasisExtras has been disabled!");
 	}
 

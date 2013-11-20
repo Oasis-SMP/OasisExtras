@@ -12,11 +12,11 @@ public class ReloadSubCommand {
 	public ReloadSubCommand(OasisExtras plugin, CommandSender sender){
 		this.plugin = plugin;
 		
-		plugin.getServer().getScheduler().cancelTasks(plugin);
-		plugin.getServer().getPluginManager().disablePlugin(plugin);
-		plugin.reloadConfig();
-		plugin.getServer().getPluginManager().enablePlugin(plugin);
-		plugin.setup();
+		this.plugin.getServer().getScheduler().cancelTasks(plugin);
+		this.plugin.getServer().getPluginManager().disablePlugin(plugin);
+		this.plugin.reloadConfig();
+		this.plugin.getServer().getPluginManager().enablePlugin(plugin);
+		this.plugin.setup();
 		sender.sendMessage(ChatColor.GOLD + "Config reloaded!");
 	}
 }

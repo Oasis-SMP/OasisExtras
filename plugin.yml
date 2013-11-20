@@ -4,18 +4,19 @@ version: 2.0
 description: Oasis Extra commands!
 author: Paxination
 commands:
-  dashboard:
-    description: Useful info for staff.
-    aliases: [db]
-    usage:
-    permission: oasisextras.staff.dashboard
-    permission-message: You don't have permissions for <permission>
     
   highfive:
     description: High five people for 100XP!
     aliases: [hf, hfive]
     usage:
     permission: oasisextras.player.highfive
+    permission-message: You don't have permissions for <permission>
+    
+  blackmarket:
+    description: Blackmarket broadcast
+    aliases: [bm, bmarket]
+    usage: "Usage: /<command> Your message here!"
+    permission: oasisextras.staff.blackmarket
     permission-message: You don't have permissions for <permission>
     
   kcast:
@@ -29,37 +30,6 @@ commands:
     aliases: [os, offsearch, searchname, psearch]
     usage:
     permission: oasisextras.staff.findme
-    permission-message: You don't have permissions for <permission>
-    
-  payback:
-    description:  Get yo payback on!
-    usage:
-    permission: oasisextras.staff.payback
-    permission-message: You don't have permissions for <permission>
-    
-  alock:
-    description:  Locks animal to a player.
-    usage:
-    permission: oasisextras.player.alock
-    permission-message: You don't have permissions for <permission>
-    
-  hoard:
-    description:  Hoard command!
-    usage:
-    permission: oasisextras.staff.hoard
-    permission-message: You don't have permissions for <permission>
-    
-  animalregen:
-    description:  Randomly spawns animals in a radius.
-    aliases: ar
-    usage:
-    permission: oasisextras.staff.animalregen
-    permission-message: You don't have permissions for <permission>
-    
-  timer:
-    description:  Starts an in game timer!
-    usage:
-    permission: oasisextras.staff.timer
     permission-message: You don't have permissions for <permission>
     
   oasisextras:
@@ -151,16 +121,12 @@ permissions:
             oasisextras.player.appletree: true
             oasisextras.player.catndog: true
             oasisextras.player.random: true
-            oasisextras.player.alock: true
-            oasisextras.player.bdaccept: true
-            oasisextras.player.bddeny: true
             oasisextras.player.highfive: true
+            oasisextras.player.tp: true
             
     oasisextras.staff.mod:
         description: Mod perm nodes
         children:
-            oasisextras.staff.buildoff: true
-            oasisextras.staff.hoard: true
             oasisextras.staff.thunderstruck: true
             oasisextras.staff.bcastadd: true
             oasisextras.staff.bcastdel: true
@@ -175,11 +141,10 @@ permissions:
             oasisextras.staff.staff: true
             oasisextras.staff.getowner: true
             oasisextras.staff.override: true
-            oasisextras.staff.dashboard: true
-            oasisextras.staff.timer: true
             oasisextras.staff.enableme: true
             oasisextras.staff.disableme: true
             oasisextras.staff.freeze: true
             oasisextras.staff.drunk: true
             oasisextras.staff.slap: true
             oasisextras.staff.spook: true
+            oasisextras.staff.findme: true

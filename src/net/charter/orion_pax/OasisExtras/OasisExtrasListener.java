@@ -417,11 +417,11 @@ public class OasisExtrasListener implements Listener{
 			return;
 		}
 		
-		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
-			if(event.getPlayer().isOp()){
-				
-			}
-		}
+//		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+//			if(!event.getPlayer().isOp()){
+//				Location loc = new Location(plu);
+//			}
+//		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -559,11 +559,11 @@ public class OasisExtrasListener implements Listener{
 			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 		}
 		
-		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
-			if(event.getPlayer().isOp()){
-				//save sign location here
-			}
-		}
+//		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+//			if(event.getPlayer().isOp()){
+//				//save sign location here
+//			}
+//		}
 	}
 
 	public Ocelot.Type getCatType(){

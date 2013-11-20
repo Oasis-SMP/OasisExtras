@@ -37,8 +37,5 @@ maxdistance: 15
 gameworld: ownergames
 radius: 30
 
-#Animal Lock, true = enabled
-alock: true
-
-IgnoreMadV: true
-IgnorePaxStop: true
+IgnoreMadV: false
+IgnorePaxStop: false
