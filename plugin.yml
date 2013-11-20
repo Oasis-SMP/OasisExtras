@@ -5,13 +5,6 @@ description: Oasis Extra commands!
 author: Paxination
 commands:
     
-  highfive:
-    description: High five people for 100XP!
-    aliases: [hf, hfive]
-    usage:
-    permission: oasisextras.player.highfive
-    permission-message: You don't have permissions for <permission>
-    
   blackmarket:
     description: Blackmarket broadcast
     aliases: [bm, bmarket]

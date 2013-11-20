@@ -71,7 +71,6 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("thunderstruck").setExecutor(new ThunderStruckCommand(this));
 		getCommand("findme").setExecutor(new FindMeCommand(this));
 		getCommand("kcast").setExecutor(new KCastCommand(this));
-		getCommand("highfive").setExecutor(new HighFiveCommand(this));
 		getCommand("blackmarket").setExecutor(new BlackMarketCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		signprotectfile = new MyConfigFile(this,"signprotect.yml");

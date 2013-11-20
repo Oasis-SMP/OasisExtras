@@ -87,24 +87,26 @@ public class OasisExtrasListener implements Listener{
 					return;
 				}
 			}
-			if(getMobs(entity)){
-				oPlayer.toggleTP(entity);
-				if(plugin.tptimer.containsKey(player.getName())){
-					return;
+			if (player.hasPermission("oasisextras.player.tp")) {
+				if (getMobs(entity)) {
+					oPlayer.toggleTP(entity);
+					if (plugin.tptimer.containsKey(player.getName())) {
+						return;
+					} else {
+						plugin.tptimer.put(player.getName(), oPlayer);
+						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+							@Override
+							public void run() {
+								plugin.tptimer.get(player.getName()).tplist.clear();
+								plugin.tptimer.remove(player.getName());
+							}
+						}, 6000);
+						return;
+					}
 				} else {
-					plugin.tptimer.put(player.getName(), oPlayer);
-					plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-						@Override
-						public void run(){
-							plugin.tptimer.get(player.getName()).tplist.clear();
-							plugin.tptimer.remove(player.getName());
-						}
-					}, 6000);
+					oPlayer.sendMessage(ChatColor.RED + "Can't teleport that mob type!");
 					return;
 				}
-			} else {
-				oPlayer.sendMessage(ChatColor.RED + "Can't teleport that mob type!");
-				return;
 			}
 		}
 
@@ -559,11 +561,11 @@ public class OasisExtrasListener implements Listener{
 			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 		}
 		
-//		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
-//			if(event.getPlayer().isOp()){
-//				//save sign location here
-//			}
-//		}
+		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+			if(event.getPlayer().isOp()){
+				//save sign location here
+			}
+		}
 	}
 
 	public Ocelot.Type getCatType(){
