@@ -3,7 +3,6 @@ package net.charter.orion_pax.OasisExtras;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
@@ -19,14 +18,10 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 public class OasisExtrasListener implements Listener{
@@ -412,22 +407,8 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void FrozenBlockBreak(BlockBreakEvent event) {
-		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
-			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT DESTROY BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
-			event.setCancelled(true);
-			return;
-		}
+	public void OnPlayerBreakBlock(BlockBreakEvent event) {
 		
-//		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
-//			if(!event.getPlayer().isOp()){
-//				Location loc = new Location(plu);
-//			}
-//		}
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void AppleTreeBreak(BlockBreakEvent event) {
 		if (plugin.appletree.containsKey(event.getBlock().getLocation())){
 			TreeTask temp = (TreeTask) plugin.appletree.get(event.getBlock().getLocation());
 			plugin.appletree.remove(event.getBlock().getLocation());
@@ -435,11 +416,35 @@ public class OasisExtrasListener implements Listener{
 			plugin.delTree();
 			return;
 		}
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void UnderFrozenBlockBreak(BlockBreakEvent event){
-
+		
+		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
+			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT DESTROY BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
+			event.setCancelled(true);
+			return;
+		}
+		
+		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+			SerializedLocation sloc = new SerializedLocation(event.getBlock().getLocation());
+			if(event.getPlayer().isOp()){
+				if(plugin.signprotect.contains(sloc)){
+					plugin.signprotect.remove(sloc);
+					try {
+						SLAPI.save(plugin.signprotect, "plugins/OasisExtras/signprotect.bin");
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return;
+				}
+			} else {
+				if(plugin.signprotect.contains(sloc)){
+					event.getPlayer().sendMessage(ChatColor.RED + "You can not destroy signs placed by OPS!");
+					event.setCancelled(true);
+					return;
+				}
+			}
+		}
+		
 		Iterator i = plugin.oasisplayer.entrySet().iterator();
 		while(i.hasNext()) {
 			Entry me = (Entry) i.next();
@@ -561,9 +566,16 @@ public class OasisExtrasListener implements Listener{
 			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 		}
 		
-		if (event.getBlock().getType().equals(Material.SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
+		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
 			if(event.getPlayer().isOp()){
-				//save sign location here
+				if(plugin.signprotect==null){plugin.getLogger().info("signprotect is null");}
+				plugin.signprotect.add(new SerializedLocation(event.getBlock().getLocation()));
+				try {
+					SLAPI.save(plugin.signprotect, "plugins/OasisExtras/signprotect.bin");
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}

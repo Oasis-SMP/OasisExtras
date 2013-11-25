@@ -1,5 +1,7 @@
 package net.charter.orion_pax.OasisExtras;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
@@ -21,8 +24,7 @@ public class OasisExtras extends JavaPlugin{
 
 	public ConsoleCommandSender console;
 	public HashMap<Chunk,Horse> horsetp = new HashMap<Chunk,Horse>();
-	public HashMap<String,Long> hfcooldowns = new HashMap<String,Long>();
-	public HashMap<String, String> highfive = new HashMap<String, String>();
+	public List<SerializedLocation> signprotect = new ArrayList<SerializedLocation>();
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
 	public HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	public HashMap<String, OasisPlayer> tptimer = new HashMap<String, OasisPlayer>();
@@ -33,7 +35,8 @@ public class OasisExtras extends JavaPlugin{
 	int bcastcount, treecount=0;
 	long bcasttimer;
 	public List<String> bcastmsgs;
-	public MyConfigFile appletreefile, signprotectfile;
+	public MyConfigFile appletreefile;
+	public SLAPI slapi;
 	
 	public String[] oasisextrassub = {
 			ChatColor.GOLD + "Usage: /oasisextras subcommand subcommand"
@@ -56,6 +59,15 @@ public class OasisExtras extends JavaPlugin{
 	public void onEnable() {
 		saveDefaultConfig();
 		Bukkit.getPluginManager().registerEvents(new OasisExtrasListener(this), this);
+		try {
+			File f = new File("plugins/OasisExtras/signprotect.bin");
+			if(f.exists()){
+				signprotect=SLAPI.load("plugins/OasisExtras/signprotect.bin");
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		getCommand("enableme").setExecutor(new EnableMeCommand(this));
 		getCommand("disableme").setExecutor(new DisableMeCommand(this));
 		getCommand("brocast").setExecutor(new BroCastCommand(this));
@@ -73,7 +85,6 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("kcast").setExecutor(new KCastCommand(this));
 		getCommand("blackmarket").setExecutor(new BlackMarketCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
-		signprotectfile = new MyConfigFile(this,"signprotect.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();
 		getLogger().info("OasisExtras has been enabled!");
@@ -81,10 +92,15 @@ public class OasisExtras extends JavaPlugin{
 
 	@Override
 	public void onDisable(){
+		try {
+			SLAPI.save(signprotect, "plugins/OasisExtras/signprotect.bin");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		task.bcasttask.cancel();
 		this.saveConfig();
 		this.appletreefile.saveConfig();
-		this.signprotectfile.saveConfig();
 		for(Player player : this.getServer().getOnlinePlayers()){
 			OasisPlayer myplayer = this.oasisplayer.get(player.getName());
 			myplayer.saveMe();
@@ -105,9 +121,6 @@ public class OasisExtras extends JavaPlugin{
 		task.bcasttask.runTaskTimer(this, randomNum(0, 18000), bcasttimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
-		}
-		if (!signprotectfile.getConfig().contains("signs")){
-			signprotectfile.getConfig().createSection("signs");
 		}
 		loadTree();
 	}
