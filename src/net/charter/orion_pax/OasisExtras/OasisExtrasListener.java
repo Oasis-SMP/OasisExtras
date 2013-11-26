@@ -425,22 +425,22 @@ public class OasisExtrasListener implements Listener{
 		
 		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
 			SerializedLocation sloc = new SerializedLocation(event.getBlock().getLocation());
-			if(event.getPlayer().isOp()){
-				if(plugin.signprotect.contains(sloc)){
-					plugin.signprotect.remove(sloc);
-					try {
-						SLAPI.save(plugin.signprotect, "plugins/OasisExtras/signprotect.bin");
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			for (SerializedLocation oldsloc: plugin.signprotect){
+				if(oldsloc.deserialize().equals(sloc.deserialize())){
+					if(event.getPlayer().isOp()){
+						plugin.signprotect.remove(sloc);
+						try {
+							SLAPI.save(plugin.signprotect, "plugins/OasisExtras/signprotect.bin");
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						return;
+					} else {
+						event.getPlayer().sendMessage(ChatColor.RED + "You can not destroy signs placed by OPS!");
+						event.setCancelled(true);
+						return;
 					}
-					return;
-				}
-			} else {
-				if(plugin.signprotect.contains(sloc)){
-					event.getPlayer().sendMessage(ChatColor.RED + "You can not destroy signs placed by OPS!");
-					event.setCancelled(true);
-					return;
 				}
 			}
 		}

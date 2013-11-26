@@ -26,6 +26,7 @@ public class OasisExtras extends JavaPlugin{
 	public HashMap<Chunk,Horse> horsetp = new HashMap<Chunk,Horse>();
 	public List<SerializedLocation> signprotect = new ArrayList<SerializedLocation>();
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
+	public List<OasisPlayer> oasistest = new ArrayList<OasisPlayer>();
 	public HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	public HashMap<String, OasisPlayer> tptimer = new HashMap<String, OasisPlayer>();
 	String effectslist,newbiejoin;
@@ -36,7 +37,7 @@ public class OasisExtras extends JavaPlugin{
 	long bcasttimer;
 	public List<String> bcastmsgs;
 	public MyConfigFile appletreefile;
-	public SLAPI slapi;
+	//public SLAPI slapi;
 	
 	public String[] oasisextrassub = {
 			ChatColor.GOLD + "Usage: /oasisextras subcommand subcommand"
@@ -63,6 +64,8 @@ public class OasisExtras extends JavaPlugin{
 			File f = new File("plugins/OasisExtras/signprotect.bin");
 			if(f.exists()){
 				signprotect=SLAPI.load("plugins/OasisExtras/signprotect.bin");
+			} else {
+				f.createNewFile();
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
