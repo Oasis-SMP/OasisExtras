@@ -87,6 +87,7 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("findme").setExecutor(new FindMeCommand(this));
 		getCommand("kcast").setExecutor(new KCastCommand(this));
 		getCommand("blackmarket").setExecutor(new BlackMarketCommand(this));
+		getCommand("comcast").setExecutor(new ComCastCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();

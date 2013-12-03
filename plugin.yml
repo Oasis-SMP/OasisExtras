@@ -12,6 +12,13 @@ commands:
     permission: oasisextras.staff.blackmarket
     permission-message: You don't have permissions for <permission>
     
+  comcast:
+    description: ComCast broadcast
+    aliases: [cc, ccast]
+    usage: "Usage: /<command> Your message here!"
+    permission: oasisextras.staff.comcast
+    permission-message: You don't have permissions for <permission>
+    
   kcast:
     description: Voice of the PEOPLE!
     usage: "Usage: /<command> Your message here!"
