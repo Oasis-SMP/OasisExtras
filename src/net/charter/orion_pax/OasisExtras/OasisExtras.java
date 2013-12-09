@@ -1,12 +1,18 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Filter;
+import java.util.logging.LogRecord;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -58,12 +64,14 @@ public class OasisExtras extends JavaPlugin{
 
 	@Override
 	public void onEnable() {
-		saveDefaultConfig();
+		
+		createconfig();
+		
 		Bukkit.getPluginManager().registerEvents(new OasisExtrasListener(this), this);
 		try {
 			File f = new File("plugins/OasisExtras/signprotect.bin");
 			if(f.exists()){
-				signprotect=SLAPI.load("plugins/OasisExtras/signprotect.bin");
+				signprotect=SLAPI.load(getDataFolder() + "/signprotect.bin");
 			} else {
 				f.createNewFile();
 			}
@@ -71,6 +79,27 @@ public class OasisExtras extends JavaPlugin{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		Filter f = new Filter(){
+			@Override
+			public boolean isLoggable(LogRecord line) {
+				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ")) {
+					return false;
+				}
+				return true;
+			}
+
+			public String doFilter(String arg0) {
+				return null;
+			}
+
+			public String doFilterUrl(String arg0) {
+				return null;
+			}
+		};
+		
+		this.getLogger().setFilter(f);
+		
 		getCommand("enableme").setExecutor(new EnableMeCommand(this));
 		getCommand("disableme").setExecutor(new DisableMeCommand(this));
 		getCommand("brocast").setExecutor(new BroCastCommand(this));
@@ -88,6 +117,10 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("kcast").setExecutor(new KCastCommand(this));
 		getCommand("blackmarket").setExecutor(new BlackMarketCommand(this));
 		getCommand("comcast").setExecutor(new ComCastCommand(this));
+		getCommand("givecoupon").setExecutor(new GiveCouponCommand(this));
+		getCommand("spank").setExecutor(new SpankCommand(this));
+		getCommand("dismount").setExecutor(new DisMountCommand(this));
+		getCommand("findschem").setExecutor(new FindSchemCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();
@@ -172,5 +205,54 @@ public class OasisExtras extends JavaPlugin{
 			Location loc = new Location(world,x,y,z);
 			appletree.put(loc, new TreeTask(this,loc,tree));
 		}
+	}
+	
+	public String ColorChat(String msg){
+		return ChatColor.translateAlternateColorCodes('&', msg);
+	}
+	
+	public void createconfig(){
+		File file = new File(getDataFolder(), "config.yml");
+		if(file.exists()){
+			return;
+		}
+		if(!getDataFolder().exists()){
+			if(!getDataFolder().mkdirs()){
+				getLogger().severe("Datafolder could not be created!");
+				getLogger().severe("Disabling");
+				setEnabled(false);
+				return;
+			}
+		}
+		InputStream in = getResource("config.yml");
+		OutputStream out = null;
+        try {
+         out = new FileOutputStream(file);
+         byte[] buf = new byte[1024];
+         int len;
+         while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+         }
+        } catch (IOException e) {
+         getLogger().warning("Failed to copy the default config! (I/O)");
+         e.printStackTrace();
+        } finally {
+         try {
+                if (out != null) {
+                 out.close();
+                }
+         } catch (IOException e) {
+                getLogger().warning("Failed to close the streams! (I/O -> Output)");
+                e.printStackTrace();
+         }
+         try {
+                if (in != null) {
+                 in.close();
+                }
+         } catch (IOException e) {
+                getLogger().warning("Failed to close the streams! (I/O -> Input)");
+                e.printStackTrace();
+         }
+        }
 	}
 }

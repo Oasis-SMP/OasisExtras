@@ -12,6 +12,13 @@ commands:
     permission: oasisextras.staff.blackmarket
     permission-message: You don't have permissions for <permission>
     
+  givecoupon:
+    description: Gives coupons to players on pixelmon server!
+    aliases: [gc, givecoup, gcoup]
+    usage: "Usage: /<command> (player) (amount)"
+    permission: oasisextras.staff.givecoupon
+    permission-message: You don't have permissions for <permission>
+    
   comcast:
     description: ComCast broadcast
     aliases: [cc, ccast]
@@ -102,16 +109,35 @@ commands:
     permission: oasisextras.staff.slap
     permission-message: You don't have permissions for <permission>
     
+  spank:
+    description: Spanks a player!
+    usage: "Usage: /<command> playername [msg] (msg is optional)"
+    permission: oasisextras.staff.spank
+    permission-message: You don't have permissions for <permission>
+    
   mount:
     description: Mounts a player!
     usage: "Usage: /<command> playername [playername] (second one optional)"
     permission: oasisextras.staff.mount
     permission-message: You don't have permissions for <permission>
     
+  dismount:
+    description: Forces a player to dismount you!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.dismount
+    permission-message: You don't have permissions for <permission>
+    
   unmount:
     description: Unmounts a player!
     usage: "Usage: /<command>"
     permission: oasisextras.staff.unmount
+    permission-message: You don't have permissions for <permission>
+    
+  findschem:
+    description: Searches worldedit schematics!
+    aliases: [fschem,fs]
+    usage: "Usage: /<command> schematic name"
+    permission: oasisextras.staff.findschem
     permission-message: You don't have permissions for <permission>
     
 permissions:
@@ -123,10 +149,12 @@ permissions:
             oasisextras.player.random: true
             oasisextras.player.highfive: true
             oasisextras.player.tp: true
+            oasisextras.player.dismount: true
             
     oasisextras.staff.mod:
         description: Mod perm nodes
         children:
+            oasisextras.staff.givecoupon: true
             oasisextras.staff.thunderstruck: true
             oasisextras.staff.bcastadd: true
             oasisextras.staff.bcastdel: true
@@ -138,6 +166,7 @@ permissions:
         description: JrMod perm nodes
         children:
             oasisextras.staff.teleportall: true
+            oasisextras.staff.findschem: true
             oasisextras.staff.staff: true
             oasisextras.staff.getowner: true
             oasisextras.staff.override: true

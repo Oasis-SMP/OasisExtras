@@ -2,13 +2,6 @@ package net.charter.orion_pax.OasisExtras;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
-import org.bukkit.scoreboard.Team;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -27,12 +20,6 @@ public class OasisPlayer {
 	private List<String> alockperm = new ArrayList<String>();
 	public List<Entity> tplist = new ArrayList<Entity>();
 	private MyConfigFile playerfile;
-	private Team team;
-	private ScoreboardManager manager;
-	private Scoreboard board;
-	private Score horse,cow,chicken,pig,sheep,villager,ocelot,wolf;
-	private Objective objective;
-	private int horsecount=0,cowcount=0,pigcount=0,sheepcount=0,villagercount=0,ocelotcount=0,wolfcount=0,chickencount=0;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -42,79 +29,12 @@ public class OasisPlayer {
 		String filename = "players/" + name + ".yml";
 		playerfile = new MyConfigFile(plugin, filename);
 		
-		manager = Bukkit.getScoreboardManager();
-		board = manager.getNewScoreboard();
-		team = board.registerNewTeam(name);
-		objective = board.registerNewObjective("Stable", "dummy");
-		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-		horse = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Horses:"));
-		cow = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Cows:"));
-		pig = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Pigs:"));
-		sheep = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Sheep:"));
-		villager = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Villagers:"));
-		ocelot = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Ocelots:"));
-		wolf = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Wolves:"));
-		chicken = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Chickens:"));
-		
-		team.addPlayer(plugin.getServer().getOfflinePlayer(name));
-		plugin.getServer().getPlayer(name).setScoreboard(board);
-		
 		if (!playerfile.exist()){
 			playerfile.getConfig().createSection("frozenlocation");
 			playerfile.getConfig().set("frozen", frozen);
 			playerfile.saveConfig();
 		} else {
-			if (playerfile.getConfig().contains("animals")){
-				plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
-					@Override
-					public void run(){
-						animals= playerfile.getConfig().getStringList("animals");
-						
-						for(String animal:animals){
-							Entity entity = getEntity(animal);
-							if(getAnimalClass(entity).contains("Horse")){
-								horsecount++;
-								horse.setScore(horsecount);
-							}
-							
-							if(getAnimalClass(entity).contains("Cow")){
-								cowcount++;
-								cow.setScore(cowcount);
-							}
-							
-							if(getAnimalClass(entity).contains("Pig")){
-								pigcount++;
-								pig.setScore(pigcount);
-							}
-							
-							if(getAnimalClass(entity).contains("Sheep")){
-								sheepcount++;
-								sheep.setScore(sheepcount);
-							}
-							
-							if(getAnimalClass(entity).contains("Villager")){
-								villagercount++;
-								villager.setScore(villagercount);
-							}
-							
-							if(getAnimalClass(entity).contains("Ocelot")){
-								ocelotcount++;
-								ocelot.setScore(ocelotcount);
-							}
-							
-							if(getAnimalClass(entity).contains("Wolf")){
-								wolfcount++;
-								wolf.setScore(wolfcount);
-							}
-							
-							if(getAnimalClass(entity).contains("Chicken")){
-								chickencount++;
-								chicken.setScore(chickencount);
-							}
-						}
-					}
-				}, 200L);
-			}
+
 			frozen=playerfile.getConfig().getBoolean("frozen");
 
 			int x = 0,y = 0,z = 0;
@@ -258,90 +178,11 @@ public class OasisPlayer {
 				playerfile.getConfig().set("animals", animals);
 				plugin.getServer().getPlayer(name).sendMessage(ChatColor.RED + "LOCKED!");
 				
-				if(getAnimalClass(entity).contains("Horse")){
-					horsecount++;
-					horse.setScore(horsecount);
-				}
-				
-				if(getAnimalClass(entity).contains("Cow")){
-					cowcount++;
-					cow.setScore(cowcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Pig")){
-					pigcount++;
-					pig.setScore(pigcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Sheep")){
-					sheepcount++;
-					sheep.setScore(sheepcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Villager")){
-					villagercount++;
-					villager.setScore(villagercount);
-				}
-				
-				if(getAnimalClass(entity).contains("Ocelot")){
-					ocelotcount++;
-					ocelot.setScore(ocelotcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Wolf")){
-					wolfcount++;
-					wolf.setScore(wolfcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Chicken")){
-					chickencount++;
-					chicken.setScore(chickencount);
-				}
-				
 			} else {
 				animals.remove(entity.getUniqueId().toString());
 				playerfile.getConfig().set("animals", animals);
 				plugin.getServer().getPlayer(name).sendMessage(ChatColor.RED + "UNLOCKED!");
 				
-				if(getAnimalClass(entity).contains("Horse")){
-					horsecount--;
-					horse.setScore(horsecount);
-				}
-				
-				if(getAnimalClass(entity).contains("Cow")){
-					cowcount--;
-					cow.setScore(cowcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Pig")){
-					pigcount--;
-					pig.setScore(pigcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Sheep")){
-					sheepcount--;
-					sheep.setScore(sheepcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Villager")){
-					villagercount--;
-					villager.setScore(villagercount);
-				}
-				
-				if(getAnimalClass(entity).contains("Ocelot")){
-					ocelotcount--;
-					ocelot.setScore(ocelotcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Wolf")){
-					wolfcount--;
-					wolf.setScore(wolfcount);
-				}
-				
-				if(getAnimalClass(entity).contains("Chicken")){
-					chickencount--;
-					chicken.setScore(chickencount);
-				}
 			}
 			playerfile.saveConfig();
 		}
@@ -356,9 +197,6 @@ public class OasisPlayer {
 			this.sendMessage(ChatColor.RED + "Your tplist is empty, add animals to it by right clicking with a feather in your hand.  Remove them the same way!");
 		} else {
 			for(final Entity entity : tplist){
-				//CommonEntity<?> newentity = CommonEntity.get(entity);
-				//newentity.getLocation().getChunk().load();
-				//newentity.teleport(loc);
 				entity.teleport(loc);
 			}
 			sendMessage(ChatColor.GOLD + "Animals have been teleported!");

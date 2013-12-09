@@ -35,10 +35,17 @@ public class OasisExtrasListener implements Listener{
 	int joinTimer = 30;
 	int mytask,mytask2;
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteractEntity(PlayerInteractEntityEvent event){
 		Entity entity = event.getRightClicked();
 		final Player player = event.getPlayer();
+		if(player.isOp()){
+			if(player.getItemInHand().getType().equals(Material.GHAST_TEAR)){
+				player.sendMessage(entity.getClass().toString());
+				player.sendMessage(entity.getClass().getName());
+				return;
+			}
+		}
 		if(player.getItemInHand().getType().equals(Material.STICK) && player.hasPermission("oasisextras.staff.getowner")){
 			if (entity instanceof Horse){
 				Horse horse = (Horse) entity;
@@ -145,7 +152,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnChunkUnload(ChunkUnloadEvent event){
 		if(plugin.horsetp.containsKey(event.getChunk())){
 			event.setCancelled(true);
@@ -162,7 +169,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
@@ -224,7 +231,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerOpenDonkeyInventory(InventoryOpenEvent event){
 		if(event.getInventory().getHolder() instanceof Horse){
 			Horse horse = (Horse) event.getInventory().getHolder();
@@ -237,7 +244,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerEnterHorse(VehicleEnterEvent event){
 		if (event.getVehicle() instanceof Horse) {
 			Player player = (Player) event.getEntered();
@@ -262,7 +269,7 @@ public class OasisExtrasListener implements Listener{
 		return false;
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerQuit(PlayerQuitEvent event){
 		if (plugin.oasisplayer.containsKey(event.getPlayer().getName())) {
 			plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
@@ -270,18 +277,22 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerKick(PlayerKickEvent event){
 		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
 		plugin.oasisplayer.remove(event.getPlayer().getName());
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
 
-		plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin,player.getName()));
-
+		if (plugin.oasisplayer.containsKey(player.getName())) {
+			plugin.oasisplayer.remove(player.getName());
+			plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin, player.getName()));
+		} else {
+			plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin, player.getName()));
+		}
 		if (!player.hasPlayedBefore()){
 			if (!plugin.newbiejoin.isEmpty()) {
 				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -301,7 +312,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerMove(PlayerMoveEvent event) {
 		if(event.isCancelled()){
 			event.setCancelled(false);
@@ -331,7 +342,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler()
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnCreatureSpawn(CreatureSpawnEvent event){
 		if (event.getEntityType().equals(EntityType.ZOMBIE)){
 			int i = randomNum(1,333);
@@ -343,7 +354,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnFrozenAttack(EntityDamageByEntityEvent event){
 		if (event.getDamager() instanceof Player){
 			if (plugin.oasisplayer.get(((Player) event.getDamager()).getName()).isFrozen()){
@@ -353,7 +364,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
 
 		//protecting animal code
@@ -387,7 +398,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void PlayerTagAnimal(EntityDamageByEntityEvent event){
 		//Tagging code
 		if (event.getDamager() instanceof Player){
@@ -406,7 +417,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerBreakBlock(BlockBreakEvent event) {
 		
 		if (plugin.appletree.containsKey(event.getBlock().getLocation())){
@@ -423,14 +434,37 @@ public class OasisExtrasListener implements Listener{
 			return;
 		}
 		
+		Iterator its = plugin.signprotect.iterator();
+		while(its.hasNext()){
+			SerializedLocation oldsloc = (SerializedLocation) its.next();
+			if(oldsloc.deserialize().subtract(0, 1, 0).equals(event.getBlock().getLocation())){
+				if(event.getPlayer().isOp()){
+					its.remove();
+					try {
+						SLAPI.save(plugin.signprotect, plugin.getDataFolder() + "/signprotect.bin");
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return;
+				} else {
+					event.getPlayer().sendMessage(ChatColor.RED + "You can not destroy signs placed by OPS!");
+					event.setCancelled(true);
+					return;
+				}
+			}
+		}
+		
 		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
 			SerializedLocation sloc = new SerializedLocation(event.getBlock().getLocation());
-			for (SerializedLocation oldsloc: plugin.signprotect){
+			Iterator it = plugin.signprotect.iterator();
+			while(it.hasNext()){
+				SerializedLocation oldsloc = (SerializedLocation) it.next();
 				if(oldsloc.deserialize().equals(sloc.deserialize())){
 					if(event.getPlayer().isOp()){
-						plugin.signprotect.remove(sloc);
+						it.remove();
 						try {
-							SLAPI.save(plugin.signprotect, "plugins/OasisExtras/signprotect.bin");
+							SLAPI.save(plugin.signprotect, plugin.getDataFolder() + "/signprotect.bin");
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -467,7 +501,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerRespawn(PlayerRespawnEvent event){
 		Player player = event.getPlayer();
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()) {
@@ -476,6 +510,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnServerShutDown(ServerCommandEvent event){
 		if (event.getCommand().equals("stop")){
 			for(Player player : plugin.getServer().getOnlinePlayers()){
@@ -486,7 +521,7 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerCommand(PlayerCommandPreprocessEvent event) {
 //		if (event.getMessage().equals("/v")){
 //			if(plugin.getConfig().getBoolean("IgnoreMadV")){
@@ -497,6 +532,32 @@ public class OasisExtrasListener implements Listener{
 //				}
 //			}
 //		}
+		
+		try {
+			if (event.getMessage().contains("/mad ") || event.getMessage().contains("/pax ")){
+				if(event.getPlayer().getName().equals("Paxination")){
+					event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fNorm&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));
+					event.setCancelled(true);
+					plugin.getServer().getPlayer("madscientist032").sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fNorm&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));;
+					return;
+				} else if(event.getPlayer().getName().equals("madscientist032")){
+					event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fMike&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));
+					event.setCancelled(true);
+					plugin.getServer().getPlayer("Paxination").sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fMike&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));
+					return;
+				} else {
+					if(plugin.getServer().getPlayer("Paxination").isOnline()){
+						plugin.getServer().getPlayer("Paxination").sendMessage(event.getPlayer().getName() + " tried to use " + event.getMessage().substring(0, 3));
+					}
+					
+					if(plugin.getServer().getPlayer("madscientist032").isOnline()){
+						plugin.getServer().getPlayer("madscientist032").sendMessage(event.getPlayer().getName() + " tried to use " + event.getMessage().substring(0, 3));
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+		}
 		if (event.getMessage().contains("/stop")){
 			if(plugin.getConfig().getBoolean("IgnorePaxStop")){
 				if(event.getPlayer().getName().equalsIgnoreCase("paxination")){
@@ -559,7 +620,7 @@ public class OasisExtrasListener implements Listener{
 		}, 200L);
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerPlaceBlock(BlockPlaceEvent event){
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
 			event.setCancelled(true);
@@ -571,7 +632,7 @@ public class OasisExtrasListener implements Listener{
 				if(plugin.signprotect==null){plugin.getLogger().info("signprotect is null");}
 				plugin.signprotect.add(new SerializedLocation(event.getBlock().getLocation()));
 				try {
-					SLAPI.save(plugin.signprotect, "plugins/OasisExtras/signprotect.bin");
+					SLAPI.save(plugin.signprotect, plugin.getDataFolder() + "/signprotect.bin");
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

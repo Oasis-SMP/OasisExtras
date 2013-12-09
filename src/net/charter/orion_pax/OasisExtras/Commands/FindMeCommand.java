@@ -39,7 +39,7 @@ public class FindMeCommand implements CommandExecutor {
 					        GregorianCalendar lastplayed = new GregorianCalendar(TimeZone.getTimeZone("US/Eastern"));
 					        firstplayed.setTimeInMillis(player.getFirstPlayed());
 					        lastplayed.setTimeInMillis(player.getLastPlayed());
-							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c" + player.getName() + " &6- FirstPlayed:  &7" + sdf.format(firstplayed.getTime()) + "&6 - LastPlayed: &7" + sdf.format(lastplayed.getTime())));
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c" + player.getName() + " &6- FirstPlayed:  &7" + sdf.format(firstplayed.getTime()) + "&6 - LastPlayed: &7" + sdf.format(lastplayed.getTime()) + " - Bant: " + player.isBanned()));
 						}
 					}
 					findmetask.cancel();
