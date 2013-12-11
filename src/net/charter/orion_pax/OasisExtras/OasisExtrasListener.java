@@ -75,6 +75,8 @@ public class OasisExtrasListener implements Listener{
 			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 			if(player.hasPermission("oasisextras.staff.teleportall")){
 				oPlayer.toggleTP(entity);
+				LivingEntity liveentity = (LivingEntity) entity;
+				liveentity.setRemoveWhenFarAway(false);
 				if(plugin.tptimer.containsKey(player.getName())){
 					return;
 				} else {
@@ -174,6 +176,19 @@ public class OasisExtrasListener implements Listener{
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
 			if (player.getItemInHand().getType().equals(Material.FEATHER)){
+				if(player.getItemInHand().hasItemMeta()){
+					if(player.getItemInHand().getItemMeta().hasDisplayName()){
+						if(player.getItemInHand().getItemMeta().getDisplayName().equals("tpall")){
+							for(Entity e : player.getNearbyEntities(10, 10, 10)){
+								OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+								oPlayer.toggleTP(e);
+								LivingEntity lE = (LivingEntity) e;
+								lE.setRemoveWhenFarAway(false);
+							}
+							return;
+						}
+					}
+				}
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 				oPlayer.tpanimal(event.getClickedBlock().getLocation().add(0, 1, 0));
 				event.setCancelled(true);
@@ -533,17 +548,25 @@ public class OasisExtrasListener implements Listener{
 //			}
 //		}
 		
+		if(event.getMessage().contains("/oc ")){
+			if(event.getPlayer().getName().equals("Paxination") || event.getPlayer().getName().equals("madscientist032")){
+				plugin.getServer().broadcastMessage(plugin.ColorChat("&1<&4OwnerCast&1> &e" + event.getMessage().substring(4)));
+				event.setCancelled(true);
+				return;
+			}
+		}
+		
 		try {
 			if (event.getMessage().contains("/mad ") || event.getMessage().contains("/pax ")){
 				if(event.getPlayer().getName().equals("Paxination")){
-					event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fNorm&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));
+					event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fNorm&c}&e " + event.getMessage().substring(5, event.getMessage().length())));
 					event.setCancelled(true);
 					plugin.getServer().getPlayer("madscientist032").sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fNorm&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));;
 					return;
 				} else if(event.getPlayer().getName().equals("madscientist032")){
 					event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fMike&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));
 					event.setCancelled(true);
-					plugin.getServer().getPlayer("Paxination").sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fMike&c}&9 " + event.getMessage().substring(5, event.getMessage().length())));
+					plugin.getServer().getPlayer("Paxination").sendMessage(ChatColor.translateAlternateColorCodes('&', "&c{&fMike&c}&e " + event.getMessage().substring(5, event.getMessage().length())));
 					return;
 				} else {
 					if(plugin.getServer().getPlayer("Paxination").isOnline()){

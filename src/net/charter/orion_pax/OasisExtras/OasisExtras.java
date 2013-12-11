@@ -110,7 +110,6 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("random").setExecutor(new RandomCommand(this));
 		getCommand("oasisextras").setExecutor(new OECommand(this));
 		getCommand("mount").setExecutor(new MountCommand(this));
-		getCommand("unmount").setExecutor(new UnMountCommand(this));
 		getCommand("chant").setExecutor(new ChantCommand(this));
 		getCommand("thunderstruck").setExecutor(new ThunderStruckCommand(this));
 		getCommand("findme").setExecutor(new FindMeCommand(this));
@@ -121,6 +120,8 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("spank").setExecutor(new SpankCommand(this));
 		getCommand("dismount").setExecutor(new DisMountCommand(this));
 		getCommand("findschem").setExecutor(new FindSchemCommand(this));
+		getCommand("tempperm").setExecutor(new TempPermCommand(this));
+		getCommand("shit").setExecutor(new ShitCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();

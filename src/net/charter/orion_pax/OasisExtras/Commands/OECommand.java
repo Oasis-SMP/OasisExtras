@@ -24,7 +24,11 @@ public class OECommand implements CommandExecutor{
 		}
 		
 		if (args[0].equalsIgnoreCase("reload")){
-			ReloadSubCommand reload = new ReloadSubCommand(plugin,sender);
+			new ReloadSubCommand(plugin,sender);
+		}
+		
+		if (args[0].equalsIgnoreCase("tools")){
+			new ToolsSubCommand(plugin,sender);
 		}
 		
 		if (args[0].equalsIgnoreCase("add")){
@@ -36,7 +40,7 @@ public class OECommand implements CommandExecutor{
 					buffer.append(args[i]);
 				}
 				String message = buffer.toString();
-				AddSubCommand add = new AddSubCommand(plugin, sender, message);
+				new AddSubCommand(plugin, sender, message);
 			}
 		}
 		
@@ -49,14 +53,18 @@ public class OECommand implements CommandExecutor{
 					sender.sendMessage(ChatColor.GOLD + args[1] + " is not an integer!");
 					return false; 
 				}
-				DelSubCommand del = new DelSubCommand(plugin, sender, Integer.parseInt(args[1]));
+				new DelSubCommand(plugin, sender, Integer.parseInt(args[1]));
 			}
 		}
 		
 		if (args[0].equalsIgnoreCase("list")){
 			if (sender.hasPermission("oasisextras.staff.bcastlist")) {
-				ListSubCommand list = new ListSubCommand(plugin, sender);
+				new ListSubCommand(plugin, sender);
 			}
+		}
+		
+		if (args[0].equalsIgnoreCase("perms")){
+			new PermsSubCommand(plugin, sender);
 		}
 		return false;
 	}

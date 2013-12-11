@@ -27,21 +27,21 @@ commands:
     permission-message: You don't have permissions for <permission>
     
   kcast:
-    description: Voice of the PEOPLE!
+    description: Voice of the PEOPLE!  Another broadcast....
     usage: "Usage: /<command> Your message here!"
     permission: oasisextras.staff.kcast
     permission-message: You don't have permissions for <permission>
     
   findme:
-    description: Find an offline user!
+    description: Search for playernames.
     aliases: [os, offsearch, searchname, psearch]
-    usage:
+    usage: "Usage: /<command> name"
     permission: oasisextras.staff.findme
     permission-message: You don't have permissions for <permission>
     
   oasisextras:
     description:  Reloads OasisExtras config
-    aliases: oe
+    aliases: [oe]
     usage:
     permission: oasisextras.staff.oasisextras
     permission-message: You don't have permissions for <permission>
@@ -127,12 +127,6 @@ commands:
     permission: oasisextras.player.dismount
     permission-message: You don't have permissions for <permission>
     
-  unmount:
-    description: Unmounts a player!
-    usage: "Usage: /<command>"
-    permission: oasisextras.staff.unmount
-    permission-message: You don't have permissions for <permission>
-    
   findschem:
     description: Searches worldedit schematics!
     aliases: [fschem,fs]
@@ -140,7 +134,102 @@ commands:
     permission: oasisextras.staff.findschem
     permission-message: You don't have permissions for <permission>
     
+  tempperm:
+    description: Adds a temporary permnode to a player!
+    aliases: [tperm]
+    usage: "Usage: /<command> <player> <permnode>"
+    permission: oasisextras.staff.tempperm
+    permission-message: You don't have permissions for <permission>
+    
+  shit:
+    description: Shits on a player with notification!
+    aliases: [shat, crap, so, shiton, shaton, crapon]
+    usage: "Usage: /<command> <player>"
+    permission: oasisextras.staff.shit
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.staff.blackmarket:
+        description: Blackmarket broadcast!
+        
+    oasisextras.staff.givecoupon:
+        description: Gives coupons to players on pixelmon server!
+        
+    oasisextras.staff.comcast:
+        description: Comcast broadcast!
+        
+    oasisextras.staff.kcast:
+        description: KCast broadcast!
+        
+    oasisextras.staff.findme:
+        description: Search for usernames!
+        
+    oasisextras.staff.oasisextras:
+        description: OE Ops only commands!
+        
+    oasisextras.player.random:
+        description: Randomly TP's a player around the map!
+        
+    oasisextras.staff.enableme:
+        description: Funny broadcast message!
+        
+    oasisextras.staff.disableme:
+        description: Funny broadcast message!
+        
+    oasisextras.staff.brocast:
+        description: Brocast instead of broadcast!
+        
+    oasisextras.staff.chant:
+        description: Custom broadcast msgs!
+        
+    oasisextras.staff.thunderstruck:
+        description: Strike thunder at your location.
+        
+    oasisextras.staff.spook:
+        description: Spooks a player!
+        
+    oasisextras.staff.freeze:
+        description: Freezes a player!
+        
+    oasisextras.staff.drunk:
+        description: Makes a player drunk!
+        
+    oasisextras.staff.slap:
+        description: Slaps a bitch!
+        
+    oasisextras.staff.spank:
+        description: Spanks a bitch!
+        
+    oasisextras.staff.mount:
+        description: Mounts a player!
+        
+    oasisextras.player.dismount:
+        description: Player command to force staff to dismount them.
+        
+    oasisextras.staff.findschem:
+        description: Search the schematics folder.
+        
+    oasisextras.staff.tempperm:
+        description: Gives a permnode temporarily.  Log out and its gone.
+        
+    oasisextras.staff.shit:
+        description: Shit on a player!
+        
+    oasisextras.player.appletree:
+        description: Allows a player to spawn an appletree!
+        
+    oasisextras.player.catndog:
+        description: Allows players to spawn a cat or a dog with fish or bones!
+        
+    oasisextras.player.tp:
+        description: Allows a player to tp their animals.
+        
+    oasisextras.staff.teleportall:
+        description: Allows staff to tp any mob, not just animals.
+        
+    oasisextras.staff.staff:
+        description: Staff perm node check for OE!
+        
     oasisextras.player.*:
         description: Gives access to all player commands
         children:
@@ -151,6 +240,13 @@ permissions:
             oasisextras.player.tp: true
             oasisextras.player.dismount: true
             
+    oasisextras.staff.pixelmon:
+        description: Pixelmon specific permnodes
+        children:
+            oasisextras.staff.comcast: true
+            oasisextras.staff.blackmarket: true
+            oasisextras.staff.givecoupon: true
+            
     oasisextras.staff.mod:
         description: Mod perm nodes
         children:
@@ -160,7 +256,6 @@ permissions:
             oasisextras.staff.bcastdel: true
             oasisextras.staff.bcastlist: true
             oasisextras.staff.mount: true
-            oasisextras.staff.unmount: true
                         
     oasisextras.staff.jrmod:
         description: JrMod perm nodes
