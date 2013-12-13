@@ -15,11 +15,11 @@ public class ToolsSubCommand {
 
 	public ToolsSubCommand(OasisExtras plugin, CommandSender sender){
 		this.plugin = plugin;
-		ItemStack feather = setItem(new ItemStack(Material.FEATHER,1),"tpall");
-		ItemStack tnt = setItem(new ItemStack(Material.TNT,1),"boom");
 		Player player = (Player) sender;
-		player.getInventory().addItem(feather);
-		player.getInventory().addItem(tnt);
+		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"tpall"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.TNT,1),"boom"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"float"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.REDSTONE,1),"power"));
 		return;
 	}
 

@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.TreeType;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -175,24 +176,57 @@ public class OasisExtrasListener implements Listener{
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
-			if (player.getItemInHand().getType().equals(Material.FEATHER)){
-				if(player.getItemInHand().hasItemMeta()){
-					if(player.getItemInHand().getItemMeta().hasDisplayName()){
-						if(player.getItemInHand().getItemMeta().getDisplayName().equals("tpall")){
-							for(Entity e : player.getNearbyEntities(10, 10, 10)){
-								OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
-								oPlayer.toggleTP(e);
-								LivingEntity lE = (LivingEntity) e;
-								lE.setRemoveWhenFarAway(false);
-							}
-							return;
-						}
+			if (player.isOp()) {
+				if (player.getItemInHand().getType().equals(Material.REDSTONE)){
+					if(player.getItemInHand().getItemMeta().getDisplayName().equals("power")){
+						Block block = event.getClickedBlock();
+						event.setCancelled(true);
+						block.setTypeIdAndData(Material.REDSTONE_LAMP_ON.getId(), (byte) 0x8, false);
+						return;
 					}
 				}
-				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
-				oPlayer.tpanimal(event.getClickedBlock().getLocation().add(0, 1, 0));
-				event.setCancelled(true);
-				return;
+				if (player.getItemInHand().getType().equals(Material.TNT)){
+					if(player.getItemInHand().getItemMeta().getDisplayName().equals("boom")){
+						final float power = player.getItemInHand().getAmount();
+						final Location loc = event.getClickedBlock().getLocation();
+						plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+
+							@Override
+							public void run() {
+								// TODO Auto-generated method stub
+								loc.getWorld().createExplosion(loc, power);
+							}
+							
+						}, 100L);
+						event.setCancelled(true);
+						return;
+					}
+				}
+				if (player.getItemInHand().getType().equals(Material.FEATHER)) {
+					if (player.getItemInHand().hasItemMeta()) {
+						if (player.getItemInHand().getItemMeta().hasDisplayName()) {
+							if (player.getItemInHand().getItemMeta().getDisplayName().equals("tpall")) {
+								for (Entity entity : player.getNearbyEntities(10, 10, 10)) {
+									OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+									oPlayer.toggleTP(entity);
+									LivingEntity lE = (LivingEntity) entity;
+									lE.setRemoveWhenFarAway(false);
+								}
+							}
+							
+							if (player.getItemInHand().getItemMeta().getDisplayName().equals("float")){
+								event.getClickedBlock().getWorld().spawnFallingBlock(event.getClickedBlock().getLocation().add(0, 1, 0), event.getClickedBlock().getType(), (byte) 0).setVelocity(new Vector(0,2,0));
+								event.getClickedBlock().setType(Material.AIR);
+								event.setCancelled(true);
+								return;
+							}
+						}
+					}
+					OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+					oPlayer.tpanimal(event.getClickedBlock().getLocation().add(0, 1, 0));
+					event.setCancelled(true);
+					return;
+				}
 			}
 			if (player.hasPermission("oasisextras.player.catndog")){
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){

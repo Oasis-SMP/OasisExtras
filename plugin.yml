@@ -109,6 +109,19 @@ commands:
     permission: oasisextras.staff.slap
     permission-message: You don't have permissions for <permission>
     
+  rage:
+    description: RAGE!
+    usage: "Usage: /<command> radius"
+    permission: oasisextras.staff.rage
+    permission-message: You don't have permissions for <permission>
+    
+  bitchslap:
+    description: Bitch slaps a player!
+    aliases: [bsr,bs,bslap,bitchs,smackaho,smackabitch,laythesmackdown]
+    usage: "Usage: /<command> playername [msg] (msg is optional)"
+    permission: oasisextras.staff.bitchslap
+    permission-message: You don't have permissions for <permission>
+    
   spank:
     description: Spanks a player!
     usage: "Usage: /<command> playername [msg] (msg is optional)"
@@ -148,9 +161,24 @@ commands:
     permission: oasisextras.staff.shit
     permission-message: You don't have permissions for <permission>
     
+  shitstorm:
+    description: Shits in a radius!
+    usage: "Usage: /<command> <player>"
+    permission: oasisextras.staff.shitstorm
+    permission-message: You don't have permissions for <permission>
+    
+  tornado:
+    description: Spawns a tornado!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.tornado
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
     oasisextras.staff.blackmarket:
         description: Blackmarket broadcast!
+        
+    oasisextras.staff.rage:
+        description: RAGE!
         
     oasisextras.staff.givecoupon:
         description: Gives coupons to players on pixelmon server!
@@ -197,6 +225,9 @@ permissions:
     oasisextras.staff.slap:
         description: Slaps a bitch!
         
+    oasisextras.staff.bitchslap:
+        description: Bitchslaps a bitch!
+        
     oasisextras.staff.spank:
         description: Spanks a bitch!
         
@@ -214,6 +245,12 @@ permissions:
         
     oasisextras.staff.shit:
         description: Shit on a player!
+        
+    oasisextras.staff.shitstorm:
+        description: Shit in a radius!
+        
+    oasisextras.staff.tornado:
+        description: Spawn a tornado!
         
     oasisextras.player.appletree:
         description: Allows a player to spawn an appletree!

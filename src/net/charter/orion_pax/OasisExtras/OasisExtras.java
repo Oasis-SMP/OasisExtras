@@ -83,7 +83,7 @@ public class OasisExtras extends JavaPlugin{
 		Filter f = new Filter(){
 			@Override
 			public boolean isLoggable(LogRecord line) {
-				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ")) {
+				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ") || line.getMessage().contains("Rcon ")) {
 					return false;
 				}
 				return true;
@@ -122,6 +122,10 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("findschem").setExecutor(new FindSchemCommand(this));
 		getCommand("tempperm").setExecutor(new TempPermCommand(this));
 		getCommand("shit").setExecutor(new ShitCommand(this));
+		getCommand("shitstorm").setExecutor(new ShitStormCommand(this));
+		getCommand("bitchslap").setExecutor(new BitchSlapCommand(this));
+		getCommand("rage").setExecutor(new RageCommand(this));
+		getCommand("tornado").setExecutor(new TornadoCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();
