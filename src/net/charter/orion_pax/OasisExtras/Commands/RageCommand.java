@@ -53,18 +53,18 @@ public class RageCommand implements CommandExecutor {
 	
 	public void rage(final HashMap<Location, Material> blocks, final Location ploc){
 		task = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
-			Iterator it = blocks.entrySet().iterator();
+			Iterator<Entry<Location,Material>> it = blocks.entrySet().iterator();
 			Location loc;
 			Location uloc = ploc.add(0, -1, 0);
 			FallingBlock block;
 			@Override
 			public void run() {
 				if (it.hasNext()) {
-					Entry entry = (Entry) it.next();
-					loc = (Location) entry.getKey();
+					Entry<Location,Material> entry = it.next();
+					loc = entry.getKey();
 					block = loc.getWorld().spawnFallingBlock(new Location(loc.getWorld(),loc.getBlockX(),loc.getY()+1,loc.getBlockZ()),(Material) entry.getValue(), (byte) 0);
 					block.setVelocity(new Vector(0,2,0));
-					LightningStrike ls = new LightningStrike(plugin, ploc, 5L, 1);
+					new LightningStrike(plugin, ploc, 5L, 1);
 					loc.getBlock().setType(Material.AIR);
 					uloc.getBlock().setType(Material.COAL_BLOCK);
 					removeblock(block,loc,uloc);
@@ -87,11 +87,11 @@ public class RageCommand implements CommandExecutor {
 			@Override
 			public void run() {
 				Location loc;
-				Iterator restoreIt = blocks.entrySet().iterator();
+				Iterator<Entry<Location,Material>> restoreIt = blocks.entrySet().iterator();
 				while(restoreIt.hasNext()){
-					Entry entry = (Entry) restoreIt.next();
-					loc = (Location) entry.getKey();
-					loc.getBlock().setType((Material) entry.getValue());
+					Entry<Location,Material> entry = restoreIt.next();
+					loc = entry.getKey();
+					loc.getBlock().setType(entry.getValue());
 				}
 				
 			}

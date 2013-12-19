@@ -173,7 +173,68 @@ commands:
     permission: oasisextras.staff.tornado
     permission-message: You don't have permissions for <permission>
     
+  trail:
+    description: Toggles trail effect!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.trail
+    permission-message: You don't have permissions for <permission>
+    
+  aura:
+    description: Turns on aura effect!
+    usage: "Usage: /<command> [on/off/MATERIAL TYPE], issue just /aura for a list of materials"
+    permission: oasisextras.player.aura
+    permission-message: You don't have permissions for <permission>
+    
+  glow:
+    description: Turns on glow effect!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.glow
+    permission-message: You don't have permissions for <permission>
+    
+  sheepcast:
+    description: Wtf another cast!
+    usage: "Usage: /<command> [message]"
+    aliases: [scast,sheep,baah,lina]
+    permission: oasisextras.staff.sheepcast
+    permission-message: You don't have permissions for <permission>
+    
+  event:
+    description: Server events!
+    usage: "Usage: /<command>"
+    aliases: [oeevent,oee,oevent,events]
+    permission: oasisextras.player.event
+    permission-message: You don't have permissions for <permission>
+    
+  weatherman:
+    description: Weather channel!
+    usage: "Usage: /<command>"
+    aliases: [wman,wchannel,wm,wc,weatherchannel]
+    permission: oasisextras.player.weatherman
+    permission-message: You don't have permissions for <permission>
+    
+  horde:
+    description: Spawns a horde!
+    usage: "Usage: /<command>"
+    aliases: [hordegame,hordep]
+    permission: oasisextras.staff.horde
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.staff.horde:
+        description: Spawns a horde!
+        
+    oasisextras.player.event:
+        description: Server events!
+        
+    oasisextras.staff.sheepcast:
+        description: Wtf another cast!
+        
+    oasisextras.player.aura:
+        description: Turns on aura effect!
+        
+    oasisextras.staff.trail:
+        description: Toggles trail effect!
+        
     oasisextras.staff.blackmarket:
         description: Blackmarket broadcast!
         
@@ -267,15 +328,29 @@ permissions:
     oasisextras.staff.staff:
         description: Staff perm node check for OE!
         
+    oasisextras.player.glow:
+        description: A block of glowstone will follow the player when below y=64 and underground!
+        
+    oasisextras.player.event.notify:
+        description: Perm node required to receive event timer notifications.
+        
+    oasisextras.player.weatherman:
+        description: Weather announcement!
+        
     oasisextras.player.*:
         description: Gives access to all player commands
         children:
+            oasisextras.player.weatherman: true
+            oasisextras.player.event.notify: true
+            oasisextras.player.event: true
             oasisextras.player.appletree: true
             oasisextras.player.catndog: true
             oasisextras.player.random: true
             oasisextras.player.highfive: true
             oasisextras.player.tp: true
             oasisextras.player.dismount: true
+            oasisextras.player.aura: true
+            oasisextras.player.glow: true
             
     oasisextras.staff.pixelmon:
         description: Pixelmon specific permnodes
@@ -293,10 +368,12 @@ permissions:
             oasisextras.staff.bcastdel: true
             oasisextras.staff.bcastlist: true
             oasisextras.staff.mount: true
+            oasisextras.staff.sheepcast: true
                         
     oasisextras.staff.jrmod:
         description: JrMod perm nodes
         children:
+            oasisextras.staff.event: true
             oasisextras.staff.teleportall: true
             oasisextras.staff.findschem: true
             oasisextras.staff.staff: true

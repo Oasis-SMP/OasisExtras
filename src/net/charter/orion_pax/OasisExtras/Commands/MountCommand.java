@@ -14,29 +14,56 @@ public class MountCommand implements CommandExecutor{
 	
 	private OasisExtras plugin;
 	
-	Entity vehicle;
-	Entity passenger;
-	
 	public MountCommand (OasisExtras plugin){
 		this.plugin = plugin;
 	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (args.length==1){
-			vehicle=Bukkit.getPlayer(args[0]);
-			passenger = (Entity) sender;
-			if ((vehicle!=null) && (sender instanceof Player)){
-				passenger.teleport(vehicle);
-				vehicle.setPassenger(passenger);
-				sender.sendMessage(ChatColor.GOLD + "You have mounted " + Bukkit.getPlayer(args[0]).getName());
+		if(label.equalsIgnoreCase("mountme")){
+			if (args.length==1){
+				Player vehicle = (Player) sender;
+				
+				Player player = plugin.getServer().getPlayer(args[0]);
+				if(player==null){
+					sender.sendMessage(ChatColor.RED + args[0] + " is not online!");
+					return false;
+				}
+				vehicle.teleport(player);
+				if(vehicle.setPassenger(player)){
+					sender.sendMessage(ChatColor.GOLD + "You have been mounted by " + player.getName() + "!");
+					return true;
+				} else {
+					sender.sendMessage(ChatColor.RED + player.getName() + " could not mount you!");
+					return false;
+				}
+				
+			} else {
+				sender.sendMessage(ChatColor.GOLD + "Usage: /mountme playername");
 				return true;
 			}
+		}
+		if (args.length==1){
+			Player vehicle = plugin.getServer().getPlayer(args[0]);
+			if(vehicle==null){
+				sender.sendMessage(ChatColor.RED + args[0] + " is not online!");
+				return false;
+			}
+			Player player = (Player) sender;
+			
+			player.teleport(vehicle);
+			if(vehicle.setPassenger(player)){
+				sender.sendMessage(ChatColor.GOLD + "You have mounted " + vehicle.getName() + "!");
+				return true;
+			} else {
+				sender.sendMessage(ChatColor.RED + vehicle.getName() + " could not be mounted!");
+				return false;
+			}
+			
 		} else {
 			sender.sendMessage(ChatColor.GOLD + "Usage: /mount playername");
 			return true;
 		}
-		return false;
 	}
 	
 	
