@@ -135,25 +135,26 @@ public class HordeCommand implements CommandExecutor {
 		
 		if(args.length==1){
 			try {
-				amount=Integer.parseInt(args[1]);
+				amount=Integer.parseInt(args[0]);
 			} catch (NumberFormatException e) {
 				// TODO Auto-generated catch block
 				player.sendMessage(ChatColor.RED + args[0] + " is not a number");
 				player.sendMessage(ChatColor.RED + "Usage:/hordep [player] {amount}");
 				return true;
 			}
+			
+			for(int i=1;i<amount;i++){
+				int x = randomNum(-10,10);
+				int z = randomNum(-10,10);
+				Location newloc = player.getWorld().getHighestBlockAt(player.getLocation()).getLocation();
+				Creature creature = (Creature) player.getWorld().spawnEntity(newloc.add(x, 1, z), Mobs());
+				creature.setRemoveWhenFarAway(false);
+			}
+			
+			
 			return true;
 		}
-		for(int i=1;i<amount;i++){
-			int x = randomNum(-10,10);
-			int z = randomNum(-10,10);
-			Location newloc = player.getWorld().getHighestBlockAt(player.getLocation()).getLocation();
-			Creature creature = (Creature) player.getWorld().spawnEntity(newloc.add(x, 0, z), Mobs());
-			creature.setRemoveWhenFarAway(false);
-		}
-		
-		
-		return true;
+		return false;
 	}
 	
 	private void msgPlayers(Location loc, double radius, String msg){

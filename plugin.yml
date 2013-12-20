@@ -219,7 +219,17 @@ commands:
     permission: oasisextras.staff.horde
     permission-message: You don't have permissions for <permission>
     
+  oewhois:
+    description: OasisExtras whois!
+    usage: "Usage: /<command> [player]"
+    aliases: [oewho,oew,oewi]
+    permission: oasisextras.staff.oewhois
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.staff.oewhois:
+        description: OasisExtras whois!
+        
     oasisextras.staff.horde:
         description: Spawns a horde!
         
@@ -337,6 +347,27 @@ permissions:
     oasisextras.player.weatherman:
         description: Weather announcement!
         
+    oasisextras.staff.tools.tpall:
+        description: Allows tping of all mobs!
+        
+    oasisextras.staff.tools.getowner:
+        description: Tells you who owns the animal!
+        
+    oasisextras.staff.tools.override:
+        description: Removes ownership of a mob!
+        
+    oasisextras.staff.tools.what:
+        description: Reports mobs internal name.
+        
+    oasisextras.staff.tools.float:
+        description: Float block tool!
+        
+    oasisextras.staff.tools.power:
+        description: Redstone power tool!
+        
+    oasisextras.staff.tools.boom:
+        description: TNT POWER!
+        
     oasisextras.player.*:
         description: Gives access to all player commands
         children:
@@ -373,12 +404,14 @@ permissions:
     oasisextras.staff.jrmod:
         description: JrMod perm nodes
         children:
+            oasisextras.staff.oewhois: true
             oasisextras.staff.event: true
-            oasisextras.staff.teleportall: true
+            oasisextras.staff.tools.override: true
+            oasisextras.staff.tools.getowner: true
+            oasisextras.staff.tools.what: true
+            oasisextras.staff.tools.tpall: true
             oasisextras.staff.findschem: true
             oasisextras.staff.staff: true
-            oasisextras.staff.getowner: true
-            oasisextras.staff.override: true
             oasisextras.staff.enableme: true
             oasisextras.staff.disableme: true
             oasisextras.staff.freeze: true

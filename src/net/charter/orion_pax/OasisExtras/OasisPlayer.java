@@ -11,6 +11,8 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -24,27 +26,24 @@ public class OasisPlayer {
 	private final String name;
 	private World world;
 	private List<String> animals = new ArrayList<String>();
-	private boolean frozen = false;
-	private boolean online = false;
-	private boolean glow = false;
-	private boolean eventnotify = true;
+	public boolean frozen = false;
+	public boolean online = false;
+	public boolean glow = false;
+	public boolean eventnotify = true;
 	private Location gbloc;
 	private Material gbmat;
-	private Location loc = null;
-	private boolean staff = false;
+	public Location loc = null;
+	public boolean staff = false;
 	public List<Entity> tplist = new ArrayList<Entity>();
 	private MyConfigFile playerfile;
 	private BukkitTask aura;
-	private Material auramat = Material.GHAST_TEAR;
+	public Material auramat = Material.GHAST_TEAR;
 	private ItemStack auraitem;
 	private ItemMeta auraname;
 	private List<String> auralore = new ArrayList<String>();
-	private boolean trail = false;
-	private boolean auratoggle = false;
-	private boolean weatherman = false;
-	private boolean jesus = false;
-	private HashMap<Location,Material> jesusblocks = new HashMap<Location,Material>();
-	private Location lastblock;
+	public boolean trail = false;
+	public boolean auratoggle = false;
+	public boolean weatherman = false;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -62,8 +61,6 @@ public class OasisPlayer {
 		if(!eventnotify){
 			plugin.getServer().dispatchCommand(plugin.console, "manuaddp " + name + "-oasisextras.player.event.notify");
 		}
-
-		jesus = playerfile.getConfig().getBoolean("jesus",false);
 
 		glow = playerfile.getConfig().getBoolean("glowing",false);
 
@@ -91,7 +88,6 @@ public class OasisPlayer {
 		playerfile.getConfig().set("auratoggle", auratoggle);
 		playerfile.getConfig().set("trail", trail);
 		playerfile.getConfig().set("weatherman", weatherman);
-		playerfile.getConfig().set("jesus", jesus);
 		playerfile.saveConfig();
 	}
 
@@ -104,11 +100,10 @@ public class OasisPlayer {
 		if(auratoggle){SendMsg("&bAura is on!");}
 		if(trail){SendMsg("&cTrail is &aEnabled!");}
 		if(weatherman){SendMsg("&bWeather Channel is &aEnabled!");}
-		if(jesus){SendMsg("&1Waterwalker is &aEnabled!");}
 	}
-
-	public boolean isJesus(){
-		return jesus;
+	
+	public void OEWho(){
+		
 	}
 
 	public boolean weather(){
@@ -276,15 +271,6 @@ public class OasisPlayer {
 		saveMe();
 	}
 
-	public void toggleJ(){
-		jesus=!jesus;
-		if(jesus){
-			SendMsg("&1Water walker &aEnabled!");
-		} else {
-			SendMsg("&1Water walker &cDisabled!");
-		}
-	}
-
 	public Player getPlayer(){
 		return plugin.getServer().getPlayer(name);
 	}
@@ -423,4 +409,34 @@ public class OasisPlayer {
 		}
 		return null;
 	}
+
+	public Location behindPlayer(Player player) {
+		double rotation = (player.getLocation().getYaw() - 90) % 360;
+		Block b = player.getLocation().clone().subtract(0, 1, 0).getBlock();
+		if (rotation < 0) {
+			rotation += 360.0;
+		}
+		if (0 <= rotation && rotation < 22.5) {
+			return b.getRelative(BlockFace.SOUTH).getLocation();
+		} else if (22.5 <= rotation && rotation < 67.5) {
+			return b.getRelative(BlockFace.SOUTH_WEST).getLocation();
+		} else if (67.5 <= rotation && rotation < 112.5) {
+			return b.getRelative(BlockFace.WEST).getLocation();
+		} else if (112.5 <= rotation && rotation < 157.5) {
+			return b.getRelative(BlockFace.NORTH_WEST).getLocation();
+		} else if (157.5 <= rotation && rotation < 202.5) {
+			return b.getRelative(BlockFace.NORTH).getLocation();
+		} else if (202.5 <= rotation && rotation < 247.5) {
+			return b.getRelative(BlockFace.NORTH_EAST).getLocation();
+		} else if (247.5 <= rotation && rotation < 292.5) {
+			return b.getRelative(BlockFace.EAST).getLocation();
+		} else if (292.5 <= rotation && rotation < 337.5) {
+			return b.getRelative(BlockFace.SOUTH_EAST).getLocation() ;
+		} else if (337.5 <= rotation && rotation < 360.0) {
+			return b.getRelative(BlockFace.SOUTH).getLocation();
+		} else {
+			return null;
+		}
+	}
 }
+

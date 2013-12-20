@@ -162,6 +162,7 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("event").setExecutor(new EventCommand(this));
 		getCommand("weatherman").setExecutor(new WeatherManCommand(this));
 		getCommand("horde").setExecutor(new HordeCommand(this));
+		getCommand("oewhois").setExecutor(new OEWhoCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 		setup();
 		console = Bukkit.getServer().getConsoleSender();
