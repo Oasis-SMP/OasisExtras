@@ -1,15 +1,16 @@
 package net.charter.orion_pax.OasisExtras.Commands;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map.Entry;
-
+import java.util.List;
 import net.charter.orion_pax.OasisExtras.LightningStrike;
 import net.charter.orion_pax.OasisExtras.OasisExtras;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,60 +39,82 @@ public class RageCommand implements CommandExecutor {
 			}
 		}
 		Player player = (Player) sender;
-		HashMap<Location, Material> blocks = new HashMap<Location, Material>();
-		for(int x = -count ; x<count+1 ; x++){
-			for(int z = -count ; z<count+1 ; z++){
-				blocks.put(player.getLocation().add(x, -1, z), player.getLocation().add(x, -1, z).getBlock().getType());
+		List<BlockState> bslist = region(player.getLocation().add(count, -1, count),player.getLocation().add(-count, -1, -count));
+		List<BlockState> restorelist = region(player.getLocation().add(count+3, 5, count+3),player.getLocation().add(-count-3, -5, -count-3));
+		for(BlockState block:restorelist){
+			if(block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType().equals(Material.SIGN_POST) || block.getBlock().getType().equals(Material.SIGN)){
+				player.sendMessage(ChatColor.RED + "Unable to rage, near a chest or a sign!");
+				return true;
 			}
 		}
 		plugin.getServer().broadcastMessage(ChatColor.DARK_RED + "RUN!!! " + player.getName() + " is RAGING!");
-		rage(blocks,player.getLocation());
+		rage(bslist,player.getLocation(),restorelist);
 		return true;
 		
 		
 	}
 	
-	public void rage(final HashMap<Location, Material> blocks, final Location ploc){
+	public static List<BlockState> region(Location loc1, Location loc2)
+    {
+        List<BlockState> blocks = new ArrayList<BlockState>();
+ 
+        int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+        int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+ 
+        int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+        int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+ 
+        int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+        int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+ 
+        for(int x = bottomBlockX; x <= topBlockX; x++)
+        {
+            for(int z = bottomBlockZ; z <= topBlockZ; z++)
+            {
+                for(int y = bottomBlockY; y <= topBlockY; y++)
+                {
+                    Block block = loc1.getWorld().getBlockAt(x, y, z);
+                   
+                    blocks.add(block.getState());
+                }
+            }
+        }
+       
+        return blocks;
+    }
+	
+	public void rage(final List<BlockState> state, final Location ploc, final List<BlockState> restorelist){
 		task = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
-			Iterator<Entry<Location,Material>> it = blocks.entrySet().iterator();
-			Location loc;
-			Location uloc = ploc.add(0, -1, 0);
-			FallingBlock block;
+
+			Iterator<BlockState> it = state.iterator();
+			FallingBlock fblock;
 			@Override
 			public void run() {
-				if (it.hasNext()) {
-					Entry<Location,Material> entry = it.next();
-					loc = entry.getKey();
-					block = loc.getWorld().spawnFallingBlock(new Location(loc.getWorld(),loc.getBlockX(),loc.getY()+1,loc.getBlockZ()),(Material) entry.getValue(), (byte) 0);
-					block.setVelocity(new Vector(0,2,0));
-					new LightningStrike(plugin, ploc, 5L, 1);
-					loc.getBlock().setType(Material.AIR);
-					uloc.getBlock().setType(Material.COAL_BLOCK);
-					removeblock(block,loc,uloc);
+				if(it.hasNext()){
+					BlockState bstate = it.next();
+					fblock = bstate.getWorld().spawnFallingBlock(bstate.getLocation().clone().add(0, 1, 0), bstate.getType(), (byte) 0);
+					fblock.setVelocity(new Vector(0,2,0));
+					new LightningStrike(plugin, bstate.getLocation(), 5L, 1);
+					bstate.getBlock().setType(Material.AIR);
+					ploc.clone().add(0, -1, 0).getBlock().setType(Material.COAL_BLOCK);
+					removeblock(fblock,bstate,ploc);
 				} else {
-					restoreblocks(blocks);
-					cancel();
+					restoreblocks(restorelist);
+					task.cancel();
 				}
+				
 			}
 			
-			public void cancel(){
-				task.cancel();
-			}
-			
-		}, 0,5L);
+		}, 0, 5L);
 	}
 	
-	public void restoreblocks(final HashMap<Location,Material> blocks){
+	public void restoreblocks(final List<BlockState> state){
 		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
 
 			@Override
 			public void run() {
-				Location loc;
-				Iterator<Entry<Location,Material>> restoreIt = blocks.entrySet().iterator();
-				while(restoreIt.hasNext()){
-					Entry<Location,Material> entry = restoreIt.next();
-					loc = entry.getKey();
-					loc.getBlock().setType(entry.getValue());
+				for(BlockState block:state){
+					block.update(true);
 				}
 				
 			}
@@ -99,17 +122,32 @@ public class RageCommand implements CommandExecutor {
 		}, 100L);
 	}
 	
-	public void removeblock(final FallingBlock block,final Location loc, final Location uloc){
+	public void removeblock(final FallingBlock block,final BlockState bstate, final Location uloc){
 		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
 
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
 				block.remove();
-				loc.getBlock().setType(Material.LAVA);
-				uloc.getBlock().setType(Material.COAL_BLOCK);
+				bstate.getBlock().setType(randomMat());
+				uloc.clone().add(0, -1, 0).getBlock().setType(Material.COAL_BLOCK);
 			}
 			
 		}, 20L);
+	}
+	
+	public Material randomMat(){
+		switch(randomNum(1,5)){
+		case 1:return Material.AIR;
+		case 2:return Material.LAVA;
+		case 3:return Material.OBSIDIAN;
+		case 4:return Material.COAL_BLOCK;
+		case 5:return Material.FIRE;
+		default:return Material.LAVA;
+		}
+	}
+	
+	public int randomNum(Integer lownum, double d) {
+		return lownum + (int)(Math.random() * ((d - lownum) + 1));
 	}
 }

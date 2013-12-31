@@ -44,6 +44,9 @@ public class OEWhoCommand implements CommandExecutor {
 					message.add("&b*&6Location = &a" + "World=" + oPlayer.loc.getWorld().getName() + " - X=" + oPlayer.loc.getBlockX()+ " - Y=" + oPlayer.loc.getBlockY()+ " - Z=" + oPlayer.loc.getBlockZ());
 				}
 				message.add("&b*&6Staff = &a" + oPlayer.staff);
+				if(oPlayer.staff){
+					message.add("&b*&6JoinQuitKickIgnore = &a" + oPlayer.joinquitkickignore);
+				}
 				message.add("&b*&6Frozen = &a" + oPlayer.frozen);
 				message.add("&b*&6Glowing = &a" + oPlayer.glow);
 				message.add("&b*&6Trail = &a" + oPlayer.trail);
@@ -51,11 +54,24 @@ public class OEWhoCommand implements CommandExecutor {
 				message.add("&b*&6Aura Material = &a" + oPlayer.auramat.toString());
 				message.add("&b*&6Event Notify = &a" + oPlayer.eventnotify);
 				message.add("&b*&6Weather Channel = &a" + oPlayer.weatherman);
-				if(!oPlayer.tplist.isEmpty()){
-					message.add("&b*&6TP list:");
+				message.add("&b*&6Raging = &a" + oPlayer.raging);
+				if(!oPlayer.friends.isEmpty()){
+					buffer = new StringBuffer();
+					buffer.append("&b");
+					for(String string:oPlayer.friends){
+						buffer.append(string + ", ");
+					}
+					buffer.delete(buffer.length()-1, buffer.length());
+					message.add("&b*&6Friends list: " + buffer.toString());
 				}
-				for(Entity entity:oPlayer.tplist){
-					message.add("&b*&a" + entity.getType().toString());
+				if(!oPlayer.tplist.isEmpty()){
+					buffer = new StringBuffer();
+					buffer.append("&b");
+					for(Entity entity:oPlayer.tplist){
+						buffer.append(entity.getType().toString() + ", ");
+					}
+					buffer.delete(buffer.length()-1, buffer.length());
+					message.add("&b*&6TP list: " + buffer.toString());
 				}
 				for(String string:message){
 					SendMsg(string);

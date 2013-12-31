@@ -10,6 +10,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
@@ -31,6 +32,18 @@ public class FindMeCommand implements CommandExecutor {
 				@Override
 				public void run(){
 					for (OfflinePlayer player : plugin.getServer().getOfflinePlayers()) {
+						String name = player.getName().toLowerCase();
+						if (name.contains(args[0])){
+							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.US);
+
+					        GregorianCalendar firstplayed = new GregorianCalendar(TimeZone.getTimeZone("US/Eastern"));
+					        GregorianCalendar lastplayed = new GregorianCalendar(TimeZone.getTimeZone("US/Eastern"));
+					        firstplayed.setTimeInMillis(player.getFirstPlayed());
+					        lastplayed.setTimeInMillis(player.getLastPlayed());
+							sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c" + player.getName() + " &6- FirstPlayed:  &7" + sdf.format(firstplayed.getTime()) + "&6 - LastPlayed: &7" + sdf.format(lastplayed.getTime()) + " - Bant: " + player.isBanned()));
+						}
+					}
+					for (Player player : plugin.getServer().getOnlinePlayers()) {
 						String name = player.getName().toLowerCase();
 						if (name.contains(args[0])){
 							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.US);

@@ -16,7 +16,7 @@ public class ReloadSubCommand {
 		this.plugin.getServer().getPluginManager().disablePlugin(plugin);
 		this.plugin.reloadConfig();
 		this.plugin.getServer().getPluginManager().enablePlugin(plugin);
-		this.plugin.setup();
+		this.plugin.task.reload();
 		sender.sendMessage(ChatColor.GOLD + "Config reloaded!");
 	}
 }

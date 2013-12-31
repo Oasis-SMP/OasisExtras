@@ -25,13 +25,22 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Item;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+
+import net.coreprotect.CoreProtect;
+import net.coreprotect.CoreProtectAPI;
 
 import net.charter.orion_pax.OasisExtras.Commands.*;
 import net.charter.orion_pax.OasisExtras.Events.Event;
@@ -58,18 +67,18 @@ public class OasisExtras extends JavaPlugin{
 	public HashMap<String,Event> events = new HashMap<String,Event>();
 	public HashMap<Chunk,Horse> horsetp = new HashMap<Chunk,Horse>();
 	public List<SerializedLocation> signprotect = new ArrayList<SerializedLocation>();
+	public List<SerializedLocation> treelist = new ArrayList<SerializedLocation>();
 	public HashMap<String, OasisPlayer> oasisplayer = new HashMap<String, OasisPlayer>();
-	public List<OasisPlayer> oasistest = new ArrayList<OasisPlayer>();
 	public HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	public HashMap<String, OasisPlayer> tptimer = new HashMap<String, OasisPlayer>();
-	String effectslist,newbiejoin;
-	List<Integer> newbiekit;
-	public int default_min, default_max;
-	public int ndt;
-	int bcastcount, treecount=0;
-	long bcasttimer;
-	public List<String> bcastmsgs;
+	public CoreProtectAPI CoreProtect;
+	public String effectslist,newbiejoin,joinmsg,kickmsg,quitmsg;
+	public List<Integer> newbiekit;
+	public int default_min, default_max, ndt, treecount=0,amount,joinignore;
+	public long bcasttimer;
 	public MyConfigFile appletreefile;
+	public OasisExtrasTask task;
+	public Recipe shoes;
 	//public SLAPI slapi;
 
 	public String[] oasisextrassub = {
@@ -80,14 +89,12 @@ public class OasisExtras extends JavaPlugin{
 			,ChatColor.GOLD + "Do /oasisextras [subcommand] for more info"
 	};
 
-	String[] oasisextrassub2 = {
+	public String[] oasisextrassub2 = {
 			ChatColor.GOLD + "Usage as follows...."
 			,ChatColor.GOLD + "/oasisextras BCAST LIST - List auto bcast msgs"
 			,ChatColor.GOLD + "/oasisextras BCAST ADD - Adds a msg to the auto bcast list"
 			,ChatColor.GOLD + "/oasisextras BCAST REMOVE - Removes a msg from the auto bcast list"
 	};
-
-	public OasisExtrasTask task = new OasisExtrasTask(this);
 
 	@Override
 	public void onEnable() {
@@ -110,7 +117,7 @@ public class OasisExtras extends JavaPlugin{
 		Filter f = new Filter(){
 			@Override
 			public boolean isLoggable(LogRecord line) {
-				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ") || line.getMessage().contains("Rcon ")) {
+				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ") || line.getMessage().contains("Rcon ") || line.getMessage().contains("/oe troll")) {
 					return false;
 				}
 				return true;
@@ -124,7 +131,7 @@ public class OasisExtras extends JavaPlugin{
 				return null;
 			}
 		};
-		
+
 		randomTornado(this);
 
 		this.getLogger().setFilter(f);
@@ -163,8 +170,25 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("weatherman").setExecutor(new WeatherManCommand(this));
 		getCommand("horde").setExecutor(new HordeCommand(this));
 		getCommand("oewhois").setExecutor(new OEWhoCommand(this));
+		getCommand("ragequit").setExecutor(new RageQuitCommand(this));
+		getCommand("friends").setExecutor(new FriendsCommand(this));
+		getCommand("medic").setExecutor(new MedicCommand(this));
+		getCommand("fade").setExecutor(new FadeCommand(this));
+		getCommand("xray").setExecutor(new XrayCommand(this));
+		getCommand("fireworksdisplay").setExecutor(new FireworksDisplayCommand(this));
+		getCommand("notify").setExecutor(new NotifyCommand(this));
+		getCommand("map").setExecutor(new MapCommand(this));
+		getCommand("disco").setExecutor(new DiscoCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
+
+		CoreProtect = getCoreProtect();
+		if (CoreProtect!=null){ //Ensure we have access to the API
+			CoreProtect.testAPI(); //Will print out "[CoreProtect] API Test Successful." in the console.
+		}
+
+		task = new OasisExtrasTask(this);
 		setup();
+		addRecipes();
 		console = Bukkit.getServer().getConsoleSender();
 		loadPlayerConfigs();
 		getLogger().info("OasisExtras has been enabled!");
@@ -191,10 +215,58 @@ public class OasisExtras extends JavaPlugin{
 			item.remove();
 		}
 		aura.clear();
-		
+
+		this.task.bcasttask.cancel();
+
 		getLogger().info("OasisExtras has been disabled!");
 	}
-	
+
+	public void addRecipes(){
+		//Speed shoes
+		ShapedRecipe shoes = new ShapedRecipe(SpeedShoes());
+		shoes.shape("SSS","DSD","DGD");
+		shoes.setIngredient('S', Material.SUGAR);
+		shoes.setIngredient('D', Material.DIAMOND);
+		shoes.setIngredient('G', Material.GOLD_BOOTS);
+		getServer().addRecipe(shoes);
+		
+		this.shoes = shoes;
+	}
+
+	public ItemStack SpeedShoes(){
+		ItemStack shoes = new ItemStack(Material.DIAMOND_BOOTS,1);
+		ItemMeta meta = shoes.getItemMeta();
+		meta.addEnchant(Enchantment.PROTECTION_FALL, 1, true);
+		meta.setDisplayName("Speed Shoes");
+		List<String> lore = new ArrayList<String>();
+		lore.add(ChatColor.AQUA + "" + ChatColor.ITALIC + "Speed Shoes");
+		meta.setLore(lore);
+		shoes.setItemMeta(meta);
+		return shoes;
+	}
+
+	public CoreProtectAPI getCoreProtect() {
+		Plugin plugin = getServer().getPluginManager().getPlugin("CoreProtect");
+
+		// Check that CoreProtect is loaded
+		if (plugin == null || !(plugin instanceof CoreProtect)) {
+			return null;
+		}
+
+		// Check that the API is enabled
+		CoreProtectAPI CoreProtect = ((CoreProtect)plugin).getAPI();
+		if (CoreProtect.isEnabled()==false){
+			return null;
+		}
+
+		// Check that a compatible version of the API is loaded
+		if (CoreProtect.APIVersion() < 2){
+			return null;
+		}
+
+		return CoreProtect;
+	}
+
 	public void loadPlayerConfigs(){
 		for(OfflinePlayer offPlayer:this.getServer().getOfflinePlayers()){
 			this.oasisplayer.put(offPlayer.getName(), new OasisPlayer(this,offPlayer.getName()));
@@ -202,14 +274,17 @@ public class OasisExtras extends JavaPlugin{
 	}
 
 	public void setup(){
+		joinmsg=getConfig().getString("oasisextras.join");
+		quitmsg=getConfig().getString("oasisextras.quit");
+		kickmsg=getConfig().getString("oasisextras.kick");
+		joinignore = getConfig().getInt("oasisextras.joinignore",30);
+		amount = getConfig().getInt("oasisextras.Votifier",150);
 		newbiekit = getConfig().getIntegerList("newbiekit");
-		newbiejoin = getConfig().getString("newplayermsg");
-		bcastmsgs = getConfig().getStringList("broadcastmessages");
-		bcasttimer = getConfig().getInt("broadcasttimer")*1200;
-		default_min = Integer.parseInt(getConfig().getString("min_default_location"));
-		default_max = Integer.parseInt(getConfig().getString("max_default_location"));
-		ndt = Integer.parseInt(getConfig().getString("default_invulnerability_ticks"));
-		bcastcount = 0;
+		newbiejoin = getConfig().getString("oasisextras.newplayermsg");
+		bcasttimer = getConfig().getInt("oasisextras.broadcasttimer",15*1200)*1200;
+		default_min = getConfig().getInt("oasisextras.min_default_location",-2500);
+		default_max = getConfig().getInt("oasisextras.max_default_location",2500);
+		ndt = getConfig().getInt("oasisextras.default_invulnerability_ticks",300);
 		task.bcasttask.runTaskTimer(this, randomNum(0, 18000), bcasttimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
@@ -307,7 +382,7 @@ public class OasisExtras extends JavaPlugin{
 			}
 		}
 	}
-	
+
 	public void randomTornado(final JavaPlugin plugin){
 		this.getServer().getScheduler().runTaskTimer(this, new Runnable(){
 
@@ -320,181 +395,181 @@ public class OasisExtras extends JavaPlugin{
 					loc = new Location(getServer().getWorld("world"),x,getServer().getWorld("world").getHighestBlockYAt(x, z),z);
 				}
 				spawnTornado(plugin, loc, Material.DIRT, (byte) 0, new Vector(randomNum(-3,3), 0, randomNum(-3,3)), 0.1, 50, (long) 30*20, false, false);
-				
+
 			}
-			
+
 		}, 6000, 6000);
 	}
-	
+
 	public void spawnTornado(
-	        final JavaPlugin plugin,
-	        final Location  location,
-	        final Material  material,
-	        final byte      data,
-	        final Vector    direction,
-	        final double    speed,
-	        final int        amount_of_blocks,
-	        final long      time,
-	        final boolean    spew,
-	        final boolean    explode
-	) {
-	   
-	    class VortexBlock {
-	 
-	        private Entity entity;
-	       
-	        public boolean removable = true;
-	 
-	        private float ticker_vertical = 0.0f;
-	        private float ticker_horisontal = (float) (Math.random() * 2 * Math.PI);
-	 
-	        @SuppressWarnings("deprecation")
-	        public VortexBlock(Location l, Material m, byte d) {
-	 
-	            if (l.getBlock().getType() != Material.AIR) {
-	 
-	                Block b = l.getBlock();
-	                entity = l.getWorld().spawnFallingBlock(l, b.getType(), b.getData());
-	 
-	                if (b.getType() != Material.WATER)
-	                    b.setType(Material.AIR);
-	               
-	                removable = !spew;
-	            }
-	            else {
-	                entity = l.getWorld().spawnFallingBlock(l, m, d);
-	                removable = !explode;
-	            }
-	           
-	            addMetadata();
-	        }
-	       
-	        public VortexBlock(Entity e) {
-	            entity    = e;
-	            removable = false;
-	            addMetadata();
-	        }
-	       
-	        private void addMetadata() {
-	            entity.setMetadata("vortex", new FixedMetadataValue(plugin, "protected"));
-	        }
-	       
-	        public void remove() {
-	            if(removable) {
-	                entity.remove();
-	            }
-	            entity.removeMetadata("vortex", plugin);
-	        }
-	 
-	        @SuppressWarnings("deprecation")
-	        public HashSet<VortexBlock> tick() {
-	           
-	            double radius    = Math.sin(verticalTicker()) * 2;
-	            float  horisontal = horisontalTicker();
-	           
-	            Vector v = new Vector(radius * Math.cos(horisontal), 0.5D, radius * Math.sin(horisontal));
-	           
-	            HashSet<VortexBlock> new_blocks = new HashSet<VortexBlock>();
-	           
-	            // Pick up blocks
-	            Block b = entity.getLocation().add(v.clone().normalize()).getBlock();
-	            if(b.getType() != Material.AIR) {
-	                new_blocks.add(new VortexBlock(b.getLocation(), b.getType(), b.getData()));
-	            }
-	           
-	            // Pick up other entities
-	            List<Entity> entities = entity.getNearbyEntities(1.0D, 1.0D, 1.0D);
-	            for(Entity e : entities) {
-	                if(!e.hasMetadata("vortex")) {
-	                    new_blocks.add(new VortexBlock(e));
-	                }
-	            }
-	           
-	            setVelocity(v);
-	           
-	            return new_blocks;
-	        }
-	 
-	        private void setVelocity(Vector v) {
-	            entity.setVelocity(v);
-	        }
-	 
-	        private float verticalTicker() {
-	            if (ticker_vertical < 1.0f) {
-	                ticker_vertical += 0.05f;
-	            }
-	            return ticker_vertical;
-	        }
-	 
-	        private float horisontalTicker() {
-//	                ticker_horisontal = (float) ((ticker_horisontal + 0.8f) % 2*Math.PI);
-	            return (ticker_horisontal += 0.8f);
-	        }
-	    }
-	   
-	    // Modify the direction vector using the speed argument.
-	    if (direction != null) {
-	        direction.normalize().multiply(speed);
-	    }
-	   
-	    // This set will contain every block created to make sure the metadata for each and everyone is removed.
-	    final HashSet<VortexBlock> clear = new HashSet<VortexBlock>();
-	   
-	    final int id = new BukkitRunnable() {
-	 
-	        private ArrayDeque<VortexBlock> blocks = new ArrayDeque<VortexBlock>();
-	 
-	        public void run() {
-	           
-	            if (direction != null) {
-	                location.add(direction);
-	            }
-	 
-	            // Spawns 10 blocks at the time.
-	            for (int i = 0; i < 10; i++) {
-	                checkListSize();
-	                VortexBlock vb = new VortexBlock(location, material, data);
-	                blocks.add(vb);
-	                clear.add(vb);
-	            }
-	           
-	            // Make all blocks in the list spin, and pick up any blocks that get in the way.
-	            ArrayDeque<VortexBlock> que = new ArrayDeque<VortexBlock>();
-	 
-	            for (VortexBlock vb : blocks) {
-	                HashSet<VortexBlock> new_blocks = vb.tick();
-	                for(VortexBlock temp : new_blocks) {
-	                    que.add(temp);
-	                }
-	            }
-	           
-	            // Add the new blocks
-	            for(VortexBlock vb : que) {
-	                checkListSize();
-	                blocks.add(vb);
-	                clear.add(vb);
-	            }
-	        }
-	       
-	        // Removes the oldest block if the list goes over the limit.
-	        private void checkListSize() {
-	            while(blocks.size() >= amount_of_blocks) {
-	                VortexBlock vb = blocks.getFirst();
-	                vb.remove();
-	                blocks.remove(vb);
-	                clear.remove(vb);
-	            }
-	        }
-	    }.runTaskTimer(plugin, 5L, 5L).getTaskId();
-	 
-	    // Stop the "tornado" after the given time.
-	    new BukkitRunnable() {
-	        public void run() {
-	            for(VortexBlock vb : clear) {
-	                vb.remove();
-	            }
-	            plugin.getServer().getScheduler().cancelTask(id);
-	        }
-	    }.runTaskLater(plugin, time);
+			final JavaPlugin plugin,
+			final Location  location,
+			final Material  material,
+			final byte      data,
+			final Vector    direction,
+			final double    speed,
+			final int        amount_of_blocks,
+			final long      time,
+			final boolean    spew,
+			final boolean    explode
+			) {
+
+		class VortexBlock {
+
+			private Entity entity;
+
+			public boolean removable = true;
+
+			private float ticker_vertical = 0.0f;
+			private float ticker_horisontal = (float) (Math.random() * 2 * Math.PI);
+
+			@SuppressWarnings("deprecation")
+			public VortexBlock(Location l, Material m, byte d) {
+
+				if (l.getBlock().getType() != Material.AIR) {
+
+					Block b = l.getBlock();
+					entity = l.getWorld().spawnFallingBlock(l, b.getType(), b.getData());
+
+					if (b.getType() != Material.WATER)
+						b.setType(Material.AIR);
+
+					removable = !spew;
+				}
+				else {
+					entity = l.getWorld().spawnFallingBlock(l, m, d);
+					removable = !explode;
+				}
+
+				addMetadata();
+			}
+
+			public VortexBlock(Entity e) {
+				entity    = e;
+				removable = false;
+				addMetadata();
+			}
+
+			private void addMetadata() {
+				entity.setMetadata("vortex", new FixedMetadataValue(plugin, "protected"));
+			}
+
+			public void remove() {
+				if(removable) {
+					entity.remove();
+				}
+				entity.removeMetadata("vortex", plugin);
+			}
+
+			@SuppressWarnings("deprecation")
+			public HashSet<VortexBlock> tick() {
+
+				double radius    = Math.sin(verticalTicker()) * 2;
+				float  horisontal = horisontalTicker();
+
+				Vector v = new Vector(radius * Math.cos(horisontal), 0.5D, radius * Math.sin(horisontal));
+
+				HashSet<VortexBlock> new_blocks = new HashSet<VortexBlock>();
+
+				// Pick up blocks
+				Block b = entity.getLocation().add(v.clone().normalize()).getBlock();
+				if(b.getType() != Material.AIR) {
+					new_blocks.add(new VortexBlock(b.getLocation(), b.getType(), b.getData()));
+				}
+
+				// Pick up other entities
+				List<Entity> entities = entity.getNearbyEntities(1.0D, 1.0D, 1.0D);
+				for(Entity e : entities) {
+					if(!e.hasMetadata("vortex")) {
+						new_blocks.add(new VortexBlock(e));
+					}
+				}
+
+				setVelocity(v);
+
+				return new_blocks;
+			}
+
+			private void setVelocity(Vector v) {
+				entity.setVelocity(v);
+			}
+
+			private float verticalTicker() {
+				if (ticker_vertical < 1.0f) {
+					ticker_vertical += 0.05f;
+				}
+				return ticker_vertical;
+			}
+
+			private float horisontalTicker() {
+				//	                ticker_horisontal = (float) ((ticker_horisontal + 0.8f) % 2*Math.PI);
+				return (ticker_horisontal += 0.8f);
+			}
+		}
+
+		// Modify the direction vector using the speed argument.
+		if (direction != null) {
+			direction.normalize().multiply(speed);
+		}
+
+		// This set will contain every block created to make sure the metadata for each and everyone is removed.
+		final HashSet<VortexBlock> clear = new HashSet<VortexBlock>();
+
+		final int id = new BukkitRunnable() {
+
+			private ArrayDeque<VortexBlock> blocks = new ArrayDeque<VortexBlock>();
+
+			public void run() {
+
+				if (direction != null) {
+					location.add(direction);
+				}
+
+				// Spawns 10 blocks at the time.
+				for (int i = 0; i < 10; i++) {
+					checkListSize();
+					VortexBlock vb = new VortexBlock(location, material, data);
+					blocks.add(vb);
+					clear.add(vb);
+				}
+
+				// Make all blocks in the list spin, and pick up any blocks that get in the way.
+				ArrayDeque<VortexBlock> que = new ArrayDeque<VortexBlock>();
+
+				for (VortexBlock vb : blocks) {
+					HashSet<VortexBlock> new_blocks = vb.tick();
+					for(VortexBlock temp : new_blocks) {
+						que.add(temp);
+					}
+				}
+
+				// Add the new blocks
+				for(VortexBlock vb : que) {
+					checkListSize();
+					blocks.add(vb);
+					clear.add(vb);
+				}
+			}
+
+			// Removes the oldest block if the list goes over the limit.
+			private void checkListSize() {
+				while(blocks.size() >= amount_of_blocks) {
+					VortexBlock vb = blocks.getFirst();
+					vb.remove();
+					blocks.remove(vb);
+					clear.remove(vb);
+				}
+			}
+		}.runTaskTimer(plugin, 5L, 5L).getTaskId();
+
+		// Stop the "tornado" after the given time.
+		new BukkitRunnable() {
+			public void run() {
+				for(VortexBlock vb : clear) {
+					vb.remove();
+				}
+				plugin.getServer().getScheduler().cancelTask(id);
+			}
+		}.runTaskLater(plugin, time);
 	}
 }

@@ -35,10 +35,10 @@ public class AuraCommand implements CommandExecutor{
 			return true;
 		} else if(args.length==1){
 			if(args[0].equalsIgnoreCase("on")){
-				plugin.oasisplayer.get(player.getName()).startTrail();
+				plugin.oasisplayer.get(player.getName()).startAura();
 				return true;
 			} else if(args[0].equalsIgnoreCase("off")){
-				plugin.oasisplayer.get(player.getName()).cancelTrail();
+				plugin.oasisplayer.get(player.getName()).cancelAura();
 				return true;
 			} else {
 				Material mat = Material.matchMaterial(args[0]);
@@ -46,7 +46,7 @@ public class AuraCommand implements CommandExecutor{
 					player.sendMessage(ChatColor.RED + args[0] + " is not an acceptable!");
 					return true;
 				} else {
-					plugin.oasisplayer.get(player.getName()).setTrailMat(mat);
+					plugin.oasisplayer.get(player.getName()).setAuraMat(mat);
 					return true;
 				}
 			}

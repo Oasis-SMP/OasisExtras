@@ -3,6 +3,7 @@ main: net.charter.orion_pax.OasisExtras.OasisExtras
 version: 2.0
 description: Oasis Extra commands!
 author: Paxination
+depends: [Votifier,CoreProtect]
 commands:
     
   blackmarket:
@@ -226,7 +227,81 @@ commands:
     permission: oasisextras.staff.oewhois
     permission-message: You don't have permissions for <permission>
     
+  ragequit:
+    description: RAGE QUIT!
+    usage: "Usage: /<command>"
+    aliases: [rq,rquit,rageq,raging]
+    permission: oasisextras.player.ragequit
+    permission-message: You don't have permissions for <permission>
+    
+  friends:
+    description: Friends!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.friends
+    permission-message: You don't have permissions for <permission>
+    
+  medic:
+    description: MEDIC!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.medic
+    permission-message: You don't have permissions for <permission>
+    
+  fade:
+    description: Fade away!
+    usage: "Usage: /<command> [Player]"
+    permission: oasisextras.staff.fade
+    permission-message: You don't have permissions for <permission>
+    
+  xray:
+    description: Xray!
+    usage: "Usage: /<command> {radius}"
+    permission: oasisextras.staff.xray
+    permission-message: You don't have permissions for <permission>
+    
+  fireworksdisplay:
+    description: Fireworks display!
+    usage: "Usage: /<command> {rate} *Note - keep low"
+    aliases: [fworks,fwd,fworksdisplay,fwdis,fworksdis]
+    permission: oasisextras.staff.fireworksdisplay
+    permission-message: You don't have permissions for <permission>
+    
+  notify:
+    description: Toggle join/leave/quit msgs!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.notify
+    permission-message: You don't have permissions for <permission>
+    
+  map:
+    description: Copy image to a map!
+    usage: "Usage: /<command> [URL of IMAGE]"
+    permission: oasisextras.player.map
+    permission-message: You don't have permissions for <permission>
+    
+  disco:
+    description: DISCO!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.disco
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.player.disco:
+        description: DISCO!
+        
+    oasisextras.staff.notify:
+        description: Toggle join/leave/quit msgs!
+        
+    oasisextras.staff.fireworksdisplay:
+        description: Fireworks display!
+        
+    oasisextras.staff.xray:
+        description: Xray command!
+        
+    oasisextras.staff.fade:
+        description: Fade away!
+        
+    oasisextras.player.friends:
+        description: Friends!
+        
     oasisextras.staff.oewhois:
         description: OasisExtras whois!
         
@@ -368,9 +443,22 @@ permissions:
     oasisextras.staff.tools.boom:
         description: TNT POWER!
         
+    oasisextras.player.ragequit:
+        description: RAGE QUIT!
+        
+    oasisextras.player.medic:
+        description: MEDIC!
+        
+    oasisextras.player.map:
+        description: Copies URL image to an in game map!
+        
     oasisextras.player.*:
         description: Gives access to all player commands
         children:
+            oasisextras.player.disco: true
+            oasisextras.player.map: true
+            oasisextras.player.medic: true
+            oasisextras.player.friends: true
             oasisextras.player.weatherman: true
             oasisextras.player.event.notify: true
             oasisextras.player.event: true
@@ -404,6 +492,8 @@ permissions:
     oasisextras.staff.jrmod:
         description: JrMod perm nodes
         children:
+            oasisextras.staff.notify: true
+            oasisextras.staff.xray: true
             oasisextras.staff.oewhois: true
             oasisextras.staff.event: true
             oasisextras.staff.tools.override: true

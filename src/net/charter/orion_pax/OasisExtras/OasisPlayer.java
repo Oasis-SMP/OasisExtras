@@ -1,18 +1,18 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -24,14 +24,14 @@ public class OasisPlayer {
 	private final OasisExtras plugin;
 
 	private final String name;
-	private World world;
 	private List<String> animals = new ArrayList<String>();
 	public boolean frozen = false;
 	public boolean online = false;
 	public boolean glow = false;
-	public boolean eventnotify = true;
-	private Location gbloc;
-	private Material gbmat;
+	public boolean eventnotify = true; 
+	public boolean raging = false;
+	private boolean medic = false;
+	private BlockState gbstate;
 	public Location loc = null;
 	public boolean staff = false;
 	public List<Entity> tplist = new ArrayList<Entity>();
@@ -44,6 +44,13 @@ public class OasisPlayer {
 	public boolean trail = false;
 	public boolean auratoggle = false;
 	public boolean weatherman = false;
+	public boolean joinquitkickignore = false;
+	public Location ssloc1,ssloc2;
+	public List<String> friends = new ArrayList<String>();
+	public String bcolor,fprefix,fchat;
+	private BukkitTask discotask;
+	private List<BlockState> floor = new ArrayList<BlockState>();
+	public boolean disco;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -54,6 +61,10 @@ public class OasisPlayer {
 
 		frozen=playerfile.getConfig().getBoolean("frozen",frozen);
 
+		friends=playerfile.getConfig().getStringList("friends");
+		bcolor=playerfile.getConfig().getString("friendlistbracketcolor","&c");
+		fprefix=playerfile.getConfig().getString("friendprefixcolor", "&b");
+		fchat=playerfile.getConfig().getString("friendschatcolor", "&b");
 		auramat = Material.getMaterial(playerfile.getConfig().getString("auramat",Material.GHAST_TEAR.toString()));
 		auraitem = new ItemStack(auramat,1);
 		auraname = auraitem.getItemMeta();
@@ -65,11 +76,12 @@ public class OasisPlayer {
 		glow = playerfile.getConfig().getBoolean("glowing",false);
 
 		trail = playerfile.getConfig().getBoolean("trail", false);
-		if(trail){startTrail();}
 
 		auratoggle = playerfile.getConfig().getBoolean("aura", false);
 
 		weatherman = playerfile.getConfig().getBoolean("weatherman", false);
+
+		joinquitkickignore = playerfile.getConfig().getBoolean("joinquitkickignore", false);
 
 		auralore.add("NO");
 
@@ -88,6 +100,11 @@ public class OasisPlayer {
 		playerfile.getConfig().set("auratoggle", auratoggle);
 		playerfile.getConfig().set("trail", trail);
 		playerfile.getConfig().set("weatherman", weatherman);
+		playerfile.getConfig().set("friends", friends);
+		playerfile.getConfig().set("friendlistbracketcolor", bcolor);
+		playerfile.getConfig().set("friendprefixcolor", fprefix);
+		playerfile.getConfig().set("friendschatcolor", fchat);
+		playerfile.getConfig().set("joinquitkickignore", this.joinquitkickignore);
 		playerfile.saveConfig();
 	}
 
@@ -97,13 +114,150 @@ public class OasisPlayer {
 
 		if(frozen){SendMsg("&6Your &bFROZEN&g!");}
 		if(glow){SendMsg("&eGlowing &aEnabled");}
-		if(auratoggle){SendMsg("&bAura is on!");}
+		if(auratoggle){
+			SendMsg("&bAura is on!");
+		}
 		if(trail){SendMsg("&cTrail is &aEnabled!");}
 		if(weatherman){SendMsg("&bWeather Channel is &aEnabled!");}
 	}
-	
-	public void OEWho(){
-		
+
+	public void Disco(){
+		floor.addAll(region(loc.clone().add(5, -1, 5),loc.clone().add(-5, -1, -5)));
+		discotask = plugin.getServer().getScheduler().runTask(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				getPlayer().sendBlockChange(floor.get(randomNum(0,floor.size()-1)).getLocation(), Material.STAINED_GLASS, (byte) randomNum(0,15));
+			}
+
+		});
+	}
+
+	public void stopDisco(){
+		discotask.cancel();
+		for(BlockState block:floor){
+			getPlayer().sendBlockChange(block.getLocation(), block.getType(), block.getRawData());
+		}
+		floor.clear();
+	}
+
+	public static List<BlockState> region(Location loc1, Location loc2)
+	{
+		List<BlockState> blocks = new ArrayList<BlockState>();
+
+		int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+		int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+
+		int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+		int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+
+		int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+		int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+
+		for(int x = bottomBlockX; x <= topBlockX; x++)
+		{
+			for(int z = bottomBlockZ; z <= topBlockZ; z++)
+			{
+				for(int y = bottomBlockY; y <= topBlockY; y++)
+				{
+					Block block = loc1.getWorld().getBlockAt(x, y, z);
+
+					blocks.add(block.getState());
+				}
+			}
+		}
+
+		return blocks;
+	}
+
+	public void setMedic(){
+		if(!medic){
+			medic=!medic;
+			SendMsg("&cMedic&r is now &aENABLED!");
+			plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+
+				@Override
+				public void run() {
+					medic=!medic;
+					SendMsg("&cMedic&r is now &4disabled!");
+				}
+
+			}, 300L);
+		} else {
+			SendMsg("&cMedic&r is still &aENABLED!");
+		}
+	}
+
+	public boolean isMedic(){
+		return medic;
+	}
+
+	public boolean isIgnoring(){
+		return joinquitkickignore;
+	}
+
+	public void toggleIgnoring(){
+		joinquitkickignore = !joinquitkickignore;
+		if(joinquitkickignore){
+			SendMsg("&eJoin/leave/kick notification &aEnabled!");
+		} else {
+			SendMsg("&eJoin/leave/kick notification &cDisabled!");
+		}
+	}
+
+	public boolean isFriend(String name){
+		if(friends.contains(name)){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isFriend(Set<Player> players){
+		for(Player player:players){
+			if(this.isFriend(player.getName())){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void addFriend(String name){
+		if (!friends.contains(name)) {
+			friends.add(name);
+		}
+		SendMsg(fchat + name + " added to firends list!");
+	}
+
+	public void delFriend(String name){
+		if (friends.contains(name)) {
+			friends.remove(name);
+		}
+		SendMsg(fchat + name + " remvoed from friends list!");
+	}
+
+	public void listFriends(){
+		SendMsg(fchat + friends);
+	}
+
+	public void setFCHAT(String string){
+		this.fchat = string;
+	}
+
+	public void setFPREFIX(String string){
+		this.fprefix = string;
+	}
+
+	public void setBCOLOR(String string){
+		this.bcolor = string;
+	}
+
+	public boolean isRaging(){
+		return raging;
+	}
+
+	public void toggleRage(){
+		raging=!raging;
 	}
 
 	public boolean weather(){
@@ -142,7 +296,7 @@ public class OasisPlayer {
 		if(glow){
 			SendMsg("&6Glow &aENABLED&6!");
 		} else {
-			gbloc.getBlock().setType(gbmat);
+			gbstate.update(true);
 			SendMsg("&6Glow &cDISABLED&6!");
 		}
 		saveMe();
@@ -153,24 +307,26 @@ public class OasisPlayer {
 	}
 
 	public void Glow(Location loc){
-		if(gbloc!=null){
-			gbloc.getBlock().setType(gbmat);
+		if(gbstate!=null){
+			gbstate.update(true);
 		}
 		if (loc.getBlockY()<60) {
-			Location newloc = loc.add(0, -1, 0);
-			if (!isFarm(loc)) {
-				if (isBlock(newloc)) {
-					gbloc = newloc;
-					gbmat = gbloc.getBlock().getType();
-					gbloc.getBlock().setType(Material.GLOWSTONE);
+			if (!isFarm(loc.clone().add(0, -1, 0))) {
+				if (isBlock(loc.clone().add(0, -1, 0))) {
+					gbstate = loc.clone().add(0, -1, 0).getBlock().getState();
+					getPlayer().sendBlockChange(gbstate.getLocation(), Material.GLOWSTONE, (byte) 0);
 				}
 			}
 		}
 	}
 
 	public void CleanUp(){
-		if(gbloc!=null){
-			gbloc.getBlock().setType(gbmat);
+		if(gbstate!=null){
+			gbstate.update(true);
+		}
+
+		if(floor!=null){
+			stopDisco();
 		}
 	}
 
@@ -224,7 +380,7 @@ public class OasisPlayer {
 
 	}
 
-	public void startTrail(){
+	public void startAura(){
 		auratoggle=true;
 		saveMe();
 		aura = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
@@ -237,18 +393,17 @@ public class OasisPlayer {
 				item.setVelocity(new Vector(0,0.5,0));
 				item.setPickupDelay(2000);
 				plugin.aura.add(item);
-				removeTrail(item);
+				removeAura(item);
 			}
 
 		}, 0, 1L);
 	}
 
-	public void removeTrail(final Entity item){
+	public void removeAura(final Entity item){
 		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
 
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				plugin.aura.remove(item);
 				item.remove();
 			}
@@ -256,13 +411,13 @@ public class OasisPlayer {
 		}, 5L);
 	}
 
-	public void cancelTrail(){
+	public void cancelAura(){
 		auratoggle=false;
 		saveMe();
 		aura.cancel();
 	}
 
-	public void setTrailMat(Material mat){
+	public void setAuraMat(Material mat){
 		auramat = mat;
 		auraitem.setType(mat);
 		auraname.setDisplayName(Integer.toString(randomNum(0,1000000)));
@@ -277,7 +432,10 @@ public class OasisPlayer {
 
 	public void offLine(){
 		online=false;
-		cancelTrail();
+		if(auratoggle){
+			cancelAura();
+		}
+		if(trail){this.toggleTrail();}
 	}
 
 	public boolean isOnline(){
@@ -364,10 +522,29 @@ public class OasisPlayer {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void setLoc(Location loc){
 		this.loc = loc;
 		if(trail){
 			loc.getWorld().playEffect(loc, Effect.MOBSPAWNER_FLAMES, 0);
+		}
+
+		if(this.glow){
+			Glow(loc);
+		}
+
+		if(frozen){
+			// TODO Change this later if they replace the command....
+			getPlayer().sendBlockChange(loc.clone().add(0, 2, 0), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(0, -1, 0), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(1, 0, 0), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(1, 1, 0), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(-1, 0, 0), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(-1, 1, 0), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(0, 0, 1), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(0, 1, 1), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(0, 0, -1), Material.ICE, (byte) 0);
+			getPlayer().sendBlockChange(loc.clone().add(0, 1, -1), Material.ICE, (byte) 0);
 		}
 	}
 

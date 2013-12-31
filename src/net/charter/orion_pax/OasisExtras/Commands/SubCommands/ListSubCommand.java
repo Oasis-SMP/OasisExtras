@@ -1,8 +1,6 @@
 package net.charter.orion_pax.OasisExtras.Commands.SubCommands;
 
 import java.util.List;
-import java.util.Set;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -14,6 +12,14 @@ public class ListSubCommand {
 	
 	public ListSubCommand(OasisExtras plugin, CommandSender sender){
 		this.plugin = plugin;
+		sender.sendMessage(ChatColor.GOLD + "In game editable sections:");
+		List<String> configsection = (List<String>) plugin.getConfig().getConfigurationSection("oasisextras");
+		for(String msg:configsection){
+			if(msg!="broadcastmessages"){
+				sender.sendMessage(msg);
+			}
+		}
+		sender.sendMessage(ChatColor.GOLD + "Broadcast messages:");
 		int count=0;
 		for (String msg : this.plugin.getConfig().getStringList("broadcastmessages")){
 			count++;

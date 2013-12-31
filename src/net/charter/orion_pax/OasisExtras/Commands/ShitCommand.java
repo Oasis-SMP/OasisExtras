@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -35,27 +36,27 @@ public class ShitCommand implements CommandExecutor{
 				return false;
 			}
 			World world = player.getWorld();
-			HashMap<Location,Material> blocks = new HashMap<Location,Material>();
-			blocks.put(player.getLocation().add(0, 2, 0), world.getBlockAt(player.getLocation().add(0, 2, 0)).getType());
-			blocks.put(player.getLocation().add(1, 0, 0), world.getBlockAt(player.getLocation().add(1, 0, 0)).getType());
-			blocks.put(player.getLocation().add(1, 1, 0), world.getBlockAt(player.getLocation().add(1, 1, 0)).getType());
-			blocks.put(player.getLocation().add(-1, 0, 0), world.getBlockAt(player.getLocation().add(-1, 0, 0)).getType());
-			blocks.put(player.getLocation().add(-1, 1, 0), world.getBlockAt(player.getLocation().add(-1, 1, 0)).getType());
-			blocks.put(player.getLocation().add(0, 0, 1), world.getBlockAt(player.getLocation().add(0, 0, 1)).getType());
-			blocks.put(player.getLocation().add(0, 1, 1), world.getBlockAt(player.getLocation().add(0, 1, 1)).getType());
-			blocks.put(player.getLocation().add(0, 0, -1), world.getBlockAt(player.getLocation().add(0, 0, -1)).getType());
-			blocks.put(player.getLocation().add(0, 1, -1), world.getBlockAt(player.getLocation().add(0, 1, -1)).getType());
-			blocks.put(player.getLocation().add(0, -1, 0), world.getBlockAt(player.getLocation().add(0, -1, 0)).getType());
-			restore(blocks);
-			Iterator it = blocks.entrySet().iterator();
-			while (it.hasNext()){
-				Entry entry = (Entry) it.next();
-				Location loc = (Location) entry.getKey();
-				if(it.hasNext()){
-					loc.getBlock().setType(Material.SOUL_SAND);
-				} else {
-					loc.getBlock().setType(Material.GLOWSTONE);
+			List<BlockState> state = new ArrayList<BlockState>();
+			state.add(world.getBlockAt(player.getLocation().add(0, 2, 0)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(1, 0, 0)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(1, 1, 0)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(-1, 0, 0)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(-1, 1, 0)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(0, 0, 1)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(0, 1, 1)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(0, 0, -1)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(0, 1, -1)).getState());
+			state.add(world.getBlockAt(player.getLocation().add(0, -1, 0)).getState());
+			for(BlockState block:state){
+				if(block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType().equals(Material.SIGN_POST) || block.getBlock().getType().equals(Material.SIGN)){
+					sender.sendMessage(ChatColor.RED + "Experiencing constipation....aka...player is near a chest or sign!");
+					return true;
 				}
+			}
+			restore(state);
+			for(BlockState block:state){
+				block.getBlock().setType(Material.SOUL_SAND);
+				state.get(0).getBlock().setType(Material.GLOWSTONE);
 			}
 			player.sendMessage(ChatColor.GREEN + sender.getName() + " has shat on you!");
 			sender.sendMessage(ChatColor.GREEN + "You just shat on " + player.getName() + "!");
@@ -65,17 +66,14 @@ public class ShitCommand implements CommandExecutor{
 
 	}
 
-	public void restore(final HashMap<Location, Material> blocks){
+	public void restore(final List<BlockState> state){
 		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
 
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				Iterator it = blocks.entrySet().iterator();
-				while (it.hasNext()){
-					Entry entry = (Entry) it.next();
-					Location loc = (Location) entry.getKey();
-					loc.getBlock().setType((Material) entry.getValue());
+				for(BlockState block:state){
+					block.update(true);
 				}
 			}
 

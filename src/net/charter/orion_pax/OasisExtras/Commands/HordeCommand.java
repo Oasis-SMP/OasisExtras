@@ -54,7 +54,7 @@ public class HordeCommand implements CommandExecutor {
 		}
 		
 		if(label.equalsIgnoreCase("hordegame")){
-			if(args.length>0){
+			if(args.length==2){
 				try {
 					maxrounds=Integer.parseInt(args[0]);
 				} catch (NumberFormatException e) {
@@ -63,56 +63,50 @@ public class HordeCommand implements CommandExecutor {
 					player.sendMessage(ChatColor.GOLD + "Usage:/hordegame {rounds} {player}");
 					return true;
 				}
-			}
-			
-			if(args.length>1){
 				hordeplayer = plugin.getServer().getPlayer(args[1]);
 				if(hordeplayer==null){
 					player.sendMessage(ChatColor.RED + args[0] + " is not online!");
 					player.sendMessage(ChatColor.GOLD + "Usage:/hordegame {rounds} {player}");
 					return true;
 				}
-			}
-			if(args.length>2){
-				player.sendMessage(ChatColor.RED + "Too many arguements!");
-				player.sendMessage(ChatColor.GOLD + "Usage:/hordegame {rounds} {player}");
-				return true;
-			}
-			if (hasNearbyPlayers(loc,50)) {
-				task=plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
+				
+				if (hasNearbyPlayers(loc,50)) {
+					task=plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
 
-					@Override
-					public void run() {
-						msgPlayers(loc,50,"&cround " + round + "!");
-						for(int i=1;i<round*10;i++){
-							Location newloc = loc;
-							Creature creature = (Creature) world.spawnEntity(newloc.add(randomNum(-48,48), -5, randomNum(-48,48)), Mobs());
-							creature.setRemoveWhenFarAway(false);
-							if(hordeplayer!=null){
-								creature.setTarget(hordeplayer);
+						@Override
+						public void run() {
+							msgPlayers(loc,50,"&cround " + round + "!");
+							for(int i=1;i<round*10;i++){
+								Location newloc = loc;
+								Creature creature = (Creature) world.spawnEntity(newloc.add(randomNum(-48,48), -5, randomNum(-48,48)), Mobs());
+								creature.setRemoveWhenFarAway(false);
+								if(hordeplayer!=null){
+									creature.setTarget(hordeplayer);
+								}
+							}
+							round++;
+							if(round>maxrounds){
+								task.cancel();
 							}
 						}
-						round++;
-						if(round>maxrounds){
-							task.cancel();
-						}
-					}
 
-				}, 0, 1200L);
+					}, 0, 1200L);
+					return true;
+				}
 			}
+			player.sendMessage(ChatColor.RED + "Usage:/hordegame {rounds} {player}");
+			return true;
 		}
 		
 		if(label.equalsIgnoreCase("hordep")){
-			if(args.length>0){
+			if(args.length==2){
 				hordeplayer = plugin.getServer().getPlayer(args[0]);
 				if(hordeplayer==null){
 					player.sendMessage(ChatColor.RED + args[0] + " is not online!");
 					player.sendMessage(ChatColor.RED + "Usage:/hordep [player] {amount}");
 					return true;
 				}
-			}
-			
-			if(args.length>1){
+				
 				try {
 					amount=Integer.parseInt(args[1]);
 				} catch (NumberFormatException e) {
@@ -121,8 +115,21 @@ public class HordeCommand implements CommandExecutor {
 					player.sendMessage(ChatColor.RED + "Usage:/hordep [player] {amount}");
 					return true;
 				}
-			}
-			if (hordeplayer!=null) {
+				
+				for (int i = 1; i < amount; i++) {
+					Creature creature = (Creature) hordeplayer.getWorld().spawnEntity(hordeplayer.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
+					creature.setTarget(hordeplayer);
+					creature.setRemoveWhenFarAway(false);
+				}
+				return true;
+			} else if(args.length==1){
+				hordeplayer = plugin.getServer().getPlayer(args[0]);
+				if(hordeplayer==null){
+					player.sendMessage(ChatColor.RED + args[0] + " is not online!");
+					player.sendMessage(ChatColor.RED + "Usage:/hordep [player] {amount}");
+					return true;
+				}
+				
 				for (int i = 1; i < amount; i++) {
 					Creature creature = (Creature) hordeplayer.getWorld().spawnEntity(hordeplayer.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
 					creature.setTarget(hordeplayer);
@@ -130,7 +137,8 @@ public class HordeCommand implements CommandExecutor {
 				}
 				return true;
 			}
-			return false;
+			player.sendMessage(ChatColor.RED + "Usage:/hordep [player] {amount}");
+			return true;
 		}
 		
 		if(args.length==1){
@@ -139,19 +147,20 @@ public class HordeCommand implements CommandExecutor {
 			} catch (NumberFormatException e) {
 				// TODO Auto-generated catch block
 				player.sendMessage(ChatColor.RED + args[0] + " is not a number");
-				player.sendMessage(ChatColor.RED + "Usage:/hordep [player] {amount}");
+				player.sendMessage(ChatColor.RED + "Usage:/horde {amount}");
 				return true;
 			}
 			
-			for(int i=1;i<amount;i++){
-				int x = randomNum(-10,10);
-				int z = randomNum(-10,10);
-				Location newloc = player.getWorld().getHighestBlockAt(player.getLocation()).getLocation();
-				Creature creature = (Creature) player.getWorld().spawnEntity(newloc.add(x, 1, z), Mobs());
+			for (int i = 1; i < amount; i++) {
+				Creature creature = (Creature) player.getWorld().spawnEntity(player.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
 				creature.setRemoveWhenFarAway(false);
 			}
-			
-			
+			return true;
+		} else if(args.length==0){
+			for (int i = 1; i < amount; i++) {
+				Creature creature = (Creature) player.getWorld().spawnEntity(player.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
+				creature.setRemoveWhenFarAway(false);
+			}
 			return true;
 		}
 		return false;

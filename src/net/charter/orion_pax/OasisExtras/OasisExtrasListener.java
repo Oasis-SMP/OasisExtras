@@ -1,13 +1,27 @@
 package net.charter.orion_pax.OasisExtras;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+
+import net.milkbowl.vault.economy.Economy;
+import net.minecraft.server.v1_7_R1.Enchantment;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.TreeType;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -19,24 +33,61 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.util.Vector;
+
+import com.vexsoftware.votifier.model.Vote;
+import com.vexsoftware.votifier.model.VotifierEvent;
 
 public class OasisExtrasListener implements Listener{
 
 	private OasisExtras plugin;
+	public static Economy economy;
+
 
 	public OasisExtrasListener(OasisExtras plugin){
 		this.plugin = plugin;
+		setupEconomy();
 	}
 
 	int joinTimer = 30;
 	int mytask,mytask2;
+	private Map<String, OasisPlayer> syncOasisPlayer;
+	private Boolean setupEconomy(){
+		RegisteredServiceProvider<Economy> economyProvider = plugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+		if (economyProvider != null) {
+			economy = economyProvider.getProvider();
+		}
+
+		return (economy != null);
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnPlayerChat(AsyncPlayerChatEvent event){
+		syncOasisPlayer = Collections.synchronizedMap(plugin.oasisplayer);
+		synchronized(syncOasisPlayer){
+			Iterator<Entry<String, OasisPlayer>> it = syncOasisPlayer.entrySet().iterator();
+			while(it.hasNext()){
+				Entry<String, OasisPlayer> entry = it.next();
+				OasisPlayer oPlayer = entry.getValue();
+				if (oPlayer.isFriend(event.getPlayer().getName())) {
+					if (oPlayer.isOnline()) {
+						oPlayer.getPlayer().playSound(oPlayer.loc, Sound.NOTE_BASS_DRUM, 10, 10);
+						oPlayer.SendMsg(oPlayer.bcolor +"[" + oPlayer.fprefix + "Friend" + oPlayer.bcolor + "]&r" + event.getPlayer().getDisplayName() + "&r: " + oPlayer.fchat + event.getMessage());
+						event.getRecipients().remove(oPlayer.getPlayer());
+					}
+				}
+			}
+		}
+	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void OnWeatherChange(WeatherChangeEvent event){
@@ -52,6 +103,7 @@ public class OasisExtrasListener implements Listener{
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 				if(oPlayer.weather()){
 					oPlayer.SendMsg("&bForcast shows clear skys!");
+
 				}
 			}
 		}
@@ -59,6 +111,24 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteractEntity(PlayerInteractEntityEvent event){
+		OasisPlayer oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
+		if(event.getRightClicked() instanceof Player){
+			if(isFood(event.getPlayer().getItemInHand().getType())){
+				Player player = (Player) event.getRightClicked();
+				if (player.getFoodLevel()<20) {
+					Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, event.getPlayer().getItemInHand()));
+					player.setFoodLevel(player.getFoodLevel() + feedAmount(event.getPlayer().getItemInHand().getType()));
+					if(player.getFoodLevel()>20){player.setFoodLevel(20);}
+					player.sendMessage(ChatColor.ITALIC.GREEN + "MEDIC! - " + event.getPlayer().getName() + " has feed you!");
+					if (oPlayer.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
+						event.getPlayer().getItemInHand().setAmount(event.getPlayer().getItemInHand().getAmount() - 1);
+						if(event.getPlayer().getItemInHand().getAmount()==1){
+
+						}
+					}
+				}
+			}
+		}
 		Entity entity = event.getRightClicked();
 		final Player player = event.getPlayer();
 		if(toolCheck(player.getItemInHand(), "what", player)){
@@ -89,7 +159,7 @@ public class OasisExtrasListener implements Listener{
 		}
 
 		if(toolCheck(player.getItemInHand(),"tpall",player)){
-			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+			oPlayer = plugin.oasisplayer.get(player.getName());
 			oPlayer.toggleTP(entity);
 			LivingEntity liveentity = (LivingEntity) entity;
 			liveentity.setRemoveWhenFarAway(false);
@@ -108,32 +178,33 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 
-		if (player.hasPermission("oasisextras.player.tp")) {
-			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
-			if (getMobs(entity)) {
-				oPlayer.toggleTP(entity);
-				if (plugin.tptimer.containsKey(player.getName())) {
-					return;
+		if (player.getItemInHand().getType().equals(Material.FEATHER)) {
+			if (player.hasPermission("oasisextras.player.tp")) {
+				oPlayer = plugin.oasisplayer.get(player.getName());
+				if (getMobs(entity)) {
+					oPlayer.toggleTP(entity);
+					if (plugin.tptimer.containsKey(player.getName())) {
+						return;
+					} else {
+						plugin.tptimer.put(player.getName(), oPlayer);
+						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+							@Override
+							public void run() {
+								plugin.tptimer.get(player.getName()).tplist.clear();
+								plugin.tptimer.remove(player.getName());
+							}
+						}, 6000);
+						return;
+					}
 				} else {
-					plugin.tptimer.put(player.getName(), oPlayer);
-					plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-						@Override
-						public void run() {
-							plugin.tptimer.get(player.getName()).tplist.clear();
-							plugin.tptimer.remove(player.getName());
-						}
-					}, 6000);
+					oPlayer.SendMsg("&cCan't teleport that mob type!");
 					return;
 				}
-			} else {
-				oPlayer.SendMsg("&cCan't teleport that mob type!");
-				return;
 			}
 		}
-
 		if(toolCheck(player.getItemInHand(),"override", player)){
 			if (getOwner(entity)!=null){
-				OasisPlayer oPlayer = plugin.oasisplayer.get(getOwner(entity));
+				oPlayer = plugin.oasisplayer.get(getOwner(entity));
 				if(!oPlayer.delAnimal(entity.getUniqueId().toString())){
 					player.sendMessage(ChatColor.RED + "Animal has no lock on them.");
 				}
@@ -192,6 +263,16 @@ public class OasisExtrasListener implements Listener{
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
+			if(toolCheck(player.getItemInHand(),"troll",player)){
+				if(player.getItemInHand().getItemMeta().hasLore()){
+					List<String> list = player.getItemInHand().getItemMeta().getLore();
+					plugin.CoreProtect.logRemoval(list.get(0), event.getClickedBlock().getLocation(), event.getClickedBlock().getTypeId(), event.getClickedBlock().getData());
+					plugin.CoreProtect.logPlacement(list.get(0), event.getClickedBlock().getLocation(), Integer.parseInt(list.get(1)),(byte) 0);
+					event.getClickedBlock().setTypeId(Integer.parseInt(list.get(1)));
+					event.setCancelled(true);
+					return;
+				}
+			}
 			if (player.getItemInHand().getType().equals(Material.REDSTONE) && player.hasPermission("oasisextras.staff.tools.power")){
 				if(player.getItemInHand().getItemMeta().getDisplayName().equals("power")){
 					Block block = event.getClickedBlock();
@@ -246,12 +327,12 @@ public class OasisExtrasListener implements Listener{
 						}
 					}
 				}
-				
+
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 				oPlayer.tpanimal(event.getClickedBlock().getLocation().add(0, 1, 0));
 				event.setCancelled(true);
 				return;
-				
+
 
 			}
 			if (player.hasPermission("oasisextras.player.catndog")){
@@ -335,20 +416,60 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerQuit(PlayerQuitEvent event){
+		OasisPlayer oPlayer2 = plugin.oasisplayer.get(event.getPlayer().getName());
+		event.setQuitMessage("");
 		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
+		plugin.oasisplayer.get(event.getPlayer().getName()).offLine();
+
+		for(Player player:plugin.getServer().getOnlinePlayers()){
+			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+			if(!oPlayer.isIgnoring()){
+				if (!oPlayer2.staff) {
+					oPlayer.SendMsg(plugin.quitmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
+				}
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerKick(PlayerKickEvent event){
+		OasisPlayer oPlayer2 = plugin.oasisplayer.get(event.getPlayer().getName());
+		event.setLeaveMessage("");
 		plugin.oasisplayer.get(event.getPlayer().getName()).saveMe();
+		if(plugin.oasisplayer.get(event.getPlayer().getName()).isRaging()){
+			event.setLeaveMessage(ChatColor.YELLOW + event.getPlayer().getName() + " Raaaaaaaaage quit!");
+			plugin.getServer().broadcastMessage(ChatColor.YELLOW + event.getPlayer().getName() + " Raaaaaaaaage quit!");
+			event.getPlayer().getWorld().strikeLightningEffect(event.getPlayer().getLocation());
+			plugin.oasisplayer.get(event.getPlayer().getName()).toggleRage();
+		}
+		plugin.oasisplayer.get(event.getPlayer().getName()).offLine();
+		for(Player player:plugin.getServer().getOnlinePlayers()){
+			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+			if(!oPlayer.isIgnoring()){
+				if (!oPlayer2.staff) {
+					oPlayer.SendMsg(plugin.kickmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
+				}
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
-
 		if (plugin.oasisplayer.containsKey(player.getName())) {
 			plugin.oasisplayer.get(player.getName()).onLine();
+		}
+
+		OasisPlayer oPlayer2 = plugin.oasisplayer.get(event.getPlayer().getName());
+		event.setJoinMessage("");
+
+		for(Player msgplayer:plugin.getServer().getOnlinePlayers()){
+			OasisPlayer oPlayer = plugin.oasisplayer.get(msgplayer.getName());
+			if(!oPlayer.isIgnoring()){
+				if (!oPlayer2.staff) {
+					oPlayer.SendMsg(plugin.joinmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
+				}
+			}
 		}
 
 		if (!player.hasPlayedBefore()){
@@ -364,6 +485,7 @@ public class OasisExtrasListener implements Listener{
 				Iterator<Integer> it = plugin.newbiekit.iterator();
 				while (it.hasNext()){
 					int i = it.next();
+					@SuppressWarnings("deprecation")
 					ItemStack item = new ItemStack(i);
 					player.getInventory().addItem(item);
 				}
@@ -385,8 +507,6 @@ public class OasisExtrasListener implements Listener{
 		//			}
 		//		}
 
-		plugin.oasisplayer.get(event.getPlayer().getName()).setLoc(event.getPlayer().getLocation());
-
 		int fromX=(int)event.getFrom().getX();
 		int fromY=(int)event.getFrom().getY();
 		int fromZ=(int)event.getFrom().getZ();
@@ -395,9 +515,8 @@ public class OasisExtrasListener implements Listener{
 		int toZ=(int)event.getTo().getZ();
 
 		if(fromX!=toX||fromZ!=toZ||fromY!=toY){
-			if (plugin.oasisplayer.get(event.getPlayer().getName()).isGlowing()){
-				plugin.oasisplayer.get(event.getPlayer().getName()).Glow(event.getTo());
-			}
+			plugin.oasisplayer.get(event.getPlayer().getName()).setLoc(event.getTo());
+
 			if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()) {
 				event.getPlayer().teleport(event.getFrom());
 				event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT MOVE, YOU'RE " + ChatColor.AQUA + "FROZEN!");
@@ -409,7 +528,7 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnCreatureSpawn(CreatureSpawnEvent event){
 		if (event.getEntityType().equals(EntityType.ZOMBIE)){
-			int i = randomNum(1,333);
+			int i = randomNum(1,256);
 			if (i == 127) {
 				event.getLocation().getWorld().spawnEntity(event.getLocation(), EntityType.GIANT);
 				event.getEntity().remove();
@@ -420,7 +539,7 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnFrozenAttack(EntityDamageByEntityEvent event){
-		if (event.getEntity() instanceof Player){
+		if (event.getDamager() instanceof Player){
 			if (plugin.oasisplayer.get(((Player) event.getDamager()).getName()).isFrozen()){
 				event.setCancelled(true);
 				return;
@@ -430,6 +549,22 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void OnEntityDeath(EntityDeathEvent event){
+		if(event.getEntityType().equals(EntityType.GIANT)){
+			if(event.getEntity().getLocation().getWorld().getName().equals("world")){
+				event.setDroppedExp(1000);
+				if(randomNum(1,200)==69){
+					event.getDrops().add(new ItemStack(Material.IRON_BLOCK,32));
+				}
+
+				if(randomNum(1,200)==169){
+					event.getDrops().add(new ItemStack(Material.DIAMOND_SWORD,1));
+				}
+
+				if(randomNum(1,1000000)==1000){
+					event.getDrops().add(new ItemStack(Material.DIAMOND_BLOCK,64));
+				}
+			}
+		}
 		if(event.getEntity().getKiller() instanceof Player){
 			Player player = event.getEntity().getKiller();
 			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
@@ -447,8 +582,108 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
+	public boolean isFood(Material material){
+		if(material.equals(Material.COOKED_BEEF)){
+			return true;
+		}
+
+		if(material.equals(Material.APPLE)){
+			return true;
+		}
+
+		if(material.equals(Material.COOKED_CHICKEN)){
+			return true;
+		}
+
+		if(material.equals(Material.COOKED_FISH)){
+			return true;
+		}
+
+		if(material.equals(Material.MELON)){
+			return true;
+		}
+
+		if(material.equals(Material.BAKED_POTATO)){
+			return true;
+		}
+
+		if(material.equals(Material.BREAD)){
+			return true;
+		}
+
+		if(material.equals(Material.COOKIE)){
+			return true;
+		}
+
+		if(material.equals(Material.MUSHROOM_SOUP)){
+			return true;
+		}
+
+		if(material.equals(Material.GRILLED_PORK)){
+			return true;
+		}
+		return false;
+	}
+
+	public int feedAmount(Material material){
+		if(material.equals(Material.COOKED_BEEF)){
+			return 8;
+		}
+
+		if(material.equals(Material.APPLE)){
+			return 4;
+		}
+
+		if(material.equals(Material.COOKED_CHICKEN)){
+			return 6;
+		}
+
+		if(material.equals(Material.COOKED_FISH)){
+			return 5;
+		}
+
+		if(material.equals(Material.MELON)){
+			return 2;
+		}
+
+		if(material.equals(Material.BAKED_POTATO)){
+			return 6;
+		}
+
+		if(material.equals(Material.BREAD)){
+			return 5;
+		}
+
+		if(material.equals(Material.COOKIE)){
+			return 2;
+		}
+
+		if(material.equals(Material.MUSHROOM_SOUP)){
+			return 6;
+		}
+
+		if(material.equals(Material.GRILLED_PORK)){
+			return 8;
+		}
+		return 0;
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnPlayerEat(PlayerItemConsumeEvent event){
+		plugin.getServer().broadcastMessage("player eating");
+	}
+
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
+		if(event.getDamager() instanceof Player && event.getEntity() instanceof Player){
+			Player medic = (Player) event.getDamager();
+			Player player = (Player) event.getEntity();
+			if(isFood(medic.getItemInHand().getType())){
+				Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player,medic.getItemInHand()));
+				medic.sendMessage("have food in hand");
+				return;
+			}
+		}
 		for (OfflinePlayer offplayer: plugin.getServer().getOfflinePlayers()){
 			OasisPlayer oPlayer = plugin.oasisplayer.get(offplayer.getName());
 			if(oPlayer.isMyAnimal(event.getEntity().getUniqueId().toString())){
@@ -510,7 +745,7 @@ public class OasisExtrasListener implements Listener{
 			return;
 		}
 
-		Iterator its = plugin.signprotect.iterator();
+		Iterator<SerializedLocation> its = plugin.signprotect.iterator();
 		while(its.hasNext()){
 			SerializedLocation oldsloc = (SerializedLocation) its.next();
 			if(oldsloc.deserialize().subtract(0, 1, 0).equals(event.getBlock().getLocation())){
@@ -533,7 +768,7 @@ public class OasisExtrasListener implements Listener{
 
 		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
 			SerializedLocation sloc = new SerializedLocation(event.getBlock().getLocation());
-			Iterator it = plugin.signprotect.iterator();
+			Iterator<SerializedLocation> it = plugin.signprotect.iterator();
 			while(it.hasNext()){
 				SerializedLocation oldsloc = (SerializedLocation) it.next();
 				if(oldsloc.deserialize().equals(sloc.deserialize())){
@@ -555,9 +790,9 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 
-		Iterator i = plugin.oasisplayer.entrySet().iterator();
+		Iterator<Entry<String, OasisPlayer>> i = plugin.oasisplayer.entrySet().iterator();
 		while(i.hasNext()) {
-			Entry me = (Entry) i.next();
+			Entry<String, OasisPlayer> me = i.next();
 			OasisPlayer oPlayer = (OasisPlayer) me.getValue();
 			if (oPlayer.isOnline()) {
 				if (oPlayer.isFrozen()) {
@@ -582,7 +817,7 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerRespawn(PlayerRespawnEvent event){
-		Player player = event.getPlayer();
+		event.getPlayer();
 		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()) {
 			event.setRespawnLocation(plugin.oasisplayer.get(event.getPlayer().getName()).getLoc());
 			event.getPlayer().sendMessage(ChatColor.RED + "RESPAWNED AT YOUR " + ChatColor.AQUA + "CHILLED " + ChatColor.RED + "LOCATION!");
@@ -642,7 +877,7 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 
-		if (event.getMessage().contains("/warp") || event.getMessage().contains("/tp") || event.getMessage().contains("/home") || event.getMessage().contains("/back") || event.getMessage().contains("/spawn")){
+		if (event.getMessage().contains("/warp") || event.getMessage().contains("/tp ") || event.getMessage().contains("/tpa") || event.getMessage().contains("/home") || event.getMessage().contains("/back") || event.getMessage().contains("/spawn")){
 			if (event.getPlayer().isInsideVehicle()) {
 				Player player = event.getPlayer();
 				if (player.getVehicle() instanceof Horse) {
@@ -660,7 +895,7 @@ public class OasisExtrasListener implements Listener{
 		mytask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 			@Override
 			public void run(){
-				horse.teleport(player.getLocation().add(5, 0, 5));
+				horse.teleport(player.getLocation());
 				plugin.getServer().getScheduler().cancelTask(mytask);
 			}
 		}, 100L);
@@ -668,10 +903,11 @@ public class OasisExtrasListener implements Listener{
 		mytask2 = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 			@Override
 			public void run(){
+
 				horse.setPassenger(player);
-				Iterator it = plugin.horsetp.entrySet().iterator();
+				Iterator<Entry<Chunk, Horse>> it = plugin.horsetp.entrySet().iterator();
 				while(it.hasNext()){
-					Entry entry = (Entry) it.next();
+					Entry<Chunk, Horse> entry = it.next();
 					if(entry.getValue().equals(horse)){
 						plugin.getServer().broadcast("Chunk unloaded", "debug");
 						it.remove();
@@ -784,9 +1020,9 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	public String getOwner(Entity entity){
-		Iterator it = plugin.oasisplayer.entrySet().iterator();
+		Iterator<Entry<String, OasisPlayer>> it = plugin.oasisplayer.entrySet().iterator();
 		while(it.hasNext()){
-			Entry entry = (Entry) it.next();
+			Entry<String, OasisPlayer> entry = it.next();
 			OasisPlayer oplayer = (OasisPlayer) entry.getValue();
 			if(oplayer.isMyAnimal(entity.getUniqueId().toString())){
 				return oplayer.getName();
@@ -810,4 +1046,49 @@ public class OasisExtrasListener implements Listener{
 		return false;
 	}
 
+	public static List<BlockState> region(Location loc1, Location loc2)
+	{
+		List<BlockState> blocks = new ArrayList<BlockState>();
+
+		int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+		int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+
+		int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+		int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+
+		int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+		int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+
+		for(int x = bottomBlockX; x <= topBlockX; x++)
+		{
+			for(int z = bottomBlockZ; z <= topBlockZ; z++)
+			{
+				for(int y = bottomBlockY; y <= topBlockY; y++)
+				{
+					Block block = loc1.getWorld().getBlockAt(x, y, z);
+
+					blocks.add(block.getState());
+				}
+			}
+		}
+
+		return blocks;
+	}
+
+	@EventHandler(priority=EventPriority.NORMAL)
+	public void onVotifierEvent(VotifierEvent event) {
+		Vote vote = event.getVote();
+
+		String username = vote.getUsername();
+		Player player = plugin.getServer().getPlayer(username);
+
+		plugin.getServer().broadcastMessage(ChatColor.GREEN + "The server was voted for by " + ChatColor.RED + username + ChatColor.GREEN +  "!");
+		economy.depositPlayer(username, plugin.amount);
+
+		if (player != null){
+			((Player) player).sendMessage("Thanks for voting on " + vote.getServiceName() + "!");
+			((Player) player).sendMessage(plugin.amount + " has been added to your iConomy balance.");
+
+		}
+	}
 }

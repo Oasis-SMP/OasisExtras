@@ -1,22 +1,33 @@
-# random min and max values
-min_default_location: -2500
-max_default_location: 2500
+oasisextras:
 
-# random settings
-default_invulnerability_ticks: 6000
+  # random min and max values
+  min_default_location: -2500
+  max_default_location: 2500
 
+  joinignore: 30
+
+  Votifier: 150
+
+  # random settings
+  default_invulnerability_ticks: 300
+
+  # also in minutes
+  broadcasttimer: 15
+
+  #New player join msg
+  newplayermsg: '&dWelcome &f{DISPLAYNAME}&d to Oasis SMP!'
+  
+  #Custom join/quit/kick msgs!
+  join: '&e{DISPLAYNAME} joined the game!'
+  quit: '&e{DISPLAYNAME} left the game!'
+  kick: '&e{DISPLAYNAME} was &cKICKED &efrom the game!'
+  
 #Auto broadcast settings
 broadcastmessages:
   - Vote for OASIS at bit.ly/oasisv for 150 coins!
   - Apply for member at bit.ly/OasisMember
   - Donate for the server at bit.ly/ODonate
   - Want to switch worlds? Type /warp world1 for the old world, and /warp world2 for the new world!
-
-# also in minutes
-broadcasttimer: 15
-
-#New player join msg
-newplayermsg: '&dWelcome &f{DISPLAYNAME}&d to Oasis SMP!'
 
 #New player kit
 newbiekit:
