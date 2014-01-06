@@ -7,10 +7,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Filter;
@@ -37,6 +39,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import net.coreprotect.CoreProtect;
@@ -63,6 +66,7 @@ import net.charter.orion_pax.OasisExtras.Events.Event;
 public class OasisExtras extends JavaPlugin{
 
 	public ConsoleCommandSender console;
+	public List<Chunk> eList = new ArrayList<Chunk>();
 	public List<Item> aura = new ArrayList<Item>();
 	public HashMap<String,Event> events = new HashMap<String,Event>();
 	public HashMap<Chunk,Horse> horsetp = new HashMap<Chunk,Horse>();
@@ -78,7 +82,9 @@ public class OasisExtras extends JavaPlugin{
 	public long bcasttimer;
 	public MyConfigFile appletreefile;
 	public OasisExtrasTask task;
-	public Recipe shoes;
+	public Recipe shoes,explosivearrows,freezearrows,webarrows,soularrows,fireworksarrow,sandarrows,web;
+	public BukkitTask votecheck;
+	public FireworkEffectPlayer fplayer = new FireworkEffectPlayer();
 	//public SLAPI slapi;
 
 	public String[] oasisextrassub = {
@@ -179,6 +185,9 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("notify").setExecutor(new NotifyCommand(this));
 		getCommand("map").setExecutor(new MapCommand(this));
 		getCommand("disco").setExecutor(new DiscoCommand(this));
+		getCommand("erase").setExecutor(new EraseCommand(this));
+		getCommand("clone").setExecutor(new CloneCommand(this));
+		getCommand("rainbow").setExecutor(new RainBowCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();
@@ -223,26 +232,82 @@ public class OasisExtras extends JavaPlugin{
 
 	public void addRecipes(){
 		//Speed shoes
-		ShapedRecipe shoes = new ShapedRecipe(SpeedShoes());
-		shoes.shape("SSS","DSD","DGD");
-		shoes.setIngredient('S', Material.SUGAR);
-		shoes.setIngredient('D', Material.DIAMOND);
-		shoes.setIngredient('G', Material.GOLD_BOOTS);
-		getServer().addRecipe(shoes);
+		ShapedRecipe recipe = new ShapedRecipe(PrepareItem(Material.DIAMOND_BOOTS,"Speed Boots",1));
+		recipe.shape("SSS","DSD","DGD");
+		recipe.setIngredient('S', Material.SUGAR);
+		recipe.setIngredient('D', Material.DIAMOND);
+		recipe.setIngredient('G', Material.GOLD_BOOTS);
+		getServer().addRecipe(recipe);
 		
-		this.shoes = shoes;
+		this.shoes = recipe;
+		
+		//explosivearrows
+		
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Explosive",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.TNT);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.explosivearrows = recipe;
+		
+		//freezearrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Freeze",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.ICE);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.freezearrows = recipe;
+		
+		//fireworksarrow
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Fireworks",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.FIREWORK);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.fireworksarrow = recipe;
+		
+		//soularrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Soul",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.SOUL_SAND);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.soularrows = recipe;
+		
+		//webarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Web",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.WEB);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.webarrows = recipe;
+		
+		//sandarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Sand",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.SAND);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.sandarrows = recipe;
+		
+		//Web block
+		recipe = new ShapedRecipe(new ItemStack(Material.WEB,1));
+		recipe.shape(" S ","SSS"," S ");
+		recipe.setIngredient('S', Material.STRING);
+		getServer().addRecipe(recipe);
+		this.web = recipe;
 	}
 
-	public ItemStack SpeedShoes(){
-		ItemStack shoes = new ItemStack(Material.DIAMOND_BOOTS,1);
-		ItemMeta meta = shoes.getItemMeta();
+	public ItemStack PrepareItem(Material mat, String name, int amount){
+		ItemStack item = new ItemStack(mat,amount);
+		ItemMeta meta = item.getItemMeta();
 		meta.addEnchant(Enchantment.PROTECTION_FALL, 1, true);
-		meta.setDisplayName("Speed Shoes");
+		meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.AQUA + "" + ChatColor.ITALIC + "Speed Shoes");
+		lore.add(ChatColor.translateAlternateColorCodes('&', name));
 		meta.setLore(lore);
-		shoes.setItemMeta(meta);
-		return shoes;
+		item.setItemMeta(meta);
+		return item;
 	}
 
 	public CoreProtectAPI getCoreProtect() {
@@ -289,7 +354,10 @@ public class OasisExtras extends JavaPlugin{
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
 		}
+		CoreProtect = getCoreProtect();
+		CoreProtect.testAPI();
 		loadTree();
+		voteCheck();
 	}
 
 	public void saveTree(Location loc){
@@ -399,6 +467,32 @@ public class OasisExtras extends JavaPlugin{
 			}
 
 		}, 6000, 6000);
+	}
+	
+	public void voteCheck(){
+		votecheck = getServer().getScheduler().runTaskTimer(this, new Runnable(){
+
+			@Override
+			public void run() {
+				if(getDate()){
+					Iterator<Entry<String, OasisPlayer>> it = oasisplayer.entrySet().iterator();
+					while(it.hasNext()){
+						Entry<String, OasisPlayer> entry = it.next();
+						OasisPlayer oPlayer = entry.getValue();
+						oPlayer.votes=0;
+						oPlayer.saveMe();
+					}
+				}
+			}
+		}, 200L, 20L);
+	}
+	
+	public boolean getDate(){
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Pacific Standard Time"));
+		if(cal.DAY_OF_MONTH==1){
+			return true;
+		}
+		return false;
 	}
 
 	public void spawnTornado(

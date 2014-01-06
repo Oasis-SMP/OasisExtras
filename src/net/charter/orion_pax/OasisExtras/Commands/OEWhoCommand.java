@@ -47,6 +47,7 @@ public class OEWhoCommand implements CommandExecutor {
 				if(oPlayer.staff){
 					message.add("&b*&6JoinQuitKickIgnore = &a" + oPlayer.joinquitkickignore);
 				}
+				message.add("&b*&6Votes for the month = &a" + oPlayer.votes);
 				message.add("&b*&6Frozen = &a" + oPlayer.frozen);
 				message.add("&b*&6Glowing = &a" + oPlayer.glow);
 				message.add("&b*&6Trail = &a" + oPlayer.trail);

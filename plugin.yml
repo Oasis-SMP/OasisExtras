@@ -3,7 +3,7 @@ main: net.charter.orion_pax.OasisExtras.OasisExtras
 version: 2.0
 description: Oasis Extra commands!
 author: Paxination
-depends: [Votifier,CoreProtect]
+depend: [Votifier, CoreProtect]
 commands:
     
   blackmarket:
@@ -177,6 +177,7 @@ commands:
   trail:
     description: Toggles trail effect!
     usage: "Usage: /<command>"
+    aliases: [fwtrail]
     permission: oasisextras.staff.trail
     permission-message: You don't have permissions for <permission>
     
@@ -283,7 +284,37 @@ commands:
     permission: oasisextras.player.disco
     permission-message: You don't have permissions for <permission>
     
+  erase:
+    description: Erase items in a radius!
+    usage: "Usage: /<command> x y z radius"
+    permission: oasisextras.staff.erase
+    permission-message: You don't have permissions for <permission>
+    
+  clone:
+    description: CLONE!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.clone
+    permission-message: You don't have permissions for <permission>
+    
+  rainbow:
+    description: Rainbow leather armor!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.randomarmorcolor
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.player.randomarmorcolor:
+        description: Rainbow leather armor!
+        
+    oasisextras.staff.clone:
+        description: CLONE!
+        
+    oasisextras.player.tool.tp:
+        description: TP Feather!
+
+    oasisextras.player.tool.lock:
+        description: Lock feather!
+        
     oasisextras.player.disco:
         description: DISCO!
         
@@ -452,9 +483,18 @@ permissions:
     oasisextras.player.map:
         description: Copies URL image to an in game map!
         
+    oasisextras.staff.erase:
+        description: Erases all items in a range!
+        
+    oasisextras.player.customarrows:
+        description: Custom Arrows!
+        
     oasisextras.player.*:
         description: Gives access to all player commands
         children:
+            oasisextras.player.customarrows: true
+            oasisextras.player.tool.lock: true
+            oasisextras.player.tool.tp: true
             oasisextras.player.disco: true
             oasisextras.player.map: true
             oasisextras.player.medic: true
@@ -470,6 +510,7 @@ permissions:
             oasisextras.player.dismount: true
             oasisextras.player.aura: true
             oasisextras.player.glow: true
+            oasisextras.player.randomarmorcolor: true
             
     oasisextras.staff.pixelmon:
         description: Pixelmon specific permnodes

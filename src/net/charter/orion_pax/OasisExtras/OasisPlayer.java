@@ -1,21 +1,23 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
+import org.bukkit.Color;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
@@ -48,9 +50,11 @@ public class OasisPlayer {
 	public Location ssloc1,ssloc2;
 	public List<String> friends = new ArrayList<String>();
 	public String bcolor,fprefix,fchat;
-	private BukkitTask discotask;
+	private BukkitTask discotask,randomColorArmor;
 	private List<BlockState> floor = new ArrayList<BlockState>();
-	public boolean disco;
+	public boolean disco,rCA = false,ftrail=false;
+	public int votes=0;
+	public float speed;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -59,6 +63,7 @@ public class OasisPlayer {
 		String filename = "players/" + name + ".yml";
 		playerfile = new MyConfigFile(plugin, filename);
 
+		animals = playerfile.getConfig().getStringList("animals");
 		frozen=playerfile.getConfig().getBoolean("frozen",frozen);
 
 		friends=playerfile.getConfig().getStringList("friends");
@@ -72,6 +77,8 @@ public class OasisPlayer {
 		if(!eventnotify){
 			plugin.getServer().dispatchCommand(plugin.console, "manuaddp " + name + "-oasisextras.player.event.notify");
 		}
+
+		votes = playerfile.getConfig().getInt("votes", 0);
 
 		glow = playerfile.getConfig().getBoolean("glowing",false);
 
@@ -104,12 +111,15 @@ public class OasisPlayer {
 		playerfile.getConfig().set("friendlistbracketcolor", bcolor);
 		playerfile.getConfig().set("friendprefixcolor", fprefix);
 		playerfile.getConfig().set("friendschatcolor", fchat);
-		playerfile.getConfig().set("joinquitkickignore", this.joinquitkickignore);
+		playerfile.getConfig().set("joinquitkickignore", joinquitkickignore);
+		playerfile.getConfig().set("votes", votes);
 		playerfile.saveConfig();
 	}
 
 	public void onLine(){
+		speed=getPlayer().getWalkSpeed();
 		online=true;
+		setLoc(getPlayer().getLocation());
 		staff = plugin.getServer().getPlayer(name).hasPermission("oasischat.staff.staff") ? true : false;
 
 		if(frozen){SendMsg("&6Your &bFROZEN&g!");}
@@ -123,16 +133,21 @@ public class OasisPlayer {
 
 	public void Disco(){
 		floor.addAll(region(loc.clone().add(5, -1, 5),loc.clone().add(-5, -1, -5)));
-		discotask = plugin.getServer().getScheduler().runTask(plugin, new Runnable(){
+		if(floor==null){plugin.getServer().broadcastMessage("floor is null");}
+		discotask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
 
+			@SuppressWarnings("deprecation")
 			@Override
 			public void run() {
-				getPlayer().sendBlockChange(floor.get(randomNum(0,floor.size()-1)).getLocation(), Material.STAINED_GLASS, (byte) randomNum(0,15));
+				for (int i =0 ; i<10 ; i++) {
+					getPlayer().sendBlockChange(floor.get(randomNum(0, floor.size() - 1)).getLocation(), Material.STAINED_GLASS, (byte) randomNum(0, 15));
+				}
 			}
 
-		});
+		},0L,3L);
 	}
 
+	@SuppressWarnings("deprecation")
 	public void stopDisco(){
 		discotask.cancel();
 		for(BlockState block:floor){
@@ -321,12 +336,17 @@ public class OasisPlayer {
 	}
 
 	public void CleanUp(){
-		if(gbstate!=null){
+		if(glow){
 			gbstate.update(true);
 		}
 
-		if(floor!=null){
+		if(disco){
 			stopDisco();
+		}
+		
+		if(rCA){
+			stopRandomColorArmor();
+			rCA=!rCA;
 		}
 	}
 
@@ -431,6 +451,8 @@ public class OasisPlayer {
 	}
 
 	public void offLine(){
+		ftrail=false;
+		getPlayer().setWalkSpeed(speed);
 		online=false;
 		if(auratoggle){
 			cancelAura();
@@ -509,13 +531,12 @@ public class OasisPlayer {
 			if (!animals.contains(entity.getUniqueId().toString())) {
 				animals.add(entity.getUniqueId().toString());
 				playerfile.getConfig().set("animals", animals);
-				plugin.getServer().getPlayer(name).sendMessage(ChatColor.YELLOW + entity.getClass().getSimpleName() + ChatColor.RED + "LOCKED!");
+				SendMsg("&e" + entity.getType().toString() + " &cLOCKED!");
 
 			} else {
 				animals.remove(entity.getUniqueId().toString());
 				playerfile.getConfig().set("animals", animals);
-				plugin.getServer().getPlayer(name).sendMessage(ChatColor.YELLOW + entity.getClass().getSimpleName() + ChatColor.GREEN + "UNLOCKED!");
-
+				SendMsg("&e" + entity.getType().toString() + " &aUNLOCKED!");
 			}
 			saveMe();
 			playerfile.saveConfig();
@@ -527,6 +548,15 @@ public class OasisPlayer {
 		this.loc = loc;
 		if(trail){
 			loc.getWorld().playEffect(loc, Effect.MOBSPAWNER_FLAMES, 0);
+		}
+		
+		if(ftrail){
+			try {
+				plugin.fplayer.playFirework(getPlayer().getWorld(), loc, SpawnRandomFirework.randomEffect());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		if(this.glow){
@@ -545,6 +575,24 @@ public class OasisPlayer {
 			getPlayer().sendBlockChange(loc.clone().add(0, 1, 1), Material.ICE, (byte) 0);
 			getPlayer().sendBlockChange(loc.clone().add(0, 0, -1), Material.ICE, (byte) 0);
 			getPlayer().sendBlockChange(loc.clone().add(0, 1, -1), Material.ICE, (byte) 0);
+		}
+		ItemStack item = getPlayer().getInventory().getBoots();
+		if(item!=null){
+			if(item.hasItemMeta()){
+				if(item.getItemMeta().hasLore()){
+					if(item.getItemMeta().getLore().get(0).equalsIgnoreCase("speed boots")){
+						getPlayer().setWalkSpeed(1F);
+					} else { 
+						getPlayer().setWalkSpeed(speed);
+					}
+				} else { 
+					getPlayer().setWalkSpeed(speed);
+				}
+			} else { 
+				getPlayer().setWalkSpeed(speed);
+			}
+		} else { 
+			getPlayer().setWalkSpeed(speed);
 		}
 	}
 
@@ -615,5 +663,42 @@ public class OasisPlayer {
 			return null;
 		}
 	}
+
+	public void armorRandomColorChange(){
+		randomColorArmor = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				for(ItemStack i : getPlayer().getInventory().getArmorContents()){
+					if (i.getType().equals(Material.LEATHER_BOOTS) || i.getType().equals(Material.LEATHER_CHESTPLATE) ||
+							i.getType().equals(Material.LEATHER_HELMET) || i.getType().equals(Material.LEATHER_LEGGINGS)) {
+						Color[] colors = new Color[] { Color.AQUA, Color.BLACK, Color.BLUE, Color.FUCHSIA, Color.GRAY, Color.GREEN, Color.LIME, Color.MAROON, Color.NAVY, Color.OLIVE, Color.ORANGE, Color.PURPLE, Color.RED, Color.SILVER, Color.TEAL, Color.WHITE, Color.YELLOW };
+						Random r = new Random();
+						List<Color> colorList = Arrays.asList(colors);
+						Color randomColor = (Color) colorList.get(r.nextInt(colorList.size()));
+						setColor(i, randomColor);
+					}
+				}
+			}
+			
+		}, 0L, 5L);
+	}
+	
+	public boolean isRandomColorArmor(){
+		return rCA;
+	}
+	
+	public void stopRandomColorArmor(){
+		if (rCA) {
+			randomColorArmor.cancel();
+		}
+	}
+	
+	public static ItemStack setColor(ItemStack item, Color color){
+        LeatherArmorMeta lam = (LeatherArmorMeta)item.getItemMeta();
+        lam.setColor(color);
+        item.setItemMeta(lam);
+        return item;
+    }
 }
 

@@ -1,12 +1,15 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TimeZone;
 
 import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.v1_7_R1.Enchantment;
@@ -33,6 +36,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
@@ -41,6 +46,8 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.util.Vector;
 
@@ -112,6 +119,7 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteractEntity(PlayerInteractEntityEvent event){
 		OasisPlayer oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
+		//MEDIC code
 		if(event.getRightClicked() instanceof Player){
 			if(isFood(event.getPlayer().getItemInHand().getType())){
 				Player player = (Player) event.getRightClicked();
@@ -121,9 +129,10 @@ public class OasisExtrasListener implements Listener{
 					if(player.getFoodLevel()>20){player.setFoodLevel(20);}
 					player.sendMessage(ChatColor.ITALIC.GREEN + "MEDIC! - " + event.getPlayer().getName() + " has feed you!");
 					if (oPlayer.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
-						event.getPlayer().getItemInHand().setAmount(event.getPlayer().getItemInHand().getAmount() - 1);
 						if(event.getPlayer().getItemInHand().getAmount()==1){
-
+							event.getPlayer().setItemInHand(null);
+						} else {
+							event.getPlayer().getItemInHand().setAmount(event.getPlayer().getItemInHand().getAmount() - 1);
 						}
 					}
 				}
@@ -131,57 +140,81 @@ public class OasisExtrasListener implements Listener{
 		}
 		Entity entity = event.getRightClicked();
 		final Player player = event.getPlayer();
+
+		//WHAT feather tool
 		if(toolCheck(player.getItemInHand(), "what", player)){
 			player.sendMessage(entity.getClass().toString());
 			player.sendMessage(entity.getClass().getName());
+			player.sendMessage(entity.getType().toString());
+			event.setCancelled(true);
 			return;
 		}
+
+		//GETOWNER feather tool
 		if(toolCheck(player.getItemInHand(),"getowner", player)){
-			if (entity instanceof Horse) {
-				Horse horse = (Horse) entity;
-				player.sendMessage(horse.getOwner().getName());
-				return;
-			}
-			if (entity instanceof Wolf) {
-				Wolf wolf = (Wolf) entity;
-				player.sendMessage(wolf.getOwner().getName());
-				return;
-			}
-			if (entity instanceof Ocelot) {
-				Ocelot ocelot = (Ocelot) entity;
-				player.sendMessage(ocelot.getOwner().getName());
-				return;
-			}
-			if (getOwner(entity) != null) {
-				player.sendMessage(getOwner(entity));
-				return;
-			}
-		}
-
-		if(toolCheck(player.getItemInHand(),"tpall",player)){
-			oPlayer = plugin.oasisplayer.get(player.getName());
-			oPlayer.toggleTP(entity);
-			LivingEntity liveentity = (LivingEntity) entity;
-			liveentity.setRemoveWhenFarAway(false);
-			if(plugin.tptimer.containsKey(player.getName())){
-				return;
-			} else {
-				plugin.tptimer.put(player.getName(), oPlayer);
-				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-					@Override
-					public void run(){
-						plugin.tptimer.get(player.getName()).tplist.clear();
-						plugin.tptimer.remove(player.getName());
+			if (entity instanceof LivingEntity) {
+				if (entity instanceof Horse) {
+					Horse horse = (Horse) entity;
+					if (horse.getOwner() != null) {
+						player.sendMessage(horse.getOwner().getName());
+					} else {
+						player.sendMessage("None");
 					}
-				}, 6000);
-				return;
+					event.setCancelled(true);
+					return;
+				}
+				if (entity instanceof Wolf) {
+					Wolf wolf = (Wolf) entity;
+					if (wolf.getOwner() != null) {
+						player.sendMessage(wolf.getOwner().getName());
+					} else {
+						player.sendMessage("None");
+					}
+					event.setCancelled(true);
+					return;
+				}
+				if (entity instanceof Ocelot) {
+					Ocelot ocelot = (Ocelot) entity;
+					if (ocelot.getOwner() != null) {
+						player.sendMessage(ocelot.getOwner().getName());
+					} else {
+						player.sendMessage("None");
+					}
+					event.setCancelled(true);
+					return;
+				}
+				if (getOwner(entity) != null) {
+					player.sendMessage(getOwner(entity).getName());
+					event.setCancelled(true);
+					return;
+				} else {
+					player.sendMessage("None");
+				}
 			}
 		}
 
-		if (player.getItemInHand().getType().equals(Material.FEATHER)) {
-			if (player.hasPermission("oasisextras.player.tp")) {
+		//TP feather tool
+		if(toolCheck(player.getItemInHand(),"tp",player)){
+			if (event.getRightClicked() instanceof LivingEntity) {
 				oPlayer = plugin.oasisplayer.get(player.getName());
 				if (getMobs(entity)) {
+					if (getOwner(entity).equals(null)) {
+						oPlayer.toggleTP(entity);
+						if (plugin.tptimer.containsKey(player.getName())) {
+							return;
+						} else {
+							plugin.tptimer.put(player.getName(), oPlayer);
+							plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+								@Override
+								public void run() {
+									plugin.tptimer.get(player.getName()).tplist.clear();
+									plugin.tptimer.remove(player.getName());
+								}
+							}, 6000);
+							return;
+						}
+					}
+				} else if(oPlayer.staff){
 					oPlayer.toggleTP(entity);
 					if (plugin.tptimer.containsKey(player.getName())) {
 						return;
@@ -202,9 +235,53 @@ public class OasisExtrasListener implements Listener{
 				}
 			}
 		}
+
+		//LOCK feather tool
+		if(toolCheck(player.getItemInHand(),"lock",player)){
+			if (event.getRightClicked() instanceof LivingEntity) {
+				oPlayer = plugin.oasisplayer.get(player.getName());
+				if (getMobs(event.getRightClicked())) {
+					if (getOwner(event.getRightClicked()) == null) {
+						oPlayer.lockAnimal(event.getRightClicked());
+						oPlayer.saveMe();
+						event.setCancelled(true);
+						return;
+					} else if (getOwner(event.getRightClicked()).getName().equals(oPlayer.getName())) {
+						oPlayer.lockAnimal(event.getRightClicked());
+						oPlayer.saveMe();
+						event.setCancelled(true);
+						return;
+					} else {
+						oPlayer.SendMsg("&6That mob is already &cLOCKED!");
+						event.setCancelled(true);
+						return;
+					}
+				} else if (oPlayer.staff) {
+					if (getOwner(event.getRightClicked()) == null) {
+						oPlayer.lockAnimal(event.getRightClicked());
+						oPlayer.saveMe();
+						event.setCancelled(true);
+						return;
+					} else if (getOwner(event.getRightClicked()).getName().equals(oPlayer.getName())) {
+						oPlayer.lockAnimal(event.getRightClicked());
+						oPlayer.saveMe();
+						event.setCancelled(true);
+						return;
+					} else {
+						oPlayer.SendMsg("&6That mob is already &cLOCKED!");
+						event.setCancelled(true);
+						return;
+					}
+				} else {
+					oPlayer.SendMsg("&cThat mob type cant be LOCKED!");
+				}
+			}
+		}
+
+		//OVERRIDE feather tool
 		if(toolCheck(player.getItemInHand(),"override", player)){
-			if (getOwner(entity)!=null){
-				oPlayer = plugin.oasisplayer.get(getOwner(entity));
+			oPlayer = plugin.oasisplayer.get(getOwner(entity));
+			if (oPlayer!=null){
 				if(!oPlayer.delAnimal(entity.getUniqueId().toString())){
 					player.sendMessage(ChatColor.RED + "Animal has no lock on them.");
 				}
@@ -248,6 +325,10 @@ public class OasisExtrasListener implements Listener{
 			event.setCancelled(true);
 			return;
 		}
+		if(plugin.eList.contains(event.getChunk())){
+			event.setCancelled(true);
+			return;
+		}
 		for(Player player: plugin.getServer().getOnlinePlayers()){
 			OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 			for(Entity entity: oPlayer.tplist){
@@ -260,12 +341,177 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnArrowShot(ProjectileLaunchEvent event){
+		if (event.getEntity() instanceof Arrow) {
+			Arrow arrow = (Arrow) event.getEntity();
+			if (event.getEntity().getShooter() instanceof Player) {
+				Player player = (Player) event.getEntity().getShooter();
+				if (player.getInventory().getItem(1)!=null) {
+					if (player.getInventory().getItem(1).getType().equals(Material.ARROW)) {
+						if (getArrowLore(player.getInventory().getItem(1))!=null) {
+							if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("explosive")) {
+								arrow.setMetadata("name", new FixedMetadataValue(plugin, "explosive"));
+							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("freeze")) {
+								arrow.setMetadata("name", new FixedMetadataValue(plugin, "freeze"));
+							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("soul")) {
+								arrow.setMetadata("name", new FixedMetadataValue(plugin, "soul"));
+							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("sand")) {
+								arrow.setMetadata("name", new FixedMetadataValue(plugin, "sand"));
+								sandArrow(arrow);
+							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("fireworks")) {
+								arrow.setMetadata("name", new FixedMetadataValue(plugin, "fireworks"));
+								fireworksArrow(arrow);
+							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("web")) {
+								arrow.setMetadata("name", new FixedMetadataValue(plugin, "web"));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void sandArrow(final Arrow arrow){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				if(arrow!=null){
+					List<BlockState> blocks = circle(arrow.getLocation(),3,3,false,true,0);
+					for(BlockState block:blocks){
+						if(block.getBlock().getType().equals(Material.AIR)){
+							block.getBlock().setType(Material.SAND);
+						}
+					}
+					arrow.remove();
+				}
+				
+			}
+			
+		}, 20L);
+	}
+	
+	public void fireworksArrow(final Arrow arrow){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				if(arrow!=null){
+					try {
+						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
+						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
+						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
+						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
+						arrow.remove();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+			}
+			
+		}, 20L);
+	}
+	
+	public String getArrowLore(ItemStack item){
+		if(item.hasItemMeta()){
+			if(item.getItemMeta().hasLore()){
+				List<String> lore = item.getItemMeta().getLore();
+				return lore.get(0);
+			}
+		}
+		return null;
+	}
+
+
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnArrowHit(ProjectileHitEvent event){
+		Location loc = event.getEntity().getLocation();
+		if(event.getEntityType().equals(EntityType.ARROW)){
+			Arrow arrow = (Arrow) event.getEntity();
+			if(arrow.getShooter() instanceof Player){
+				Player player = (Player) arrow.getShooter();
+				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+				if (player.getWorld().getName().equalsIgnoreCase("pvpworld") || oPlayer.staff) {
+					if (player.hasPermission("oasisextras.player.customarrows")) {
+						if (getMetadata(arrow, "name", plugin) != null) {
+							if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("explosive")) {
+								restoreState(region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE));
+								loc.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 3F, true, true);
+								arrow.remove();
+								return;
+							} else if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("freeze")) {
+								List<BlockState> blocks = circle(loc, 3, 3, false, true, 0);
+								restoreState(blocks);
+								for(BlockState block:blocks){
+									if (block.getBlock().getType().equals(Material.AIR)) {
+										block.getBlock().setType(Material.ICE);
+									}
+								}
+								arrow.remove();
+								return;
+							} else if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("soul")) {
+								List<BlockState> blocks = circle(loc.clone().add(0, -1, 0),3,1,false,true,0);
+								restoreState(blocks);
+								for(BlockState block:blocks){
+									if(!block.getBlock().getType().equals(Material.AIR)){
+										block.getBlock().setType(Material.SOUL_SAND);
+									}
+								}
+								arrow.remove();
+								return;
+							} else if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("web")) {
+								List<BlockState> blocks = circle(loc,3,3,false,true,0);
+								restoreState(blocks);
+								for(BlockState block:blocks){
+									if(block.getBlock().getType().equals(Material.AIR)){
+										block.getBlock().setType(Material.WEB);
+									}
+								}
+								arrow.remove();
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void restoreState(final List<BlockState> blocks){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				for(BlockState block:blocks){
+					block.update(true);
+				}
+			}
+			
+		}, 200L);
+	}
+
+	public String getMetadata(Arrow arrow, String key, OasisExtras plugin){
+		List<MetadataValue> values = arrow.getMetadata(key);  
+		for(MetadataValue value : values){
+			if(value.getOwningPlugin().getDescription().getName().equals(plugin.getDescription().getName())){
+				return value.asString();
+			}
+		}
+		return null;
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
+			//Troll tool code
 			if(toolCheck(player.getItemInHand(),"troll",player)){
 				if(player.getItemInHand().getItemMeta().hasLore()){
 					List<String> list = player.getItemInHand().getItemMeta().getLore();
+					if(plugin.CoreProtect==null){plugin.getLogger().info("CoreProtect is null");}
 					plugin.CoreProtect.logRemoval(list.get(0), event.getClickedBlock().getLocation(), event.getClickedBlock().getTypeId(), event.getClickedBlock().getData());
 					plugin.CoreProtect.logPlacement(list.get(0), event.getClickedBlock().getLocation(), Integer.parseInt(list.get(1)),(byte) 0);
 					event.getClickedBlock().setTypeId(Integer.parseInt(list.get(1)));
@@ -273,14 +519,15 @@ public class OasisExtrasListener implements Listener{
 					return;
 				}
 			}
-			if (player.getItemInHand().getType().equals(Material.REDSTONE) && player.hasPermission("oasisextras.staff.tools.power")){
-				if(player.getItemInHand().getItemMeta().getDisplayName().equals("power")){
-					Block block = event.getClickedBlock();
-					event.setCancelled(true);
-					block.setTypeIdAndData(Material.REDSTONE_LAMP_ON.getId(), (byte) 0x8, false);
-					return;
-				}
+
+			if (toolCheck(player.getItemInHand(),"power",player)) {
+				//Power tool code
+				Block block = event.getClickedBlock();
+				event.setCancelled(true);
+				block.setTypeIdAndData(Material.AIR.getId(), (byte) 0x8, false);
+				return;
 			}
+			//Boom tool code
 			if (player.getItemInHand().getType().equals(Material.TNT) && player.hasPermission("oasisextras.staff.tools.boom")){
 				if(player.getItemInHand().getItemMeta().getDisplayName().equals("boom")){
 					final float power = player.getItemInHand().getAmount();
@@ -298,43 +545,73 @@ public class OasisExtrasListener implements Listener{
 					return;
 				}
 			}
-			if (player.getItemInHand().getType().equals(Material.FEATHER)) {
-				if (player.getItemInHand().hasItemMeta()) {
-					if (player.getItemInHand().getItemMeta().hasDisplayName()) {
-						if (player.getItemInHand().getItemMeta().getDisplayName().contains("tpall") && player.hasPermission("oasisextras.staff.tools.tpall")) {
-							int radius=10;
-							if(player.getItemInHand().getItemMeta().getDisplayName().length()>5){
-								try {
-									radius=Integer.parseInt(player.getItemInHand().getItemMeta().getDisplayName().substring(5));
-								} catch (NumberFormatException e) {
-									// TODO Auto-generated catch block
-									player.sendMessage(ChatColor.RED + "Not a number!");
-								}
-							}
-							for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-								OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
-								oPlayer.toggleTP(entity);
-								((LivingEntity) entity).setRemoveWhenFarAway(false);
-							}
-							return;
-						}
 
-						if (player.getItemInHand().getItemMeta().getDisplayName().equals("float") && player.hasPermission("oasisextras.staff.tools.float")){
-							event.getClickedBlock().getWorld().spawnFallingBlock(event.getClickedBlock().getLocation().add(0, 1, 0), event.getClickedBlock().getType(), (byte) 0).setVelocity(new Vector(0,2,0));
-							event.getClickedBlock().setType(Material.AIR);
-							event.setCancelled(true);
-							return;
-						}
+			//TPALL tool code
+			if (toolCheck(player.getItemInHand(),"tpall",player)) {
+				int radius = 10;
+				if (player.getItemInHand().getItemMeta().getDisplayName().length() > 5) {
+					try {
+						radius = Integer.parseInt(player.getItemInHand().getItemMeta().getDisplayName().substring(5));
+					} catch (NumberFormatException e) {
+						// TODO Auto-generated catch block
+						player.sendMessage(ChatColor.RED + "Not a number!");
 					}
 				}
-
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
-				oPlayer.tpanimal(event.getClickedBlock().getLocation().add(0, 1, 0));
+				for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+					if (entity instanceof LivingEntity) {
+						oPlayer.toggleTP(entity);
+						((LivingEntity) entity).setRemoveWhenFarAway(false);
+					}
+				}
+				return;
+			}
+
+			//FLOAT tool code
+			if (toolCheck(player.getItemInHand(),"float",player)) {
+				event.getClickedBlock().getWorld().spawnFallingBlock(event.getClickedBlock().getLocation().add(0, 1, 0), event.getClickedBlock().getType(), (byte) 0).setVelocity(new Vector(0, 2, 0));
+				event.getClickedBlock().setType(Material.AIR);
+				plugin.CoreProtect.logRemoval("FT_" + player.getName(), event.getClickedBlock().getLocation(), event.getClickedBlock().getTypeId(), event.getClickedBlock().getState().getRawData());
 				event.setCancelled(true);
 				return;
-
-
 			}
+
+			//DROP tool code
+			if (toolCheck(player.getItemInHand(),"drop",player)) {
+				event.getClickedBlock().getWorld().spawnFallingBlock(event.getClickedBlock().getLocation().add(0, 1, 0), event.getClickedBlock().getType(), (byte) 0);
+				event.getClickedBlock().setType(Material.AIR);
+				plugin.CoreProtect.logRemoval("DT_" + player.getName(), event.getClickedBlock().getLocation(), event.getClickedBlock().getTypeId(), event.getClickedBlock().getState().getRawData());
+				event.setCancelled(true);
+				return;
+			}
+
+			//FALCONPUNCH tool code
+			if (toolCheck(player.getItemInHand(),"falconpunch",player)){
+				int radius = 10;
+				if (player.getItemInHand().getItemMeta().getDisplayName().length() > 11) {
+					try {
+						radius = Integer.parseInt(player.getItemInHand().getItemMeta().getDisplayName().substring(11));
+					} catch (NumberFormatException e) {
+						// TODO Auto-generated catch block
+						player.sendMessage(ChatColor.RED + "Not a number!");
+					}
+				}
+				List<BlockState> blocks = circle(event.getClickedBlock().getLocation(), radius, radius, false, true, 0);
+				for(BlockState block:blocks){
+					block.getBlock().breakNaturally();
+					plugin.CoreProtect.logRemoval("FP_" + player.getName(), block.getLocation(), block.getTypeId(), block.getRawData());
+				}
+			}
+
+			//TP tool code
+			if (toolCheck(player.getItemInHand(),"tp",player)) {
+				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+				oPlayer.tpanimal(event.getClickedBlock().getLocation().clone().add(0, 1, 0));
+				event.setCancelled(true);
+				return;
+			}
+
+			//cat and dog code
 			if (player.hasPermission("oasisextras.player.catndog")){
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT){
 					if (player.getItemInHand().getType() == Material.BONE && player.getItemInHand().getAmount() > 9){
@@ -364,6 +641,8 @@ public class OasisExtrasListener implements Listener{
 					}
 				}
 			}
+
+			//appletree code
 			if (player.hasPermission("oasisextras.player.appletree")) {
 				if (event.getClickedBlock().getType() == Material.GRASS || event.getClickedBlock().getType() == Material.DIRT) {
 					if (player.getItemInHand().getType() == Material.APPLE && player.getItemInHand().getAmount() > 15) {
@@ -527,12 +806,16 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnCreatureSpawn(CreatureSpawnEvent event){
-		if (event.getEntityType().equals(EntityType.ZOMBIE)){
-			int i = randomNum(1,256);
-			if (i == 127) {
-				event.getLocation().getWorld().spawnEntity(event.getLocation(), EntityType.GIANT);
-				event.getEntity().remove();
-				event.setCancelled(true);
+		if (!event.isCancelled()) {
+			if (event.getLocation().getWorld().getName().equals("world")) {
+				if (event.getEntityType().equals(EntityType.ZOMBIE)) {
+					int i = randomNum(1, 256);
+					if (i == 127) {
+						event.getLocation().getWorld().spawnEntity(event.getLocation(), EntityType.GIANT);
+						event.getEntity().remove();
+						event.setCancelled(true);
+					}
+				}
 			}
 		}
 	}
@@ -669,60 +952,16 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnPlayerEat(PlayerItemConsumeEvent event){
-		plugin.getServer().broadcastMessage("player eating");
-	}
-
-	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
-		if(event.getDamager() instanceof Player && event.getEntity() instanceof Player){
-			Player medic = (Player) event.getDamager();
-			Player player = (Player) event.getEntity();
-			if(isFood(medic.getItemInHand().getType())){
-				Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player,medic.getItemInHand()));
-				medic.sendMessage("have food in hand");
-				return;
-			}
-		}
-		for (OfflinePlayer offplayer: plugin.getServer().getOfflinePlayers()){
-			OasisPlayer oPlayer = plugin.oasisplayer.get(offplayer.getName());
-			if(oPlayer.isMyAnimal(event.getEntity().getUniqueId().toString())){
-				if(event.getDamager() instanceof Player){
-					Player player = (Player) event.getDamager();
-					if(!oPlayer.getName().equals(player.getName())){
-						event.setCancelled(true);
-						return;
-					}
-				} else if(event.getDamager() instanceof Arrow){
-					Entity shooter = ((Arrow)event.getDamager()).getShooter();
-					if(shooter instanceof Player){
-						Player player = (Player) shooter;
-						if(!oPlayer.getName().equals(player.getName())){
-							event.setCancelled(true);
-							return;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void PlayerTagAnimal(EntityDamageByEntityEvent event){
-		//Tagging code
-		if (event.getDamager() instanceof Player){
-			Entity entity = event.getEntity();
-			Player player = (Player) event.getDamager();
-			if (player.getItemInHand().getType().equals(Material.STICK)){
-				if (player.getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase("lock")) {
-					if (getMobs(entity)) {
-						plugin.oasisplayer.get(player.getName()).lockAnimal(entity);
-						plugin.oasisplayer.get(player.getName()).saveMe();
-						event.setCancelled(true);
-						return;
-					} else {
-						player.sendMessage(ChatColor.RED + "That mob type cant be LOCKED!");
-					}
+		if(event.getDamager() instanceof Player){
+			OasisPlayer owner = getOwner(event.getEntity());
+			if (owner != null) {
+				Player player = (Player) event.getDamager();
+				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+				if (!oPlayer.getName().equals(owner.getName())) {
+					oPlayer.SendMsg("&6This mob is &cLOCKED&6!");
+					event.setCancelled(true);
+					return;
 				}
 			}
 		}
@@ -927,7 +1166,6 @@ public class OasisExtrasListener implements Listener{
 
 		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
 			if(event.getPlayer().isOp()){
-				if(plugin.signprotect==null){plugin.getLogger().info("signprotect is null");}
 				plugin.signprotect.add(new SerializedLocation(event.getBlock().getLocation()));
 				try {
 					SLAPI.save(plugin.signprotect, plugin.getDataFolder() + "/signprotect.bin");
@@ -1019,13 +1257,13 @@ public class OasisExtrasListener implements Listener{
 		return randomNum;
 	}
 
-	public String getOwner(Entity entity){
+	public OasisPlayer getOwner(Entity entity){
 		Iterator<Entry<String, OasisPlayer>> it = plugin.oasisplayer.entrySet().iterator();
 		while(it.hasNext()){
 			Entry<String, OasisPlayer> entry = it.next();
 			OasisPlayer oplayer = (OasisPlayer) entry.getValue();
 			if(oplayer.isMyAnimal(entity.getUniqueId().toString())){
-				return oplayer.getName();
+				return oplayer;
 			}
 		}
 		return null;
@@ -1033,6 +1271,40 @@ public class OasisExtrasListener implements Listener{
 
 	public boolean toolCheck(ItemStack item, String tool, Player player){
 		if (player.hasPermission("oasisextras.staff.tool."+tool)) {
+			if (item.getType().equals(Material.FEATHER)) {
+				if (item.hasItemMeta()) {
+					if (item.getItemMeta().hasDisplayName()) {
+						if (item.getItemMeta().getDisplayName().contains(tool)) {
+							return true;
+						}
+					}
+				}
+			} else if(item.getType().equals(Material.TNT)){
+				if (item.hasItemMeta()) {
+					if (item.getItemMeta().hasDisplayName()) {
+						if (item.getItemMeta().getDisplayName().contains(tool)) {
+							return true;
+						}
+					}
+				}
+			} else if(item.getType().equals(Material.REDSTONE)){
+				if (item.hasItemMeta()) {
+					if (item.getItemMeta().hasDisplayName()) {
+						if (item.getItemMeta().getDisplayName().contains(tool)) {
+							return true;
+						}
+					}
+				}
+			} else if(item.getType().equals(Material.WOOD_PICKAXE)){
+				if (item.hasItemMeta()){
+					if(item.getItemMeta().hasDisplayName()){
+						if(item.getItemMeta().getDisplayName().contains(tool)){
+							return true;
+						}
+					}
+				}
+			}
+		} else if(player.hasPermission("oasisextras.player.tool." +tool)){
 			if (item.getType().equals(Material.FEATHER)) {
 				if (item.hasItemMeta()) {
 					if (item.getItemMeta().hasDisplayName()) {
@@ -1046,8 +1318,10 @@ public class OasisExtrasListener implements Listener{
 		return false;
 	}
 
-	public static List<BlockState> region(Location loc1, Location loc2)
+	public static List<BlockState> region(Location loc1, Location loc2, Material... mat)
 	{
+		Material[] materials = mat;
+		
 		List<BlockState> blocks = new ArrayList<BlockState>();
 
 		int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
@@ -1067,7 +1341,13 @@ public class OasisExtrasListener implements Listener{
 				{
 					Block block = loc1.getWorld().getBlockAt(x, y, z);
 
-					blocks.add(block.getState());
+					for (Material material:materials) {
+						if (block.getType().equals(material)) {
+							
+						} else {
+							blocks.add(block.getState());
+						}
+					}
 				}
 			}
 		}
@@ -1090,5 +1370,27 @@ public class OasisExtrasListener implements Listener{
 			((Player) player).sendMessage(plugin.amount + " has been added to your iConomy balance.");
 
 		}
+	}
+
+	private static List<BlockState> circle(Location loc, int radius, int height, boolean hollow, boolean sphere, int plusY){
+		List<BlockState> circleblocks = new ArrayList<BlockState>();
+		int cx = loc.getBlockX();
+		int cy = loc.getBlockY();
+		int cz = loc.getBlockZ();
+
+		for(int x = cx - radius; x <= cx + radius; x++){
+			for (int z = cz - radius; z <= cz + radius; z++){
+				for(int y = (sphere ? cy - radius : cy); y < (sphere ? cy + radius : cy + height); y++){
+					double dist = (cx - x) * (cx - x) + (cz - z) * (cz - z) + (sphere ? (cy - y) * (cy - y) : 0);
+
+					if(dist < radius * radius && !(hollow && dist < (radius - 1) * (radius - 1))){
+						Location l = new Location(loc.getWorld(), x, y + plusY, z);
+						circleblocks.add(l.getBlock().getState());
+					}
+				}
+			}
+		}
+
+		return circleblocks;
 	}
 }

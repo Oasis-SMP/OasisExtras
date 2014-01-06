@@ -11,11 +11,28 @@ import org.bukkit.inventory.meta.FireworkMeta;
 public class SpawnRandomFirework {
 
 	private OasisExtras plugin;
-	private Player player;
+	private static Player player;
 	public SpawnRandomFirework(OasisExtras plugin, String name) {
 		this.plugin = plugin;
 		this.player = plugin.getServer().getPlayer(name);
 		spawnFireWork();
+	}
+	
+	public SpawnRandomFirework(OasisExtras plugin){
+		this.plugin = plugin;
+		
+	}
+	
+	public static FireworkEffect randomEffect(){
+		//Get random type
+		Type type = getType();
+
+		//Get our random colours 
+		Color c1 = getColor();
+		Color c2 = getColor();
+
+		//Create our effect with this
+		return FireworkEffect.builder().flicker(getRanBoolean()).withColor(c1).withFade(c2).with(type).trail(getRanBoolean()).build();
 	}
 	
 	private Firework spawnFireWork(){
@@ -45,7 +62,7 @@ public class SpawnRandomFirework {
 		return fw;
 	}
 	
-	private boolean getRanBoolean(){
+	private static boolean getRanBoolean(){
 		switch(randomNum(1,2)){
 		case 1:return true;
 		case 2:return false;
@@ -53,7 +70,7 @@ public class SpawnRandomFirework {
 		}
 	}
 	
-	private Type getType(){
+	private static Type getType(){
 		switch(randomNum(1,5)){
 		case 1:return Type.BALL;
 		case 2:return Type.BALL_LARGE;
@@ -64,11 +81,11 @@ public class SpawnRandomFirework {
 		}
 	}
 	
-	public int randomNum(Integer lownum, double d) {
+	public static int randomNum(Integer lownum, double d) {
 		return lownum + (int)(Math.random() * ((d - lownum) + 1));
 	}
 
-	private Color getColor() {
+	private static Color getColor() {
 		switch(randomNum(1,17)){
 		case 1:return Color.AQUA;
 		case 2:return Color.BLACK;

@@ -19,7 +19,11 @@ public class ToolsSubCommand {
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"tpall"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.TNT,1),"boom"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"float"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"drop"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"getowner"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"override"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.REDSTONE,1),"power"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.WOOD_PICKAXE,1),"falconpunch"));
 		return;
 	}
 
