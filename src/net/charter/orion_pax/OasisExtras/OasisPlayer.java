@@ -15,6 +15,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -55,6 +56,7 @@ public class OasisPlayer {
 	public boolean disco,rCA = false,ftrail=false;
 	public int votes=0;
 	public float speed;
+	public Inventory inv;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -94,6 +96,48 @@ public class OasisPlayer {
 
 		auraname.setLore(auralore);
 		auraitem.setItemMeta(auraname);
+		
+		inv = plugin.getServer().createInventory(null, 9, ChatColor.DARK_GREEN + "Arrows");
+		
+		if(!playerfile.getConfig().getString("Arrow", null).equals(null)){
+			if(playerfile.getConfig().getString("Arrow").equals("Explosive")){
+				ItemStack arrow = plugin.explosivearrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Web")){
+				ItemStack arrow = plugin.webarrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Fireworks")){
+				ItemStack arrow = plugin.fireworksarrow.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Sand")){
+				ItemStack arrow = plugin.sandarrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Soul")){
+				ItemStack arrow = plugin.soularrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Freeze")){
+				ItemStack arrow = plugin.freezearrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Poison")){
+				ItemStack arrow = plugin.poisonarrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Blindness")){
+				ItemStack arrow = plugin.blindarrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			} else if(playerfile.getConfig().getString("Arrow").equals("Drunk")){
+				ItemStack arrow = plugin.drunkarrows.getResult();
+				arrow.setAmount(1);
+				inv.setItem(0, arrow);
+			}
+		}
 
 		saveMe();
 	}
@@ -132,7 +176,7 @@ public class OasisPlayer {
 	}
 
 	public void Disco(){
-		floor.addAll(region(loc.clone().add(5, -1, 5),loc.clone().add(-5, -1, -5)));
+		floor.addAll(Util.region(loc.clone().add(5, -1, 5),loc.clone().add(-5, -1, -5)));
 		if(floor==null){plugin.getServer().broadcastMessage("floor is null");}
 		discotask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
 
@@ -140,7 +184,7 @@ public class OasisPlayer {
 			@Override
 			public void run() {
 				for (int i =0 ; i<10 ; i++) {
-					getPlayer().sendBlockChange(floor.get(randomNum(0, floor.size() - 1)).getLocation(), Material.STAINED_GLASS, (byte) randomNum(0, 15));
+					getPlayer().sendBlockChange(floor.get(Util.randomNum(0, floor.size() - 1)).getLocation(), Material.STAINED_GLASS, (byte) Util.randomNum(0, 15));
 				}
 			}
 
@@ -154,35 +198,6 @@ public class OasisPlayer {
 			getPlayer().sendBlockChange(block.getLocation(), block.getType(), block.getRawData());
 		}
 		floor.clear();
-	}
-
-	public static List<BlockState> region(Location loc1, Location loc2)
-	{
-		List<BlockState> blocks = new ArrayList<BlockState>();
-
-		int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
-		int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
-
-		int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
-		int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
-
-		int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
-		int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
-
-		for(int x = bottomBlockX; x <= topBlockX; x++)
-		{
-			for(int z = bottomBlockZ; z <= topBlockZ; z++)
-			{
-				for(int y = bottomBlockY; y <= topBlockY; y++)
-				{
-					Block block = loc1.getWorld().getBlockAt(x, y, z);
-
-					blocks.add(block.getState());
-				}
-			}
-		}
-
-		return blocks;
 	}
 
 	public void setMedic(){
@@ -326,8 +341,8 @@ public class OasisPlayer {
 			gbstate.update(true);
 		}
 		if (loc.getBlockY()<60) {
-			if (!isFarm(loc.clone().add(0, -1, 0))) {
-				if (isBlock(loc.clone().add(0, -1, 0))) {
+			if (!Util.isFarm(loc.clone().add(0, -1, 0))) {
+				if (Util.isBlock(loc.clone().add(0, -1, 0))) {
 					gbstate = loc.clone().add(0, -1, 0).getBlock().getState();
 					getPlayer().sendBlockChange(gbstate.getLocation(), Material.GLOWSTONE, (byte) 0);
 				}
@@ -350,56 +365,6 @@ public class OasisPlayer {
 		}
 	}
 
-	public boolean isFarm(Location loc){
-		Material mat = loc.getBlock().getType();
-		if(mat.equals(Material.CROPS)){
-			return true;
-		}
-
-		if(mat.equals(Material.MELON_STEM)){
-			return true;
-		}
-
-		if(mat.equals(Material.PUMPKIN_STEM)){
-			return true;
-		}
-
-		return false;
-	}
-
-	public boolean isBlock(Location loc){
-		Material mat = loc.getBlock().getType();
-		if(mat.equals(Material.STONE)){
-			return true;
-		}
-
-		if(mat.equals(Material.COBBLESTONE)){
-			return true;
-		}
-
-		if(mat.equals(Material.DIRT)){
-			return true;
-		}
-
-		if(mat.equals(Material.SAND)){
-			return true;
-		}
-
-		if(mat.equals(Material.MOSSY_COBBLESTONE)){
-			return true;
-		}
-
-		if(mat.equals(Material.MONSTER_EGG)){
-			return true;
-		}
-
-		if(mat.equals(Material.GRAVEL)){
-			return true;
-		}
-		return false;
-
-	}
-
 	public void startAura(){
 		auratoggle=true;
 		saveMe();
@@ -407,9 +372,9 @@ public class OasisPlayer {
 
 			@Override
 			public void run() {
-				auraname.setDisplayName(Integer.toString(randomNum(0,1000000)));
+				auraname.setDisplayName(Integer.toString(Util.randomNum(0,1000000)));
 				auraitem.setItemMeta(auraname);
-				Item item = getPlayer().getWorld().dropItem(getPlayer().getLocation().add(randomNum(-1,1), 0, randomNum(-1,1)), auraitem);
+				Item item = getPlayer().getWorld().dropItem(getPlayer().getLocation().add(Util.randomNum(-1,1), 0, Util.randomNum(-1,1)), auraitem);
 				item.setVelocity(new Vector(0,0.5,0));
 				item.setPickupDelay(2000);
 				plugin.aura.add(item);
@@ -440,7 +405,7 @@ public class OasisPlayer {
 	public void setAuraMat(Material mat){
 		auramat = mat;
 		auraitem.setType(mat);
-		auraname.setDisplayName(Integer.toString(randomNum(0,1000000)));
+		auraname.setDisplayName(Integer.toString(Util.randomNum(0,1000000)));
 		auraname.setLore(auralore);
 		auraitem.setItemMeta(auraname);
 		saveMe();
@@ -472,10 +437,6 @@ public class OasisPlayer {
 			SendMsg("&6Trails are &cOFF!");
 		}
 		saveMe();
-	}
-
-	private int randomNum(Integer lownum, double d) {
-		return lownum + (int)(Math.random() * ((d - lownum) + 1));
 	}
 
 	public boolean isFrozen(){
@@ -619,48 +580,6 @@ public class OasisPlayer {
 		} else {
 			tplist.remove(entity);
 			SendMsg("&6" + entity.getClass().getSimpleName() + " removed from tplist!");
-		}
-	}
-
-	public String getAnimalClass(Entity entity){
-		return entity.getClass().getName().toString();
-	}
-
-	public Entity getEntity(String uid){
-		for (Entity entity : plugin.getServer().getPlayer(name).getWorld().getEntities()){
-			if (entity.getUniqueId().toString().equals(uid)){
-				return entity;
-			}
-		}
-		return null;
-	}
-
-	public Location behindPlayer(Player player) {
-		double rotation = (player.getLocation().getYaw() - 90) % 360;
-		Block b = player.getLocation().clone().subtract(0, 1, 0).getBlock();
-		if (rotation < 0) {
-			rotation += 360.0;
-		}
-		if (0 <= rotation && rotation < 22.5) {
-			return b.getRelative(BlockFace.SOUTH).getLocation();
-		} else if (22.5 <= rotation && rotation < 67.5) {
-			return b.getRelative(BlockFace.SOUTH_WEST).getLocation();
-		} else if (67.5 <= rotation && rotation < 112.5) {
-			return b.getRelative(BlockFace.WEST).getLocation();
-		} else if (112.5 <= rotation && rotation < 157.5) {
-			return b.getRelative(BlockFace.NORTH_WEST).getLocation();
-		} else if (157.5 <= rotation && rotation < 202.5) {
-			return b.getRelative(BlockFace.NORTH).getLocation();
-		} else if (202.5 <= rotation && rotation < 247.5) {
-			return b.getRelative(BlockFace.NORTH_EAST).getLocation();
-		} else if (247.5 <= rotation && rotation < 292.5) {
-			return b.getRelative(BlockFace.EAST).getLocation();
-		} else if (292.5 <= rotation && rotation < 337.5) {
-			return b.getRelative(BlockFace.SOUTH_EAST).getLocation() ;
-		} else if (337.5 <= rotation && rotation < 360.0) {
-			return b.getRelative(BlockFace.SOUTH).getLocation();
-		} else {
-			return null;
 		}
 	}
 

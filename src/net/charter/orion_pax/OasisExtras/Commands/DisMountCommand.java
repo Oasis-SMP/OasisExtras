@@ -1,6 +1,7 @@
 package net.charter.orion_pax.OasisExtras.Commands;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -25,7 +26,7 @@ public class DisMountCommand implements CommandExecutor{
 					Player vehicle = (Player) oplayer.getVehicle();
 					if (player.equals(vehicle)){
 						oplayer.leaveVehicle();
-						oplayer.sendMessage(plugin.ColorChat("&cGet off my back!"));
+						oplayer.sendMessage(Util.ColorChat("&cGet off my back!"));
 						return true;
 					}
 				}

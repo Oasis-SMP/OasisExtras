@@ -31,6 +31,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -82,7 +83,7 @@ public class OasisExtras extends JavaPlugin{
 	public long bcasttimer;
 	public MyConfigFile appletreefile;
 	public OasisExtrasTask task;
-	public Recipe shoes,explosivearrows,freezearrows,webarrows,soularrows,fireworksarrow,sandarrows,web;
+	public Recipe shoes,explosivearrows,freezearrows,webarrows,soularrows,fireworksarrow,sandarrows,web,poisonarrows,blindarrows,drunkarrows,lightningarrows;
 	public BukkitTask votecheck;
 	public FireworkEffectPlayer fplayer = new FireworkEffectPlayer();
 	//public SLAPI slapi;
@@ -214,6 +215,12 @@ public class OasisExtras extends JavaPlugin{
 		task.bcasttask.cancel();
 		this.saveConfig();
 		this.appletreefile.saveConfig();
+		for(Player player : getServer().getOnlinePlayers()){
+			OasisPlayer myplayer = oasisplayer.get(player.getName());
+			myplayer.CleanUp();
+			myplayer.saveMe();
+			getLogger().info(myplayer.getName() + " is saved!");
+		}
 		for(OfflinePlayer player : getServer().getOfflinePlayers()){
 			OasisPlayer myplayer = oasisplayer.get(player.getName());
 			myplayer.CleanUp();
@@ -238,18 +245,18 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.DIAMOND);
 		recipe.setIngredient('G', Material.GOLD_BOOTS);
 		getServer().addRecipe(recipe);
-		
+
 		this.shoes = recipe;
-		
+
 		//explosivearrows
-		
+
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Explosive",4));
 		recipe.shape(" S ","SDS"," S ");
 		recipe.setIngredient('S', Material.TNT);
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.explosivearrows = recipe;
-		
+
 		//freezearrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Freeze",4));
 		recipe.shape(" S ","SDS"," S ");
@@ -257,7 +264,7 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.freezearrows = recipe;
-		
+
 		//fireworksarrow
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Fireworks",4));
 		recipe.shape(" S ","SDS"," S ");
@@ -265,7 +272,7 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.fireworksarrow = recipe;
-		
+
 		//soularrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Soul",4));
 		recipe.shape(" S ","SDS"," S ");
@@ -273,7 +280,7 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.soularrows = recipe;
-		
+
 		//webarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Web",4));
 		recipe.shape(" S ","SDS"," S ");
@@ -281,7 +288,7 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.webarrows = recipe;
-		
+
 		//sandarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Sand",4));
 		recipe.shape(" S ","SDS"," S ");
@@ -289,13 +296,46 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.sandarrows = recipe;
-		
+
 		//Web block
 		recipe = new ShapedRecipe(new ItemStack(Material.WEB,1));
 		recipe.shape(" S ","SSS"," S ");
 		recipe.setIngredient('S', Material.STRING);
 		getServer().addRecipe(recipe);
 		this.web = recipe;
+
+		//blindarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Blindness",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.GOLDEN_CARROT);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.blindarrows = recipe;
+
+		//poisonarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Poison",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.SPIDER_EYE);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.poisonarrows = recipe;
+
+		//sandarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Drunk",4));
+		recipe.shape(" S ","SDS"," S ");
+		recipe.setIngredient('S', Material.POTION);
+		recipe.setIngredient('D', Material.ARROW);
+		getServer().addRecipe(recipe);
+		this.drunkarrows = recipe;
+		
+		//sandarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Lightning",1));
+		recipe.shape("DGD","GAG","DGD");
+		recipe.setIngredient('D', Material.DIAMOND);
+		recipe.setIngredient('A', Material.ARROW);
+		recipe.setIngredient('G', Material.SULPHUR);
+		getServer().addRecipe(recipe);
+		this.lightningarrows = recipe;
 	}
 
 	public ItemStack PrepareItem(Material mat, String name, int amount){
@@ -350,7 +390,7 @@ public class OasisExtras extends JavaPlugin{
 		default_min = getConfig().getInt("oasisextras.min_default_location",-2500);
 		default_max = getConfig().getInt("oasisextras.max_default_location",2500);
 		ndt = getConfig().getInt("oasisextras.default_invulnerability_ticks",300);
-		task.bcasttask.runTaskTimer(this, randomNum(0, 18000), bcasttimer);
+		task.bcasttask.runTaskTimer(this, Util.randomNum(0, 18000), bcasttimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
 		}
@@ -385,10 +425,6 @@ public class OasisExtras extends JavaPlugin{
 		appletreefile.saveConfig();
 	}
 
-	public int randomNum(Integer lownum, double d) {
-		return lownum + (int)(Math.random() * ((d - lownum) + 1));
-	}
-
 	public void loadTree(){
 		Set<String> applesection = appletreefile.getConfig().getConfigurationSection("appletrees").getKeys(false);
 		treecount = applesection.size();
@@ -400,10 +436,6 @@ public class OasisExtras extends JavaPlugin{
 			Location loc = new Location(world,x,y,z);
 			appletree.put(loc, new TreeTask(this,loc,tree));
 		}
-	}
-
-	public String ColorChat(String msg){
-		return ChatColor.translateAlternateColorCodes('&', msg);
 	}
 
 	public void createconfig(){
@@ -456,19 +488,19 @@ public class OasisExtras extends JavaPlugin{
 
 			@Override
 			public void run() {
-				int x=randomNum(-16000,16000);
-				int z=randomNum(-16000,16000);
+				int x=Util.randomNum(-16000,16000);
+				int z=Util.randomNum(-16000,16000);
 				Location loc = new Location(getServer().getWorld("world"),x,getServer().getWorld("world").getHighestBlockYAt(x, z),z);
 				while(!loc.getChunk().isLoaded()){
 					loc = new Location(getServer().getWorld("world"),x,getServer().getWorld("world").getHighestBlockYAt(x, z),z);
 				}
-				spawnTornado(plugin, loc, Material.DIRT, (byte) 0, new Vector(randomNum(-3,3), 0, randomNum(-3,3)), 0.1, 50, (long) 30*20, false, false);
+				spawnTornado(plugin, loc, Material.DIRT, (byte) 0, new Vector(Util.randomNum(-3,3), 0, Util.randomNum(-3,3)), 0.1, 50, (long) 30*20, false, false);
 
 			}
 
 		}, 6000, 6000);
 	}
-	
+
 	public void voteCheck(){
 		votecheck = getServer().getScheduler().runTaskTimer(this, new Runnable(){
 
@@ -486,7 +518,7 @@ public class OasisExtras extends JavaPlugin{
 			}
 		}, 200L, 20L);
 	}
-	
+
 	public boolean getDate(){
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Pacific Standard Time"));
 		if(cal.DAY_OF_MONTH==1){

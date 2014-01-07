@@ -1,6 +1,7 @@
 package net.charter.orion_pax.OasisExtras;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
@@ -119,20 +120,24 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteractEntity(PlayerInteractEntityEvent event){
 		OasisPlayer oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
-		//MEDIC code
-		if(event.getRightClicked() instanceof Player){
-			if(isFood(event.getPlayer().getItemInHand().getType())){
-				Player player = (Player) event.getRightClicked();
-				if (player.getFoodLevel()<20) {
-					Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, event.getPlayer().getItemInHand()));
-					player.setFoodLevel(player.getFoodLevel() + feedAmount(event.getPlayer().getItemInHand().getType()));
-					if(player.getFoodLevel()>20){player.setFoodLevel(20);}
-					player.sendMessage(ChatColor.ITALIC.GREEN + "MEDIC! - " + event.getPlayer().getName() + " has feed you!");
-					if (oPlayer.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
-						if(event.getPlayer().getItemInHand().getAmount()==1){
-							event.getPlayer().setItemInHand(null);
-						} else {
-							event.getPlayer().getItemInHand().setAmount(event.getPlayer().getItemInHand().getAmount() - 1);
+		if (oPlayer.isMedic()) {
+			//MEDIC code
+			if (event.getRightClicked() instanceof Player) {
+				if (Util.isFood(event.getPlayer().getItemInHand().getType())) {
+					Player player = (Player) event.getRightClicked();
+					if (player.getFoodLevel() < 20) {
+						Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, event.getPlayer().getItemInHand()));
+						player.setFoodLevel(player.getFoodLevel() + Util.feedAmount(event.getPlayer().getItemInHand().getType()));
+						if (player.getFoodLevel() > 20) {
+							player.setFoodLevel(20);
+						}
+						player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&oMEDIC!&r &6- " + event.getPlayer().getName() + " has fed you!"));
+						if (oPlayer.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
+							if (event.getPlayer().getItemInHand().getAmount() == 1) {
+								event.getPlayer().setItemInHand(null);
+							} else {
+								event.getPlayer().getItemInHand().setAmount(event.getPlayer().getItemInHand().getAmount() - 1);
+							}
 						}
 					}
 				}
@@ -142,7 +147,7 @@ public class OasisExtrasListener implements Listener{
 		final Player player = event.getPlayer();
 
 		//WHAT feather tool
-		if(toolCheck(player.getItemInHand(), "what", player)){
+		if(Util.toolCheck(player.getItemInHand(), "what", player)){
 			player.sendMessage(entity.getClass().toString());
 			player.sendMessage(entity.getClass().getName());
 			player.sendMessage(entity.getType().toString());
@@ -151,7 +156,7 @@ public class OasisExtrasListener implements Listener{
 		}
 
 		//GETOWNER feather tool
-		if(toolCheck(player.getItemInHand(),"getowner", player)){
+		if(Util.toolCheck(player.getItemInHand(),"getowner", player)){
 			if (entity instanceof LivingEntity) {
 				if (entity instanceof Horse) {
 					Horse horse = (Horse) entity;
@@ -183,8 +188,8 @@ public class OasisExtrasListener implements Listener{
 					event.setCancelled(true);
 					return;
 				}
-				if (getOwner(entity) != null) {
-					player.sendMessage(getOwner(entity).getName());
+				if (Util.getOwner(entity) != null) {
+					player.sendMessage(Util.getOwner(entity).getName());
 					event.setCancelled(true);
 					return;
 				} else {
@@ -194,11 +199,11 @@ public class OasisExtrasListener implements Listener{
 		}
 
 		//TP feather tool
-		if(toolCheck(player.getItemInHand(),"tp",player)){
+		if(Util.toolCheck(player.getItemInHand(),"tp",player)){
 			if (event.getRightClicked() instanceof LivingEntity) {
 				oPlayer = plugin.oasisplayer.get(player.getName());
-				if (getMobs(entity)) {
-					if (getOwner(entity).equals(null)) {
+				if (Util.getMobs(entity)) {
+					if (Util.getOwner(entity).equals(null)) {
 						oPlayer.toggleTP(entity);
 						if (plugin.tptimer.containsKey(player.getName())) {
 							return;
@@ -237,16 +242,16 @@ public class OasisExtrasListener implements Listener{
 		}
 
 		//LOCK feather tool
-		if(toolCheck(player.getItemInHand(),"lock",player)){
+		if(Util.toolCheck(player.getItemInHand(),"lock",player)){
 			if (event.getRightClicked() instanceof LivingEntity) {
 				oPlayer = plugin.oasisplayer.get(player.getName());
-				if (getMobs(event.getRightClicked())) {
-					if (getOwner(event.getRightClicked()) == null) {
+				if (Util.getMobs(event.getRightClicked())) {
+					if (Util.getOwner(event.getRightClicked()) == null) {
 						oPlayer.lockAnimal(event.getRightClicked());
 						oPlayer.saveMe();
 						event.setCancelled(true);
 						return;
-					} else if (getOwner(event.getRightClicked()).getName().equals(oPlayer.getName())) {
+					} else if (Util.getOwner(event.getRightClicked()).getName().equals(oPlayer.getName())) {
 						oPlayer.lockAnimal(event.getRightClicked());
 						oPlayer.saveMe();
 						event.setCancelled(true);
@@ -257,12 +262,12 @@ public class OasisExtrasListener implements Listener{
 						return;
 					}
 				} else if (oPlayer.staff) {
-					if (getOwner(event.getRightClicked()) == null) {
+					if (Util.getOwner(event.getRightClicked()) == null) {
 						oPlayer.lockAnimal(event.getRightClicked());
 						oPlayer.saveMe();
 						event.setCancelled(true);
 						return;
-					} else if (getOwner(event.getRightClicked()).getName().equals(oPlayer.getName())) {
+					} else if (Util.getOwner(event.getRightClicked()).getName().equals(oPlayer.getName())) {
 						oPlayer.lockAnimal(event.getRightClicked());
 						oPlayer.saveMe();
 						event.setCancelled(true);
@@ -279,8 +284,8 @@ public class OasisExtrasListener implements Listener{
 		}
 
 		//OVERRIDE feather tool
-		if(toolCheck(player.getItemInHand(),"override", player)){
-			oPlayer = plugin.oasisplayer.get(getOwner(entity));
+		if(Util.toolCheck(player.getItemInHand(),"override", player)){
+			oPlayer = plugin.oasisplayer.get(Util.getOwner(entity));
 			if (oPlayer!=null){
 				if(!oPlayer.delAnimal(entity.getUniqueId().toString())){
 					player.sendMessage(ChatColor.RED + "Animal has no lock on them.");
@@ -348,20 +353,20 @@ public class OasisExtrasListener implements Listener{
 				Player player = (Player) event.getEntity().getShooter();
 				if (player.getInventory().getItem(1)!=null) {
 					if (player.getInventory().getItem(1).getType().equals(Material.ARROW)) {
-						if (getArrowLore(player.getInventory().getItem(1))!=null) {
-							if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("explosive")) {
+						if (Util.getArrowLore(player.getInventory().getItem(1))!=null) {
+							if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("explosive")) {
 								arrow.setMetadata("name", new FixedMetadataValue(plugin, "explosive"));
-							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("freeze")) {
+							} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("freeze")) {
 								arrow.setMetadata("name", new FixedMetadataValue(plugin, "freeze"));
-							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("soul")) {
+							} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("soul")) {
 								arrow.setMetadata("name", new FixedMetadataValue(plugin, "soul"));
-							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("sand")) {
+							} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("sand")) {
 								arrow.setMetadata("name", new FixedMetadataValue(plugin, "sand"));
-								sandArrow(arrow);
-							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("fireworks")) {
+								Util.sandArrow(arrow);
+							} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("fireworks")) {
 								arrow.setMetadata("name", new FixedMetadataValue(plugin, "fireworks"));
-								fireworksArrow(arrow);
-							} else if (getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("web")) {
+								Util.fireworksArrow(arrow);
+							} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("web")) {
 								arrow.setMetadata("name", new FixedMetadataValue(plugin, "web"));
 							}
 						}
@@ -370,61 +375,6 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
-	public void sandArrow(final Arrow arrow){
-		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-
-			@Override
-			public void run() {
-				if(arrow!=null){
-					List<BlockState> blocks = circle(arrow.getLocation(),3,3,false,true,0);
-					for(BlockState block:blocks){
-						if(block.getBlock().getType().equals(Material.AIR)){
-							block.getBlock().setType(Material.SAND);
-						}
-					}
-					arrow.remove();
-				}
-				
-			}
-			
-		}, 20L);
-	}
-	
-	public void fireworksArrow(final Arrow arrow){
-		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-
-			@Override
-			public void run() {
-				if(arrow!=null){
-					try {
-						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
-						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
-						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
-						plugin.fplayer.playFirework(arrow.getWorld(), arrow.getLocation(), SpawnRandomFirework.randomEffect());
-						arrow.remove();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				
-			}
-			
-		}, 20L);
-	}
-	
-	public String getArrowLore(ItemStack item){
-		if(item.hasItemMeta()){
-			if(item.getItemMeta().hasLore()){
-				List<String> lore = item.getItemMeta().getLore();
-				return lore.get(0);
-			}
-		}
-		return null;
-	}
-
-
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnArrowHit(ProjectileHitEvent event){
@@ -436,15 +386,15 @@ public class OasisExtrasListener implements Listener{
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 				if (player.getWorld().getName().equalsIgnoreCase("pvpworld") || oPlayer.staff) {
 					if (player.hasPermission("oasisextras.player.customarrows")) {
-						if (getMetadata(arrow, "name", plugin) != null) {
-							if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("explosive")) {
-								restoreState(region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE));
+						if (Util.getMetadata(arrow, "name", plugin) != null) {
+							if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("explosive")) {
+								Util.restoreState(Util.region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE));
 								loc.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 3F, true, true);
 								arrow.remove();
 								return;
-							} else if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("freeze")) {
-								List<BlockState> blocks = circle(loc, 3, 3, false, true, 0);
-								restoreState(blocks);
+							} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("freeze")) {
+								List<BlockState> blocks = Util.circle(loc, 3, 3, false, true, 0);
+								Util.restoreState(blocks);
 								for(BlockState block:blocks){
 									if (block.getBlock().getType().equals(Material.AIR)) {
 										block.getBlock().setType(Material.ICE);
@@ -452,9 +402,9 @@ public class OasisExtrasListener implements Listener{
 								}
 								arrow.remove();
 								return;
-							} else if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("soul")) {
-								List<BlockState> blocks = circle(loc.clone().add(0, -1, 0),3,1,false,true,0);
-								restoreState(blocks);
+							} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("soul")) {
+								List<BlockState> blocks = Util.circle(loc.clone().add(0, -1, 0),3,1,false,true,0);
+								Util.restoreState(blocks);
 								for(BlockState block:blocks){
 									if(!block.getBlock().getType().equals(Material.AIR)){
 										block.getBlock().setType(Material.SOUL_SAND);
@@ -462,9 +412,9 @@ public class OasisExtrasListener implements Listener{
 								}
 								arrow.remove();
 								return;
-							} else if (getMetadata(arrow, "name", plugin).equalsIgnoreCase("web")) {
-								List<BlockState> blocks = circle(loc,3,3,false,true,0);
-								restoreState(blocks);
+							} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("web")) {
+								List<BlockState> blocks = Util.circle(loc,3,3,false,true,0);
+								Util.restoreState(blocks);
 								for(BlockState block:blocks){
 									if(block.getBlock().getType().equals(Material.AIR)){
 										block.getBlock().setType(Material.WEB);
@@ -479,36 +429,13 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
-	public void restoreState(final List<BlockState> blocks){
-		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-
-			@Override
-			public void run() {
-				for(BlockState block:blocks){
-					block.update(true);
-				}
-			}
-			
-		}, 200L);
-	}
-
-	public String getMetadata(Arrow arrow, String key, OasisExtras plugin){
-		List<MetadataValue> values = arrow.getMetadata(key);  
-		for(MetadataValue value : values){
-			if(value.getOwningPlugin().getDescription().getName().equals(plugin.getDescription().getName())){
-				return value.asString();
-			}
-		}
-		return null;
-	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
 		if (event.getAction()==Action.RIGHT_CLICK_BLOCK){
 			//Troll tool code
-			if(toolCheck(player.getItemInHand(),"troll",player)){
+			if(Util.toolCheck(player.getItemInHand(),"troll",player)){
 				if(player.getItemInHand().getItemMeta().hasLore()){
 					List<String> list = player.getItemInHand().getItemMeta().getLore();
 					if(plugin.CoreProtect==null){plugin.getLogger().info("CoreProtect is null");}
@@ -520,7 +447,7 @@ public class OasisExtrasListener implements Listener{
 				}
 			}
 
-			if (toolCheck(player.getItemInHand(),"power",player)) {
+			if (Util.toolCheck(player.getItemInHand(),"power",player)) {
 				//Power tool code
 				Block block = event.getClickedBlock();
 				event.setCancelled(true);
@@ -547,7 +474,7 @@ public class OasisExtrasListener implements Listener{
 			}
 
 			//TPALL tool code
-			if (toolCheck(player.getItemInHand(),"tpall",player)) {
+			if (Util.toolCheck(player.getItemInHand(),"tpall",player)) {
 				int radius = 10;
 				if (player.getItemInHand().getItemMeta().getDisplayName().length() > 5) {
 					try {
@@ -568,7 +495,7 @@ public class OasisExtrasListener implements Listener{
 			}
 
 			//FLOAT tool code
-			if (toolCheck(player.getItemInHand(),"float",player)) {
+			if (Util.toolCheck(player.getItemInHand(),"float",player)) {
 				event.getClickedBlock().getWorld().spawnFallingBlock(event.getClickedBlock().getLocation().add(0, 1, 0), event.getClickedBlock().getType(), (byte) 0).setVelocity(new Vector(0, 2, 0));
 				event.getClickedBlock().setType(Material.AIR);
 				plugin.CoreProtect.logRemoval("FT_" + player.getName(), event.getClickedBlock().getLocation(), event.getClickedBlock().getTypeId(), event.getClickedBlock().getState().getRawData());
@@ -577,7 +504,7 @@ public class OasisExtrasListener implements Listener{
 			}
 
 			//DROP tool code
-			if (toolCheck(player.getItemInHand(),"drop",player)) {
+			if (Util.toolCheck(player.getItemInHand(),"drop",player)) {
 				event.getClickedBlock().getWorld().spawnFallingBlock(event.getClickedBlock().getLocation().add(0, 1, 0), event.getClickedBlock().getType(), (byte) 0);
 				event.getClickedBlock().setType(Material.AIR);
 				plugin.CoreProtect.logRemoval("DT_" + player.getName(), event.getClickedBlock().getLocation(), event.getClickedBlock().getTypeId(), event.getClickedBlock().getState().getRawData());
@@ -586,7 +513,7 @@ public class OasisExtrasListener implements Listener{
 			}
 
 			//FALCONPUNCH tool code
-			if (toolCheck(player.getItemInHand(),"falconpunch",player)){
+			if (Util.toolCheck(player.getItemInHand(),"falconpunch",player)){
 				int radius = 10;
 				if (player.getItemInHand().getItemMeta().getDisplayName().length() > 11) {
 					try {
@@ -596,7 +523,7 @@ public class OasisExtrasListener implements Listener{
 						player.sendMessage(ChatColor.RED + "Not a number!");
 					}
 				}
-				List<BlockState> blocks = circle(event.getClickedBlock().getLocation(), radius, radius, false, true, 0);
+				List<BlockState> blocks = Util.circle(event.getClickedBlock().getLocation(), radius, radius, false, true, 0);
 				for(BlockState block:blocks){
 					block.getBlock().breakNaturally();
 					plugin.CoreProtect.logRemoval("FP_" + player.getName(), block.getLocation(), block.getTypeId(), block.getRawData());
@@ -604,7 +531,7 @@ public class OasisExtrasListener implements Listener{
 			}
 
 			//TP tool code
-			if (toolCheck(player.getItemInHand(),"tp",player)) {
+			if (Util.toolCheck(player.getItemInHand(),"tp",player)) {
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
 				oPlayer.tpanimal(event.getClickedBlock().getLocation().clone().add(0, 1, 0));
 				event.setCancelled(true);
@@ -630,7 +557,7 @@ public class OasisExtrasListener implements Listener{
 						Ocelot cat = (Ocelot) player.getWorld().spawnEntity(event.getClickedBlock().getLocation().add(0, 1, 0), EntityType.OCELOT);
 						cat.setTamed(true);
 						cat.setOwner(player);
-						cat.setCatType(getCatType());
+						cat.setCatType(Util.getCatType());
 						if (player.getItemInHand().getAmount() == 10) {
 							player.getInventory().setItemInHand(null);
 							return;
@@ -809,7 +736,7 @@ public class OasisExtrasListener implements Listener{
 		if (!event.isCancelled()) {
 			if (event.getLocation().getWorld().getName().equals("world")) {
 				if (event.getEntityType().equals(EntityType.ZOMBIE)) {
-					int i = randomNum(1, 256);
+					int i = Util.randomNum(1, 256);
 					if (i == 127) {
 						event.getLocation().getWorld().spawnEntity(event.getLocation(), EntityType.GIANT);
 						event.getEntity().remove();
@@ -835,15 +762,15 @@ public class OasisExtrasListener implements Listener{
 		if(event.getEntityType().equals(EntityType.GIANT)){
 			if(event.getEntity().getLocation().getWorld().getName().equals("world")){
 				event.setDroppedExp(1000);
-				if(randomNum(1,200)==69){
+				if(Util.randomNum(1,200)==69){
 					event.getDrops().add(new ItemStack(Material.IRON_BLOCK,32));
 				}
 
-				if(randomNum(1,200)==169){
+				if(Util.randomNum(1,200)==169){
 					event.getDrops().add(new ItemStack(Material.DIAMOND_SWORD,1));
 				}
 
-				if(randomNum(1,1000000)==1000){
+				if(Util.randomNum(1,1000000)==1000){
 					event.getDrops().add(new ItemStack(Material.DIAMOND_BLOCK,64));
 				}
 			}
@@ -865,96 +792,10 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	public boolean isFood(Material material){
-		if(material.equals(Material.COOKED_BEEF)){
-			return true;
-		}
-
-		if(material.equals(Material.APPLE)){
-			return true;
-		}
-
-		if(material.equals(Material.COOKED_CHICKEN)){
-			return true;
-		}
-
-		if(material.equals(Material.COOKED_FISH)){
-			return true;
-		}
-
-		if(material.equals(Material.MELON)){
-			return true;
-		}
-
-		if(material.equals(Material.BAKED_POTATO)){
-			return true;
-		}
-
-		if(material.equals(Material.BREAD)){
-			return true;
-		}
-
-		if(material.equals(Material.COOKIE)){
-			return true;
-		}
-
-		if(material.equals(Material.MUSHROOM_SOUP)){
-			return true;
-		}
-
-		if(material.equals(Material.GRILLED_PORK)){
-			return true;
-		}
-		return false;
-	}
-
-	public int feedAmount(Material material){
-		if(material.equals(Material.COOKED_BEEF)){
-			return 8;
-		}
-
-		if(material.equals(Material.APPLE)){
-			return 4;
-		}
-
-		if(material.equals(Material.COOKED_CHICKEN)){
-			return 6;
-		}
-
-		if(material.equals(Material.COOKED_FISH)){
-			return 5;
-		}
-
-		if(material.equals(Material.MELON)){
-			return 2;
-		}
-
-		if(material.equals(Material.BAKED_POTATO)){
-			return 6;
-		}
-
-		if(material.equals(Material.BREAD)){
-			return 5;
-		}
-
-		if(material.equals(Material.COOKIE)){
-			return 2;
-		}
-
-		if(material.equals(Material.MUSHROOM_SOUP)){
-			return 6;
-		}
-
-		if(material.equals(Material.GRILLED_PORK)){
-			return 8;
-		}
-		return 0;
-	}
-
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
 		if(event.getDamager() instanceof Player){
-			OasisPlayer owner = getOwner(event.getEntity());
+			OasisPlayer owner = Util.getOwner(event.getEntity());
 			if (owner != null) {
 				Player player = (Player) event.getDamager();
 				OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
@@ -1077,7 +918,7 @@ public class OasisExtrasListener implements Listener{
 
 		if(event.getMessage().contains("/oc ")){
 			if(event.getPlayer().getName().equals("Paxination") || event.getPlayer().getName().equals("madscientist032")){
-				plugin.getServer().broadcastMessage(plugin.ColorChat("&1<&4OwnerCast&1> &e" + event.getMessage().substring(4)));
+				plugin.getServer().broadcastMessage(Util.ColorChat("&1<&4OwnerCast&1> &e" + event.getMessage().substring(4)));
 				event.setCancelled(true);
 				return;
 			}
@@ -1123,38 +964,11 @@ public class OasisExtrasListener implements Listener{
 					Horse horse = (Horse) player.getVehicle();
 					horse.eject();
 					plugin.horsetp.put(horse.getLocation().getChunk(), horse);
-					sendHorse(horse,player);
+					Util.sendHorse(horse,player);
 				}
 			}
 		}
 
-	}
-
-	public void sendHorse(final Horse horse, final Player player){
-		mytask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-			@Override
-			public void run(){
-				horse.teleport(player.getLocation());
-				plugin.getServer().getScheduler().cancelTask(mytask);
-			}
-		}, 100L);
-
-		mytask2 = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-			@Override
-			public void run(){
-
-				horse.setPassenger(player);
-				Iterator<Entry<Chunk, Horse>> it = plugin.horsetp.entrySet().iterator();
-				while(it.hasNext()){
-					Entry<Chunk, Horse> entry = it.next();
-					if(entry.getValue().equals(horse)){
-						plugin.getServer().broadcast("Chunk unloaded", "debug");
-						it.remove();
-					}
-				}
-				plugin.getServer().getScheduler().cancelTask(mytask2);
-			}
-		}, 200L);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -1177,184 +991,6 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	public Ocelot.Type getCatType(){
-		int i = randomNum(1,4);
-		switch(i){
-		case 1:
-			return Ocelot.Type.BLACK_CAT;
-
-		case 2:
-			return Ocelot.Type.RED_CAT;
-
-		case 3:
-			return Ocelot.Type.SIAMESE_CAT;
-
-		case 4:
-			return Ocelot.Type.WILD_OCELOT;
-
-		default:
-			return Ocelot.Type.BLACK_CAT;
-		}
-	}
-
-	public boolean getMobs(Entity entity){
-		if (entity instanceof Horse){
-			return true;
-		}
-
-		if (entity instanceof Cow){
-			return true;
-		}
-
-		if (entity instanceof Pig){
-			return true;
-		}
-
-		if (entity instanceof Chicken){
-			return true;
-		}
-
-		if (entity instanceof Sheep){
-			return true;
-		}
-
-		if (entity instanceof Ocelot){
-			return true;
-		}
-
-		if (entity instanceof Wolf){
-			return true;
-		}
-
-		if (entity instanceof Villager){
-			return true;
-		}
-		return false;
-	}
-
-	public void slap(String name, CommandSender sender, String msg){
-		String message,message2;
-		Vector vector = new Vector(randomNum(-3,3), 0, randomNum(-3,3));
-		Player player = plugin.getServer().getPlayer(name);
-		if (msg.equalsIgnoreCase("none")){
-			message = ChatColor.RED + sender.getName() + " Slapped you!";
-			message2 = ChatColor.GRAY + "You slapped " + player.getName() + "!";
-		} else {
-			message = ChatColor.RED + sender.getName() + " Slapped you for" + msg + "!";
-			message2 = ChatColor.GRAY + "You slapped " + player.getName() + " for " + msg + "!";
-		}
-		((LivingEntity) player).damage(0D);
-		player.setNoDamageTicks(200);
-		player.setVelocity(vector);
-		player.sendMessage(message);
-		sender.sendMessage(message2);
-	}
-
-	public int randomNum(Integer lownum, double d) {
-		//Random rand = new Random();
-		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
-		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
-		return randomNum;
-	}
-
-	public OasisPlayer getOwner(Entity entity){
-		Iterator<Entry<String, OasisPlayer>> it = plugin.oasisplayer.entrySet().iterator();
-		while(it.hasNext()){
-			Entry<String, OasisPlayer> entry = it.next();
-			OasisPlayer oplayer = (OasisPlayer) entry.getValue();
-			if(oplayer.isMyAnimal(entity.getUniqueId().toString())){
-				return oplayer;
-			}
-		}
-		return null;
-	}
-
-	public boolean toolCheck(ItemStack item, String tool, Player player){
-		if (player.hasPermission("oasisextras.staff.tool."+tool)) {
-			if (item.getType().equals(Material.FEATHER)) {
-				if (item.hasItemMeta()) {
-					if (item.getItemMeta().hasDisplayName()) {
-						if (item.getItemMeta().getDisplayName().contains(tool)) {
-							return true;
-						}
-					}
-				}
-			} else if(item.getType().equals(Material.TNT)){
-				if (item.hasItemMeta()) {
-					if (item.getItemMeta().hasDisplayName()) {
-						if (item.getItemMeta().getDisplayName().contains(tool)) {
-							return true;
-						}
-					}
-				}
-			} else if(item.getType().equals(Material.REDSTONE)){
-				if (item.hasItemMeta()) {
-					if (item.getItemMeta().hasDisplayName()) {
-						if (item.getItemMeta().getDisplayName().contains(tool)) {
-							return true;
-						}
-					}
-				}
-			} else if(item.getType().equals(Material.WOOD_PICKAXE)){
-				if (item.hasItemMeta()){
-					if(item.getItemMeta().hasDisplayName()){
-						if(item.getItemMeta().getDisplayName().contains(tool)){
-							return true;
-						}
-					}
-				}
-			}
-		} else if(player.hasPermission("oasisextras.player.tool." +tool)){
-			if (item.getType().equals(Material.FEATHER)) {
-				if (item.hasItemMeta()) {
-					if (item.getItemMeta().hasDisplayName()) {
-						if (item.getItemMeta().getDisplayName().equalsIgnoreCase(tool)) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	public static List<BlockState> region(Location loc1, Location loc2, Material... mat)
-	{
-		Material[] materials = mat;
-		
-		List<BlockState> blocks = new ArrayList<BlockState>();
-
-		int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
-		int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
-
-		int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
-		int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
-
-		int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
-		int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
-
-		for(int x = bottomBlockX; x <= topBlockX; x++)
-		{
-			for(int z = bottomBlockZ; z <= topBlockZ; z++)
-			{
-				for(int y = bottomBlockY; y <= topBlockY; y++)
-				{
-					Block block = loc1.getWorld().getBlockAt(x, y, z);
-
-					for (Material material:materials) {
-						if (block.getType().equals(material)) {
-							
-						} else {
-							blocks.add(block.getState());
-						}
-					}
-				}
-			}
-		}
-
-		return blocks;
-	}
-
 	@EventHandler(priority=EventPriority.NORMAL)
 	public void onVotifierEvent(VotifierEvent event) {
 		Vote vote = event.getVote();
@@ -1370,27 +1006,5 @@ public class OasisExtrasListener implements Listener{
 			((Player) player).sendMessage(plugin.amount + " has been added to your iConomy balance.");
 
 		}
-	}
-
-	private static List<BlockState> circle(Location loc, int radius, int height, boolean hollow, boolean sphere, int plusY){
-		List<BlockState> circleblocks = new ArrayList<BlockState>();
-		int cx = loc.getBlockX();
-		int cy = loc.getBlockY();
-		int cz = loc.getBlockZ();
-
-		for(int x = cx - radius; x <= cx + radius; x++){
-			for (int z = cz - radius; z <= cz + radius; z++){
-				for(int y = (sphere ? cy - radius : cy); y < (sphere ? cy + radius : cy + height); y++){
-					double dist = (cx - x) * (cx - x) + (cz - z) * (cz - z) + (sphere ? (cy - y) * (cy - y) : 0);
-
-					if(dist < radius * radius && !(hollow && dist < (radius - 1) * (radius - 1))){
-						Location l = new Location(loc.getWorld(), x, y + plusY, z);
-						circleblocks.add(l.getBlock().getState());
-					}
-				}
-			}
-		}
-
-		return circleblocks;
 	}
 }
