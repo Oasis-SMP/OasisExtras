@@ -47,7 +47,6 @@ import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 
 import net.charter.orion_pax.OasisExtras.Commands.*;
-import net.charter.orion_pax.OasisExtras.Events.Event;
 
 //@Paxination:
 //

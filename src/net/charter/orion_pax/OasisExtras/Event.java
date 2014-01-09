@@ -1,11 +1,10 @@
-package net.charter.orion_pax.OasisExtras.Events;
+package net.charter.orion_pax.OasisExtras;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.scheduler.BukkitTask;
 
-import net.charter.orion_pax.OasisExtras.OasisExtras;
 
 public class Event {
 

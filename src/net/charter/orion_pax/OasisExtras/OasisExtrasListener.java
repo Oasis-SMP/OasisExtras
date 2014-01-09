@@ -14,6 +14,7 @@ import java.util.TimeZone;
 
 import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.v1_7_R1.Enchantment;
+import net.minecraft.server.v1_7_R1.Explosion;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -28,6 +29,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Dispenser;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftEntity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,6 +42,7 @@ import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
@@ -425,6 +428,14 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
+	
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnExplodeEvent(EntityExplodeEvent event){
+		if(event.getEntity() instanceof Arrow){
+			Util.bCast(event.getEventName() + " with arrow");
+			event.getEntity().remove();
+		}
+	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnArrowHit(ProjectileHitEvent event){
@@ -433,9 +444,19 @@ public class OasisExtrasListener implements Listener{
 			Arrow arrow = (Arrow) event.getEntity();
 			if (Util.getMetadata(arrow, "name", plugin) != null) {
 				if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("explosive")) {
-					Util.restoreState(plugin, Util.region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE));
-					loc.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 3F, true, true);
-					arrow.remove();
+					List<BlockState> bslist = Util.region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE);
+					Util.restoreState(plugin, bslist);
+					List<Block> blocks= new ArrayList<Block>();
+					for(BlockState block:bslist){
+						blocks.add(block.getBlock());
+					}
+					//plugin.getServer().getPluginManager().callEvent(new EntityExplodeEvent(arrow,loc,blocks,0F));
+					//loc.getWorld().createExplosion(loc, 3F, true);
+					net.minecraft.server.v1_7_R1.Entity arrowtest = (net.minecraft.server.v1_7_R1.Entity)((CraftEntity)arrow).getHandle();
+					Explosion explosion = new Explosion(arrowtest.world, arrowtest, arrowtest.locX, arrowtest.locY, arrowtest.locZ, 3F);
+					explosion.a=true;
+					explosion.a(true);
+					//arrow.remove();
 					return;
 				} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("freeze")) {
 					List<BlockState> blocks = Util.circle(loc, 3, 3, false, true, 0,Material.ICE);
@@ -493,7 +514,7 @@ public class OasisExtrasListener implements Listener{
 				}
 			}
 
-			if (Util.toolCheck(player.getItemInHand(),"power",player)) {
+			if (Util.toolCheck(player.getItemInHand(),"nophysics",player)) {
 				//Power tool code
 				Block block = event.getClickedBlock();
 				event.setCancelled(true);

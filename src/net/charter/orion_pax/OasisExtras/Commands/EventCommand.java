@@ -3,9 +3,9 @@ package net.charter.orion_pax.OasisExtras.Commands;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import net.charter.orion_pax.OasisExtras.Event;
 import net.charter.orion_pax.OasisExtras.OasisExtras;
 import net.charter.orion_pax.OasisExtras.Util;
-import net.charter.orion_pax.OasisExtras.Events.Event;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

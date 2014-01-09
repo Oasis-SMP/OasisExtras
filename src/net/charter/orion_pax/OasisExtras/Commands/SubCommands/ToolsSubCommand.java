@@ -22,7 +22,7 @@ public class ToolsSubCommand {
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"drop"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"getowner"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"override"));
-		player.getInventory().addItem(setItem(new ItemStack(Material.REDSTONE,1),"power"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.REDSTONE,1),"nophysics"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.WOOD_PICKAXE,1),"falconpunch"));
 		return;
 	}
