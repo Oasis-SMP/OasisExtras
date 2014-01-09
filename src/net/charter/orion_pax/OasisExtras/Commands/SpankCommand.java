@@ -1,6 +1,7 @@
 package net.charter.orion_pax.OasisExtras.Commands;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -64,7 +65,7 @@ public class SpankCommand implements CommandExecutor{
 
 	public void slap(String name, CommandSender sender, String msg){
 		String message,message2;
-		Vector vector = new Vector(randomNum(-1,1), 0, randomNum(-1,1));
+		Vector vector = new Vector(Util.randomNum(-1,1), 0, Util.randomNum(-1,1));
 		Player player = plugin.getServer().getPlayer(name);
 		if (msg.equalsIgnoreCase("none")){
 			message = ChatColor.RED + sender.getName() + " Spanked you!";
@@ -79,14 +80,4 @@ public class SpankCommand implements CommandExecutor{
 		player.sendMessage(message);
 		sender.sendMessage(message2);
 	}
-
-	public int randomNum(Integer lownum, double d) {
-		//Random rand = new Random();
-		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
-		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
-		return randomNum;
-	}
-
-
-
 }

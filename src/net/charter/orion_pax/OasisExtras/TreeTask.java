@@ -17,8 +17,6 @@ public class TreeTask implements Runnable{
 	private int AppleDelay;
 	private Double maxdistance;
 
-
-
 	private final OasisExtras plugin;
 
 	public TreeTask(OasisExtras plugin, Location loc, String mytree)
@@ -29,7 +27,7 @@ public class TreeTask implements Runnable{
 		
 		this.plugin = plugin;
 		this.loc = loc;
-		this.lucky = randomNum(percent, 100);
+		this.lucky = Util.randomNum(percent, 100);
 		this.mytree = mytree;
 
 		taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, AppleDelay,20);
@@ -44,31 +42,15 @@ public class TreeTask implements Runnable{
 	}
 
 	public void run() {
-		int chance = randomNum(percent, 100);
+		int chance = Util.randomNum(percent, 100);
 		if (chance == lucky) {
-			if (hasNearbyPlayers(loc, maxdistance)) {
-				int x = loc.getBlockX() + randomNum(-4, 4);
-				int z = loc.getBlockZ() + randomNum(-4, 4);
+			if (Util.hasNearbyPlayers(loc, maxdistance)) {
+				int x = loc.getBlockX() + Util.randomNum(-4, 4);
+				int z = loc.getBlockZ() + Util.randomNum(-4, 4);
 				Location newloc = new Location(loc.getWorld(), x, loc.getBlockY(), z);
 				loc.getWorld().dropItemNaturally(newloc, apple);
 				plugin.getServer().broadcast(mytree + " - " + newloc.getBlockX() + "," + newloc.getBlockY() + "," + newloc.getBlockZ(), "debug");
 			}
 		}
-	}
-
-	boolean hasNearbyPlayers(Location loc, double radius) {
-		for(Player player : loc.getWorld().getPlayers()) {
-			if (player.getLocation().distanceSquared(loc) <= radius * radius) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public int randomNum(Integer lownum, double d) {
-		//Random rand = new Random();
-		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
-		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
-		return randomNum;
 	}
 }

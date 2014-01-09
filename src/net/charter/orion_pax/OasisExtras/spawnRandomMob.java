@@ -20,7 +20,6 @@ public class spawnRandomMob implements Runnable{
 	EntityType entitytype;
 	PotionEffect potionEffect;
 
-	@SuppressWarnings("unused")
 	private OasisExtras plugin;
 	
 	public spawnRandomMob(OasisExtras plugin, int count, Player player, int min, int max, EntityType entitytype, PotionEffect potionEffect)
@@ -45,9 +44,9 @@ public class spawnRandomMob implements Runnable{
 		if (count <= 0) {
 			cancel();
 		} else {
-			int x = randomNum(min, max);
-			int y = player.getLocation().getBlockY()+randomNum(-10,10);
-			int z = randomNum(min, max);
+			int x = Util.randomNum(min, max);
+			int y = player.getLocation().getBlockY() + Util.randomNum(-10,10);
+			int z = Util.randomNum(min, max);
 			Location newloc = new Location(world, loc.getBlockX()+x, y, loc.getBlockZ()+z);//Location to tp to, and players bottom half
 			Location block1 = new Location(world, newloc.getBlockX(), (y-1), newloc.getBlockZ());//Block under player
 			Location block2 = new Location(world, newloc.getBlockX(), (y + 1), newloc.getBlockZ());//player location top
@@ -60,12 +59,5 @@ public class spawnRandomMob implements Runnable{
 				count--;
 			}
 		}
-	}
-	
-	public int randomNum(Integer lownum, double d) {
-		//Random rand = new Random();
-		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
-		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
-		return randomNum;
 	}
 }

@@ -189,6 +189,9 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("erase").setExecutor(new EraseCommand(this));
 		getCommand("clone").setExecutor(new CloneCommand(this));
 		getCommand("rainbow").setExecutor(new RainBowCommand(this));
+		getCommand("anvil").setExecutor(new AnvilCommand(this));
+		getCommand("etable").setExecutor(new ETableCommand(this));
+		getCommand("throw").setExecutor(new ThrowCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();
@@ -251,9 +254,10 @@ public class OasisExtras extends JavaPlugin{
 		//explosivearrows
 
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Explosive",4));
-		recipe.shape(" S ","SDS"," S ");
+		recipe.shape("DSD","SAS","DSD");
 		recipe.setIngredient('S', Material.TNT);
-		recipe.setIngredient('D', Material.ARROW);
+		recipe.setIngredient('A', Material.ARROW);
+		recipe.setIngredient('D', Material.DIAMOND);
 		getServer().addRecipe(recipe);
 		this.explosivearrows = recipe;
 

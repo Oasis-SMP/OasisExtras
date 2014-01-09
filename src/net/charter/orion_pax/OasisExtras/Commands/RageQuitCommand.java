@@ -3,6 +3,7 @@ package net.charter.orion_pax.OasisExtras.Commands;
 import net.charter.orion_pax.OasisExtras.OasisExtras;
 import net.charter.orion_pax.OasisExtras.OasisPlayer;
 import net.charter.orion_pax.OasisExtras.SpawnRandomFirework;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -36,7 +37,12 @@ public class RageQuitCommand implements CommandExecutor {
 
 			@Override
 			public void run() {
-				new SpawnRandomFirework(plugin,player.getName());
+				try {
+					plugin.fplayer.playFirework(player.getWorld(), player.getLocation(), SpawnRandomFirework.randomEffect());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				player.damage(0D);
 				count++;
 				if(count>36){
@@ -56,7 +62,7 @@ public class RageQuitCommand implements CommandExecutor {
 									@Override
 									public void run() {
 										slaptask1.cancel();
-										player.setVelocity(new Vector(randomNum(-3,3),0,randomNum(-3,3)));
+										player.setVelocity(new Vector(Util.randomNum(-3,3),0,Util.randomNum(-3,3)));
 										player.damage(0D);
 										count++;
 										if (count>20){
@@ -76,9 +82,5 @@ public class RageQuitCommand implements CommandExecutor {
 			
 		}, 0, 5L);
 		return true;
-	}
-	
-	public int randomNum(Integer lownum, double d) {
-		return lownum + (int)(Math.random() * ((d - lownum) + 1));
 	}
 }

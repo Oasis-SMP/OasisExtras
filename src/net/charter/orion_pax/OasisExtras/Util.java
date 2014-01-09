@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -30,15 +31,24 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.Vector;
 
 public class Util {
-	
-	private static OasisExtras plugin;
+
 	private static int mytask;
 	private static int mytask2;
-	public Util(OasisExtras plugin){
-		Util.plugin = plugin;
+	
+	public static OasisPlayer getOPlayer(OasisExtras plugin, String name){
+		for(OasisPlayer oPlayer:OPlayer(plugin)){
+			if(oPlayer.getName().equalsIgnoreCase(name)){
+				return oPlayer;
+			}
+		}
+		return null;
+	}
+	
+	public static void bCast(String msg){
+		Bukkit.broadcastMessage(msg);
 	}
 
-	public static void sandArrow(final Arrow arrow){
+	public static void sandArrow(OasisExtras plugin, final Arrow arrow){
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 			@Override
@@ -58,7 +68,7 @@ public class Util {
 		}, 20L);
 	}
 	
-	public static void fireworksArrow(final Arrow arrow){
+	public static void fireworksArrow(final OasisExtras plugin, final Arrow arrow){
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 			@Override
@@ -90,8 +100,8 @@ public class Util {
 		return null;
 	}
 	
-	public static void restoreState(final List<BlockState> blocks){
-		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+	public static void restoreState(OasisExtras plugin, final List<BlockState> blocks){
+		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
 
 			@Override
 			public void run() {
@@ -199,7 +209,7 @@ public class Util {
 		return 0;
 	}
 	
-	public static void sendHorse(final Horse horse, final Player player){
+	public static void sendHorse(final OasisExtras plugin, final Horse horse, final Player player){
 		mytask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 			@Override
 			public void run(){
@@ -281,7 +291,7 @@ public class Util {
 		return false;
 	}
 
-	public static void slap(String name, CommandSender sender, String msg){
+	public static void slap(OasisExtras plugin, String name, CommandSender sender, String msg){
 		String message,message2;
 		Vector vector = new Vector(randomNum(-3,3), 0, randomNum(-3,3));
 		Player player = plugin.getServer().getPlayer(name);
@@ -306,7 +316,7 @@ public class Util {
 		return randomNum;
 	}
 
-	public static OasisPlayer getOwner(Entity entity){
+	public static OasisPlayer getOwner(OasisExtras plugin, Entity entity){
 		Iterator<Entry<String, OasisPlayer>> it = plugin.oasisplayer.entrySet().iterator();
 		while(it.hasNext()){
 			Entry<String, OasisPlayer> entry = it.next();
@@ -388,12 +398,8 @@ public class Util {
 				for(int y = bottomBlockY; y <= topBlockY; y++)
 				{
 					Block block = loc1.getWorld().getBlockAt(x, y, z);
-
-					for (Material material:materials) {
-						if (!block.getType().equals(material)) {
-							plugin.getServer().broadcastMessage(block.getType().toString());
-							blocks.add(block.getState());
-						}
+					if(matCheck(mat,block.getType())){
+						blocks.add(block.getState());
 					}
 				}
 			}
@@ -402,7 +408,16 @@ public class Util {
 		return blocks;
 	}
 	
-	public static List<BlockState> circle(Location loc, int radius, int height, boolean hollow, boolean sphere, int plusY){
+	public static boolean matCheck(Material[] materials,Material thismaterial){
+		for(Material material:materials){
+			if(thismaterial.equals(material)){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static List<BlockState> circle(Location loc, int radius, int height, boolean hollow, boolean sphere, int plusY,Material... materials){
 		List<BlockState> circleblocks = new ArrayList<BlockState>();
 		int cx = loc.getBlockX();
 		int cy = loc.getBlockY();
@@ -412,10 +427,11 @@ public class Util {
 			for (int z = cz - radius; z <= cz + radius; z++){
 				for(int y = (sphere ? cy - radius : cy); y < (sphere ? cy + radius : cy + height); y++){
 					double dist = (cx - x) * (cx - x) + (cz - z) * (cz - z) + (sphere ? (cy - y) * (cy - y) : 0);
-
 					if(dist < radius * radius && !(hollow && dist < (radius - 1) * (radius - 1))){
 						Location l = new Location(loc.getWorld(), x, y + plusY, z);
-						circleblocks.add(l.getBlock().getState());
+						if(matCheck(materials,l.getBlock().getType())){
+							circleblocks.add(l.getBlock().getState());
+						}
 					}
 				}
 			}
@@ -424,7 +440,7 @@ public class Util {
 		return circleblocks;
 	}
 	
-	public void SendMsg(Player player, String msg){
+	public static void SendMsg(Player player, String msg){
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
 	}
 	
@@ -486,7 +502,7 @@ public class Util {
 		return entity.getClass().getName().toString();
 	}
 
-	public static Entity getEntity(String uid, String name){
+	public static Entity getEntity(OasisExtras plugin, String uid, String name){
 		for (Entity entity : plugin.getServer().getPlayer(name).getWorld().getEntities()){
 			if (entity.getUniqueId().toString().equals(uid)){
 				return entity;
@@ -524,7 +540,7 @@ public class Util {
 		}
 	}
 	
-	public static List<OasisPlayer> OPlayer(){
+	public static List<OasisPlayer> OPlayer(OasisExtras plugin){
 		Iterator<Entry<String, OasisPlayer>> it = plugin.oasisplayer.entrySet().iterator();
 		List<OasisPlayer> oplayer = new ArrayList<OasisPlayer>();
 		while(it.hasNext()){
@@ -533,5 +549,54 @@ public class Util {
 		}
 		
 		return oplayer;
+	}
+	
+	public static boolean hasNearbyPlayers(Location loc, double radius) {
+		for(Player player : loc.getWorld().getPlayers()) {
+			if (player.getLocation().distanceSquared(loc) <= radius * radius) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isGood(Material material){
+		if(material.equals(Material.DIRT)){
+			return false;
+		}
+		if(material.equals(Material.GRASS)){
+			return false;
+		}
+		if(material.equals(Material.STONE)){
+			return false;
+		}
+		if(material.equals(Material.GRAVEL)){
+			return false;
+		}
+		if(material.equals(Material.SAND)){
+			return false;
+		}
+		if(material.equals(Material.AIR)){
+			return false;
+		}
+		if(material.equals(Material.CROPS)){
+			return false;
+		}
+		if(material.equals(Material.DOUBLE_PLANT)){
+			return false;
+		}
+		if(material.equals(Material.LONG_GRASS)){
+			return false;
+		}
+		if(material.equals(Material.LEAVES)){
+			return false;
+		}
+		if(material.equals(Material.LEAVES_2)){
+			return false;
+		}
+		if(material.equals(Material.BED_BLOCK)){
+			return false;
+		}
+		return true;
 	}
 }

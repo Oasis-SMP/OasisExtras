@@ -2,6 +2,7 @@ package net.charter.orion_pax.OasisExtras.Commands;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
 import net.charter.orion_pax.OasisExtras.OasisPlayer;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -18,7 +19,7 @@ public class FriendsCommand implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		OasisPlayer oPlayer = plugin.oasisplayer.get(sender.getName());
+		OasisPlayer oPlayer = Util.getOPlayer(plugin, sender.getName());
 		if(args.length==0){
 			oPlayer.listFriends();
 			return true;

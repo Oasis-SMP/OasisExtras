@@ -178,7 +178,7 @@ commands:
     description: Toggles trail effect!
     usage: "Usage: /<command>"
     aliases: [fwtrail]
-    permission: oasisextras.staff.trail
+    permission: oasisextras.player.trail
     permission-message: You don't have permissions for <permission>
     
   aura:
@@ -302,7 +302,34 @@ commands:
     permission: oasisextras.player.randomarmorcolor
     permission-message: You don't have permissions for <permission>
     
+  anvil:
+    description: Anvil interface!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.anvil
+    permission-message: You don't have permissions for <permission>
+    
+  etable:
+    description: Opens an enchantment table screen!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.etable
+    permission-message: You don't have permissions for <permission>
+    
+  throw:
+    description: Throws item in hand!
+    usage: "Usage: /<command>"
+    permission: oasisextras.staff.throw
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.staff.throw:
+        description: Throws item in hand!
+        
+    oasisextras.staff.etable:
+        description: Opens an enchantment table screen!
+        
+    oasisextras.staff.anvil:
+        description: Opens an anvil screen!
+        
     oasisextras.player.randomarmorcolor:
         description: Rainbow leather armor!
         
@@ -492,7 +519,6 @@ permissions:
     oasisextras.player.*:
         description: Gives access to all player commands
         children:
-            oasisextras.player.customarrows: true
             oasisextras.player.tool.lock: true
             oasisextras.player.tool.tp: true
             oasisextras.player.disco: true
@@ -508,9 +534,6 @@ permissions:
             oasisextras.player.highfive: true
             oasisextras.player.tp: true
             oasisextras.player.dismount: true
-            oasisextras.player.aura: true
-            oasisextras.player.glow: true
-            oasisextras.player.randomarmorcolor: true
             
     oasisextras.staff.pixelmon:
         description: Pixelmon specific permnodes
@@ -522,17 +545,18 @@ permissions:
     oasisextras.staff.mod:
         description: Mod perm nodes
         children:
-            oasisextras.staff.givecoupon: true
+            oasisextras.staff.erase: true
+            oasisextras.staff.shit: true
+            oasisextras.staff.shitstorm: true
             oasisextras.staff.thunderstruck: true
-            oasisextras.staff.bcastadd: true
-            oasisextras.staff.bcastdel: true
-            oasisextras.staff.bcastlist: true
             oasisextras.staff.mount: true
             oasisextras.staff.sheepcast: true
                         
     oasisextras.staff.jrmod:
         description: JrMod perm nodes
         children:
+            oasisextras.staff.etable: true
+            oasisextras.staff.anvil: true
             oasisextras.staff.notify: true
             oasisextras.staff.xray: true
             oasisextras.staff.oewhois: true

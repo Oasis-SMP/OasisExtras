@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -35,7 +36,7 @@ public class FadeCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + args[0] + " is not online!");
 				return true;
 			} else {
-				list=region(player.getLocation().clone().add(10, 10, 10),player.getLocation().clone().add(-10, -10, -10));
+				list=Util.region(player.getLocation().clone().add(10, 10, 10),player.getLocation().clone().add(-10, -10, -10));
 				it = list.iterator();
 				task=plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
 
@@ -44,7 +45,7 @@ public class FadeCommand implements CommandExecutor {
 						for (int i = 1; i < 10; i++) {
 							if (it.hasNext()) {
 								BlockState block = it.next();
-								if (isGood(block.getBlock().getType())) {
+								if (Util.isGood(block.getBlock().getType())) {
 									player.sendBlockChange(block.getBlock().getLocation(), Material.AIR, (byte) 0);
 								}
 							} else {
@@ -60,74 +61,4 @@ public class FadeCommand implements CommandExecutor {
 		}
 		return false;
 	}
-	
-	public boolean isGood(Material material){
-		if(material.equals(Material.DIRT)){
-			return false;
-		}
-		if(material.equals(Material.GRASS)){
-			return false;
-		}
-		if(material.equals(Material.STONE)){
-			return false;
-		}
-		if(material.equals(Material.GRAVEL)){
-			return false;
-		}
-		if(material.equals(Material.SAND)){
-			return false;
-		}
-		if(material.equals(Material.AIR)){
-			return false;
-		}
-		if(material.equals(Material.CROPS)){
-			return false;
-		}
-		if(material.equals(Material.DOUBLE_PLANT)){
-			return false;
-		}
-		if(material.equals(Material.LONG_GRASS)){
-			return false;
-		}
-		if(material.equals(Material.LEAVES)){
-			return false;
-		}
-		if(material.equals(Material.LEAVES_2)){
-			return false;
-		}
-		if(material.equals(Material.BED_BLOCK)){
-			return false;
-		}
-		return true;
-	}
-	
-	public static List<BlockState> region(Location loc1, Location loc2)
-    {
-        List<BlockState> blocks = new ArrayList<BlockState>();
- 
-        int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
-        int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
- 
-        int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
-        int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
- 
-        int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
-        int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
- 
-        for(int x = bottomBlockX; x <= topBlockX; x++)
-        {
-            for(int z = bottomBlockZ; z <= topBlockZ; z++)
-            {
-                for(int y = bottomBlockY; y <= topBlockY; y++)
-                {
-                    Block block = loc1.getWorld().getBlockAt(x, y, z);
-                   
-                    blocks.add(block.getState());
-                }
-            }
-        }
-       
-        return blocks;
-    }
-
 }

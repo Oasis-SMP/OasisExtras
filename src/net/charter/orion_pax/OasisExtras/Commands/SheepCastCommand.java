@@ -22,10 +22,15 @@ public class SheepCastCommand implements CommandExecutor {
 			String msg;
 			StringBuffer buffer = new StringBuffer();
 			for (String string : arg3) {
-				buffer.append(rColor() + string);
+				buffer.append(string);
 				buffer.append(" ");
 			}
 			buffer.delete(buffer.length() - 1, buffer.length());
+			msg = buffer.toString();
+			buffer = new StringBuffer();
+			for(char string: msg.toCharArray()){
+				buffer.append(rColor() + "" + string);
+			}
 			msg = buffer.toString();
 			plugin.getServer().broadcastMessage(ChatColor.DARK_RED + "[" + rColor() + "Sheep" + rColor() + "Cast" + ChatColor.DARK_RED + "] " + msg);
 			for (Player player : plugin.getServer().getOnlinePlayers()) {

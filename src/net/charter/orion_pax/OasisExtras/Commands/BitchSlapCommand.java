@@ -1,6 +1,8 @@
 package net.charter.orion_pax.OasisExtras.Commands;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.SpawnRandomFirework;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -83,42 +85,56 @@ public class BitchSlapCommand implements CommandExecutor {
 		sender.sendMessage(message2);
 		bitchslap(player.getLocation(),player);
 	}
-
-	public int randomNum(Integer lownum, double d) {
-		//Random rand = new Random();
-		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
-		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
-		return randomNum;
-	}
 	
 	public void bitchslap(final Location loc, final Player player){
-		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 			@Override
 			public void run() {
-				player.setVelocity(new Vector(randomNum(-7,7),randomNum(-7,7),randomNum(-7,7)));
+				player.setVelocity(new Vector(Util.randomNum(-7,7),Util.randomNum(-7,7),Util.randomNum(-7,7)));
+				((LivingEntity) player).damage(0D);
+				try {
+					plugin.fplayer.playFirework(player.getWorld(), player.getLocation(), SpawnRandomFirework.randomEffect());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				return;
 				
 			}
 			
 		}, 40L);
 		
-		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 			@Override
 			public void run() {
-				player.setVelocity(new Vector(randomNum(-7,7),randomNum(-7,7),randomNum(-7,7)));
+				player.setVelocity(new Vector(Util.randomNum(-7,7),Util.randomNum(-7,7),Util.randomNum(-7,7)));
+				((LivingEntity) player).damage(0D);
+				try {
+					plugin.fplayer.playFirework(player.getWorld(), player.getLocation(), SpawnRandomFirework.randomEffect());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				return;
 				
 			}
 			
 		}, 60L);
 		
-		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 			@Override
 			public void run() {
-				player.setVelocity(new Vector(randomNum(-7,7),randomNum(-7,7),randomNum(-7,7)));
+				player.setVelocity(new Vector(Util.randomNum(-7,7),Util.randomNum(-7,7),Util.randomNum(-7,7)));
+				((LivingEntity) player).damage(0D);
+				try {
+					plugin.fplayer.playFirework(player.getWorld(), player.getLocation(), SpawnRandomFirework.randomEffect());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				return;
 				
 			}
@@ -127,7 +143,7 @@ public class BitchSlapCommand implements CommandExecutor {
 	}
 	
 	public void returnplayer(final Location loc, final Player player){
-		plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 			@Override
 			public void run() {

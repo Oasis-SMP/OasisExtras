@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Effect;
@@ -15,6 +16,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.*;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -56,7 +58,7 @@ public class OasisPlayer {
 	public boolean disco,rCA = false,ftrail=false;
 	public int votes=0;
 	public float speed;
-	public Inventory inv;
+	public Inventory etable;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -97,47 +99,7 @@ public class OasisPlayer {
 		auraname.setLore(auralore);
 		auraitem.setItemMeta(auraname);
 		
-		inv = plugin.getServer().createInventory(null, 9, ChatColor.DARK_GREEN + "Arrows");
-		
-		if(!playerfile.getConfig().getString("Arrow", null).equals(null)){
-			if(playerfile.getConfig().getString("Arrow").equals("Explosive")){
-				ItemStack arrow = plugin.explosivearrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Web")){
-				ItemStack arrow = plugin.webarrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Fireworks")){
-				ItemStack arrow = plugin.fireworksarrow.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Sand")){
-				ItemStack arrow = plugin.sandarrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Soul")){
-				ItemStack arrow = plugin.soularrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Freeze")){
-				ItemStack arrow = plugin.freezearrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Poison")){
-				ItemStack arrow = plugin.poisonarrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Blindness")){
-				ItemStack arrow = plugin.blindarrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			} else if(playerfile.getConfig().getString("Arrow").equals("Drunk")){
-				ItemStack arrow = plugin.drunkarrows.getResult();
-				arrow.setAmount(1);
-				inv.setItem(0, arrow);
-			}
-		}
+		etable = Bukkit.createInventory(null, InventoryType.ENCHANTING);
 
 		saveMe();
 	}
@@ -204,7 +166,7 @@ public class OasisPlayer {
 		if(!medic){
 			medic=!medic;
 			SendMsg("&cMedic&r is now &aENABLED!");
-			plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable(){
+			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 
 				@Override
 				public void run() {

@@ -1,6 +1,8 @@
 package net.charter.orion_pax.OasisExtras.Commands;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.OasisPlayer;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -21,28 +23,29 @@ public class FreezeCommand implements CommandExecutor{
 		if (args.length > 0) {
 			if (sender.getServer().getPlayer(args[0]) != null) {
 				Player target = sender.getServer().getPlayer(args[0]);
-				if (plugin.oasisplayer.get(target.getName()).isFrozen()) {
-					plugin.oasisplayer.get(target.getName()).unFreezeMe();
-					sender.sendMessage(ChatColor.RED + target.getName() + ChatColor.BLUE + " is now THAWED!");
-					target.sendMessage(ChatColor.GOLD + "You are now " + ChatColor.BLUE + "THAWED!");
-					plugin.oasisplayer.get(target.getName()).saveMe();
+				OasisPlayer oPlayer = Util.getOPlayer(plugin, target.getName());
+				if (oPlayer.isFrozen()) {
+					oPlayer.unFreezeMe();
+					Util.SendMsg((Player)sender,"&c" + oPlayer.getName() + "&6 is now &bTHAWED!");
+					oPlayer.SendMsg("&6You are now &bTHAWED!");
+					oPlayer.saveMe();
 					return true;
 				} else {
-					if (plugin.oasisplayer.get(target.getName()).freezeMe()){
-						sender.sendMessage(ChatColor.RED + target.getName() + ChatColor.AQUA + " is now FROZEN!");
-						target.sendMessage(ChatColor.GOLD + "You are now " + ChatColor.AQUA + "FROZEN!");
-						plugin.oasisplayer.get(target.getName()).saveMe();
+					if (oPlayer.freezeMe()){
+						Util.SendMsg((Player)sender,"&c" + target.getName() + "&6 is now &bFROZEN!");
+						oPlayer.SendMsg("&6You are now &bFROZEN!");
+						oPlayer.saveMe();
 						return true;
 					} else {
-						sender.sendMessage("Can not freeze staff");
+						Util.SendMsg((Player)sender,"&cCan not freeze staff");
 					}
 				}
 			} else {
-				sender.sendMessage(ChatColor.GOLD + args[0] + " is not online!");
+				Util.SendMsg((Player)sender,"&6" + args[0] + " is not online!");
 				return true;
 			}
 		} else {
-			sender.sendMessage(ChatColor.RED + "Too few arguments!");
+			Util.SendMsg((Player)sender,"&cToo few arguments!");
 			return false;
 		}
 		return true;

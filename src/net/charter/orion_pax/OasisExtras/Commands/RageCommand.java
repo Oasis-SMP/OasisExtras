@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import net.charter.orion_pax.OasisExtras.LightningStrike;
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -39,8 +40,8 @@ public class RageCommand implements CommandExecutor {
 			}
 		}
 		Player player = (Player) sender;
-		List<BlockState> bslist = region(player.getLocation().add(count, -1, count),player.getLocation().add(-count, -1, -count));
-		List<BlockState> restorelist = region(player.getLocation().add(count+3, 5, count+3),player.getLocation().add(-count-3, -5, -count-3));
+		List<BlockState> bslist = Util.region(player.getLocation().add(count, -1, count),player.getLocation().add(-count, -1, -count));
+		List<BlockState> restorelist = Util.region(player.getLocation().add(count+3, 5, count+3),player.getLocation().add(-count-3, -5, -count-3));
 		for(BlockState block:restorelist){
 			if(block.getBlock().getType().equals(Material.CHEST) || block.getBlock().getType().equals(Material.SIGN_POST) || block.getBlock().getType().equals(Material.SIGN)){
 				player.sendMessage(ChatColor.RED + "Unable to rage, near a chest or a sign!");
@@ -53,35 +54,6 @@ public class RageCommand implements CommandExecutor {
 		
 		
 	}
-	
-	public static List<BlockState> region(Location loc1, Location loc2)
-    {
-        List<BlockState> blocks = new ArrayList<BlockState>();
- 
-        int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
-        int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
- 
-        int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
-        int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
- 
-        int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
-        int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
- 
-        for(int x = bottomBlockX; x <= topBlockX; x++)
-        {
-            for(int z = bottomBlockZ; z <= topBlockZ; z++)
-            {
-                for(int y = bottomBlockY; y <= topBlockY; y++)
-                {
-                    Block block = loc1.getWorld().getBlockAt(x, y, z);
-                   
-                    blocks.add(block.getState());
-                }
-            }
-        }
-       
-        return blocks;
-    }
 	
 	public void rage(final List<BlockState> state, final Location ploc, final List<BlockState> restorelist){
 		task = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable(){
@@ -137,7 +109,7 @@ public class RageCommand implements CommandExecutor {
 	}
 	
 	public Material randomMat(){
-		switch(randomNum(1,5)){
+		switch(Util.randomNum(1,5)){
 		case 1:return Material.AIR;
 		case 2:return Material.LAVA;
 		case 3:return Material.OBSIDIAN;
@@ -145,9 +117,5 @@ public class RageCommand implements CommandExecutor {
 		case 5:return Material.FIRE;
 		default:return Material.LAVA;
 		}
-	}
-	
-	public int randomNum(Integer lownum, double d) {
-		return lownum + (int)(Math.random() * ((d - lownum) + 1));
 	}
 }

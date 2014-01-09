@@ -1,6 +1,7 @@
 package net.charter.orion_pax.OasisExtras.Commands;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.Util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -70,7 +71,7 @@ public class HordeCommand implements CommandExecutor {
 					return true;
 				}
 				
-				if (hasNearbyPlayers(loc,50)) {
+				if (Util.hasNearbyPlayers(loc,50)) {
 					task=plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
 
 						@Override
@@ -78,7 +79,7 @@ public class HordeCommand implements CommandExecutor {
 							msgPlayers(loc,50,"&cround " + round + "!");
 							for(int i=1;i<round*10;i++){
 								Location newloc = loc;
-								Creature creature = (Creature) world.spawnEntity(newloc.add(randomNum(-48,48), -5, randomNum(-48,48)), Mobs());
+								Creature creature = (Creature) world.spawnEntity(newloc.add(Util.randomNum(-48,48), -5, Util.randomNum(-48,48)), Mobs());
 								creature.setRemoveWhenFarAway(false);
 								if(hordeplayer!=null){
 									creature.setTarget(hordeplayer);
@@ -117,7 +118,7 @@ public class HordeCommand implements CommandExecutor {
 				}
 				
 				for (int i = 1; i < amount; i++) {
-					Creature creature = (Creature) hordeplayer.getWorld().spawnEntity(hordeplayer.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
+					Creature creature = (Creature) hordeplayer.getWorld().spawnEntity(hordeplayer.getLocation().add(Util.randomNum(-10, 10), 0, Util.randomNum(-10, 10)), Mobs());
 					creature.setTarget(hordeplayer);
 					creature.setRemoveWhenFarAway(false);
 				}
@@ -131,7 +132,7 @@ public class HordeCommand implements CommandExecutor {
 				}
 				
 				for (int i = 1; i < amount; i++) {
-					Creature creature = (Creature) hordeplayer.getWorld().spawnEntity(hordeplayer.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
+					Creature creature = (Creature) hordeplayer.getWorld().spawnEntity(hordeplayer.getLocation().add(Util.randomNum(-10, 10), 0, Util.randomNum(-10, 10)), Mobs());
 					creature.setTarget(hordeplayer);
 					creature.setRemoveWhenFarAway(false);
 				}
@@ -152,13 +153,13 @@ public class HordeCommand implements CommandExecutor {
 			}
 			
 			for (int i = 1; i < amount; i++) {
-				Creature creature = (Creature) player.getWorld().spawnEntity(player.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
+				Creature creature = (Creature) player.getWorld().spawnEntity(player.getLocation().add(Util.randomNum(-10, 10), 0, Util.randomNum(-10, 10)), Mobs());
 				creature.setRemoveWhenFarAway(false);
 			}
 			return true;
 		} else if(args.length==0){
 			for (int i = 1; i < amount; i++) {
-				Creature creature = (Creature) player.getWorld().spawnEntity(player.getLocation().add(randomNum(-10, 10), 0, randomNum(-10, 10)), Mobs());
+				Creature creature = (Creature) player.getWorld().spawnEntity(player.getLocation().add(Util.randomNum(-10, 10), 0, Util.randomNum(-10, 10)), Mobs());
 				creature.setRemoveWhenFarAway(false);
 			}
 			return true;
@@ -174,17 +175,8 @@ public class HordeCommand implements CommandExecutor {
 		}
 	}
 	
-	boolean hasNearbyPlayers(Location loc, double radius) {
-		for(Player player : loc.getWorld().getPlayers()) {
-			if (player.getLocation().distanceSquared(loc) <= radius * radius) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	private EntityType Mobs(){
-		switch (randomNum(1,9)){
+		switch (Util.randomNum(1,9)){
 		case 1:return EntityType.CAVE_SPIDER;
 		case 2:return EntityType.CREEPER;
 		case 3:return EntityType.ENDERMAN;
@@ -196,10 +188,6 @@ public class HordeCommand implements CommandExecutor {
 		case 9:return EntityType.ZOMBIE;
 		default:return EntityType.SKELETON;
 		}
-	}
-	
-	public int randomNum(Integer lownum, double d) {
-		return lownum + (int)(Math.random() * ((d - lownum) + 1));
 	}
 
 }
