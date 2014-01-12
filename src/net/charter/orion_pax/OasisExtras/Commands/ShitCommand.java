@@ -55,8 +55,10 @@ public class ShitCommand implements CommandExecutor{
 			}
 			restore(state);
 			for(BlockState block:state){
-				block.getBlock().setType(Material.SOUL_SAND);
-				state.get(0).getBlock().setType(Material.GLOWSTONE);
+				if (block.getBlock().getType().equals(Material.AIR)) {
+					block.getBlock().setType(Material.SOUL_SAND);
+					state.get(0).getBlock().setType(Material.GLOWSTONE);
+				}
 			}
 			player.sendMessage(ChatColor.GREEN + sender.getName() + " has shat on you!");
 			sender.sendMessage(ChatColor.GREEN + "You just shat on " + player.getName() + "!");

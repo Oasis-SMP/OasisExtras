@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 
+import org.anjocaido.groupmanager.GroupManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -38,6 +39,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -47,6 +49,9 @@ import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 
 import net.charter.orion_pax.OasisExtras.Commands.*;
+import net.milkbowl.vault.Vault;
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.permission.Permission;
 
 //@Paxination:
 //
@@ -85,6 +90,7 @@ public class OasisExtras extends JavaPlugin{
 	public Recipe shoes,explosivearrows,freezearrows,webarrows,soularrows,fireworksarrow,sandarrows,web,poisonarrows,blindarrows,drunkarrows,lightningarrows;
 	public BukkitTask votecheck;
 	public FireworkEffectPlayer fplayer = new FireworkEffectPlayer();
+	public static Chat chat = null;
 	//public SLAPI slapi;
 
 	public String[] oasisextrassub = {
@@ -101,6 +107,12 @@ public class OasisExtras extends JavaPlugin{
 			,ChatColor.GOLD + "/oasisextras BCAST ADD - Adds a msg to the auto bcast list"
 			,ChatColor.GOLD + "/oasisextras BCAST REMOVE - Removes a msg from the auto bcast list"
 	};
+	
+	private boolean setupChat() {
+        RegisteredServiceProvider<Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
+        chat = rsp.getProvider();
+        return chat != null;
+    }
 
 	@Override
 	public void onEnable() {
@@ -191,6 +203,8 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("anvil").setExecutor(new AnvilCommand(this));
 		getCommand("etable").setExecutor(new ETableCommand(this));
 		getCommand("throw").setExecutor(new ThrowCommand(this));
+		getCommand("raining").setExecutor(new RainingCommand(this));
+		getCommand("quiver").setExecutor(new QuiverCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();
@@ -382,6 +396,7 @@ public class OasisExtras extends JavaPlugin{
 	}
 
 	public void setup(){
+		setupChat();
 		joinmsg=getConfig().getString("oasisextras.join");
 		quitmsg=getConfig().getString("oasisextras.quit");
 		kickmsg=getConfig().getString("oasisextras.kick");

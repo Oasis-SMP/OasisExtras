@@ -1,5 +1,6 @@
 package net.charter.orion_pax.OasisExtras.Events;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Location;
@@ -11,26 +12,49 @@ import org.bukkit.event.HandlerList;
 
 public class ExplosiveArrowEvent extends Event implements Cancellable{
 
+	private boolean cancelled=false;
+	private Entity entity;
+	private Location loc;
+	private List<BlockState> blocks = new ArrayList<BlockState>();
+	private static final HandlerList handlers = new HandlerList();
+	
 	public ExplosiveArrowEvent(Entity entity, Location loc, List<BlockState> blocks) {
-		// TODO Auto-generated constructor stub
+		this.entity = entity;
+		this.blocks = blocks;
+		this.loc = loc;
 	}
 
 	@Override
 	public boolean isCancelled() {
 		// TODO Auto-generated method stub
-		return false;
+		return cancelled;
 	}
 
 	@Override
 	public void setCancelled(boolean arg0) {
-		// TODO Auto-generated method stub
+		this.cancelled = arg0;
 		
 	}
 
 	@Override
 	public HandlerList getHandlers() {
-		// TODO Auto-generated method stub
-		return null;
+	    return handlers;
+	}
+	 
+	public static HandlerList getHandlerList() {
+	    return handlers;
+	}
+	
+	public Entity getEntity(){
+		return this.entity;
+	}
+	
+	public Location getLocation(){
+		return this.loc;
+	}
+	
+	public List<BlockState> getBlocks(){
+		return this.blocks;
 	}
 
 }

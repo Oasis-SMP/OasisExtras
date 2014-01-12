@@ -34,6 +34,7 @@ public class Util {
 
 	private static int mytask;
 	private static int mytask2;
+	private static int arrowTask;
 	
 	public static OasisPlayer getOPlayer(OasisExtras plugin, String name){
 		for(OasisPlayer oPlayer:OPlayer(plugin)){
@@ -46,6 +47,39 @@ public class Util {
 	
 	public static void bCast(String msg){
 		Bukkit.broadcastMessage(msg);
+	}
+	
+	public static void freezeArrow(final OasisExtras plugin, final Arrow arrow){
+		arrowTask = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable(){
+
+			@Override
+			public void run() {
+				if(arrow.getLocation().clone().add(0, -2, 0).getBlock().getType().equals(Material.STATIONARY_WATER)){
+					List<BlockState> blocks = Util.region(arrow.getLocation().clone().add(1, 1, 1), arrow.getLocation().clone().add(-1, -2, -1), Material.ICE);
+					Util.restoreState(plugin, blocks);
+					for(BlockState block:blocks){
+						if (block.getBlock().getType().equals(Material.WATER) || block.getBlock().getType().equals(Material.STATIONARY_WATER)) {
+							block.getBlock().setType(Material.ICE);
+						}
+					}
+				}
+				if(arrow.getLocation().getBlock().getType().equals(Material.WATER) || arrow.getLocation().getBlock().getType().equals(Material.STATIONARY_WATER)){
+					List<BlockState> blocks = Util.circle(arrow.getLocation(), 3, 3, false, true, 0,Material.ICE);
+					Util.restoreState(plugin, blocks);
+					for(BlockState block:blocks){
+						if (block.getBlock().getType().equals(Material.WATER) || block.getBlock().getType().equals(Material.STATIONARY_WATER)) {
+							block.getBlock().setType(Material.ICE);
+						}
+					}
+					arrow.remove();
+					plugin.getServer().getScheduler().cancelTask(arrowTask);
+				}
+				if(!arrow.isValid()){
+					plugin.getServer().getScheduler().cancelTask(arrowTask);
+				}
+			}
+
+		}, 0L, 1L);
 	}
 
 	public static void sandArrow(OasisExtras plugin, final Arrow arrow){

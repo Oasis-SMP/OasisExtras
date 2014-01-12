@@ -3,7 +3,7 @@ main: net.charter.orion_pax.OasisExtras.OasisExtras
 version: 2.0
 description: Oasis Extra commands!
 author: Paxination
-depend: [Votifier, CoreProtect]
+depend: [Votifier, CoreProtect,Vault]
 commands:
     
   blackmarket:
@@ -320,7 +320,25 @@ commands:
     permission: oasisextras.staff.throw
     permission-message: You don't have permissions for <permission>
     
+  raining:
+    description: Rains items, blocks and mobs!
+    usage: "Usage: /<command> item/mob/block type"
+    permission: oasisextras.staff.raining
+    permission-message: You don't have permissions for <permission>
+    
+  quiver:
+    description: Open custom arrow inventory!
+    usage: "Usage: /<command>"
+    permission: oasisextras.player.quiver
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.player.quiver:
+        description: Open custom arrow inventory!
+        
+    oasisextras.staff.raining:
+        description: Rains items, blocks and mobs!
+        
     oasisextras.staff.throw:
         description: Throws item in hand!
         
@@ -534,6 +552,7 @@ permissions:
             oasisextras.player.highfive: true
             oasisextras.player.tp: true
             oasisextras.player.dismount: true
+            oasisextras.player.quiver: true
             
     oasisextras.staff.pixelmon:
         description: Pixelmon specific permnodes

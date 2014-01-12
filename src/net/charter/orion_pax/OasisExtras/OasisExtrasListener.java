@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
+import net.charter.orion_pax.OasisExtras.Events.ExplosiveArrowEvent;
+import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.v1_7_R1.Enchantment;
 import net.minecraft.server.v1_7_R1.Explosion;
@@ -99,12 +101,13 @@ public class OasisExtrasListener implements Listener{
 				if (oPlayer.isFriend(event.getPlayer().getName())) {
 					if (oPlayer.isOnline()) {
 						oPlayer.getPlayer().playSound(oPlayer.loc, Sound.NOTE_BASS_DRUM, 10, 10);
-						oPlayer.SendMsg(oPlayer.bcolor +"[" + oPlayer.fprefix + "Friend" + oPlayer.bcolor + "]&r" + event.getPlayer().getDisplayName() + "&r: " + oPlayer.fchat + event.getMessage());
+						oPlayer.SendMsg(oPlayer.bcolor +"[" + oPlayer.fprefix + "Friend" + oPlayer.bcolor + "]&r" + event.getPlayer().getDisplayName() + "&r: " + plugin.chat.getPlayerInfoString(event.getPlayer().getWorld(), event.getPlayer().getName(), "message","&r" ) + oPlayer.fchat + event.getMessage());
 						event.getRecipients().remove(oPlayer.getPlayer());
 					}
 				}
 			}
 		}
+		event.setMessage(ChatColor.translateAlternateColorCodes('&', plugin.chat.getPlayerInfoString(event.getPlayer().getWorld(), event.getPlayer().getName(), "message","&r" ) + event.getMessage()));
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -354,38 +357,10 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-
-	public void freezeArrow(final Arrow arrow){
-		arrowTask = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable(){
-
-			@Override
-			public void run() {
-				if(arrow.getLocation().clone().add(0, -2, 0).getBlock().getType().equals(Material.STATIONARY_WATER)){
-					List<BlockState> blocks = Util.region(arrow.getLocation().clone().add(1, 1, 1), arrow.getLocation().clone().add(-1, -2, -1), Material.ICE);
-					Util.restoreState(plugin, blocks);
-					for(BlockState block:blocks){
-						if (block.getBlock().getType().equals(Material.WATER) || block.getBlock().getType().equals(Material.STATIONARY_WATER)) {
-							block.getBlock().setType(Material.ICE);
-						}
-					}
-				}
-				if(arrow.getLocation().getBlock().getType().equals(Material.WATER) || arrow.getLocation().getBlock().getType().equals(Material.STATIONARY_WATER)){
-					List<BlockState> blocks = Util.circle(arrow.getLocation(), 3, 3, false, true, 0,Material.ICE);
-					Util.restoreState(plugin, blocks);
-					for(BlockState block:blocks){
-						if (block.getBlock().getType().equals(Material.WATER) || block.getBlock().getType().equals(Material.STATIONARY_WATER)) {
-							block.getBlock().setType(Material.ICE);
-						}
-					}
-					arrow.remove();
-					plugin.getServer().getScheduler().cancelTask(arrowTask);
-				}
-				if(!arrow.isValid()){
-					plugin.getServer().getScheduler().cancelTask(arrowTask);
-				}
-			}
-
-		}, 0L, 1L);
+	
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnCraftItem(CraftItemEvent event){
+		event.setCancelled(true);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -396,32 +371,21 @@ public class OasisExtrasListener implements Listener{
 				Player player = (Player) event.getEntity().getShooter();
 				OasisPlayer oPlayer = Util.getOPlayer(plugin, player.getName());
 				if (player.getWorld().getName().equals("pvpworld") || oPlayer.staff) {
-					if (player.getInventory().getItem(1) != null) {
-						if (player.getInventory().getItem(1).getType().equals(Material.ARROW)) {
-							if (Util.getArrowLore(player.getInventory().getItem(1)) != null) {
-								if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("explosive")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "explosive"));
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("freeze")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "freeze"));
-									freezeArrow(arrow);
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("soul")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "soul"));
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("sand")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "sand"));
-									Util.sandArrow(plugin, arrow);
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("fireworks")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "fireworks"));
-									Util.fireworksArrow(plugin, arrow);
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("web")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "web"));
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("poison")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "poison"));
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("blindness")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "blindness"));
-								} else if (Util.getArrowLore(player.getInventory().getItem(1)).equalsIgnoreCase("lightning")) {
-									arrow.setMetadata("name", new FixedMetadataValue(plugin, "lightning"));
-								}
+					ArrowType myarrow = ArrowType.valueOf(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none"));
+					for(ItemStack item:oPlayer.quiver.getContents()){
+						if(item.getItemMeta().getLore().get(0).equalsIgnoreCase(myarrow.toString())){
+							if(item.getAmount()==1){
+								oPlayer.quiver.remove(item);
+								oPlayer.saveMe();
+							} else {
+								oPlayer.quiver.remove(item);
+								item.setAmount(item.getAmount() - 1);
+								oPlayer.quiver.addItem(item);
 							}
+							event.setCancelled(true);
+							Arrow newarrow = player.launchProjectile(Arrow.class);
+							arrow.setVelocity(event.getEntity().getVelocity());
+							return;
 						}
 					}
 				}
@@ -430,68 +394,69 @@ public class OasisExtrasListener implements Listener{
 	}
 	
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnExplodeEvent(EntityExplodeEvent event){
-		if(event.getEntity() instanceof Arrow){
-			Util.bCast(event.getEventName() + " with arrow");
-			event.getEntity().remove();
-		}
+	public void OnMyEvent(ExplosiveArrowEvent event){
+		
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnArrowHit(ProjectileHitEvent event){
+		List<BlockState> blocks = new ArrayList<BlockState>();
 		Location loc = event.getEntity().getLocation();
 		if(event.getEntityType().equals(EntityType.ARROW)){
 			Arrow arrow = (Arrow) event.getEntity();
-			if (Util.getMetadata(arrow, "name", plugin) != null) {
-				if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("explosive")) {
-					List<BlockState> bslist = Util.region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE);
-					Util.restoreState(plugin, bslist);
-					List<Block> blocks= new ArrayList<Block>();
-					for(BlockState block:bslist){
-						blocks.add(block.getBlock());
-					}
-					//plugin.getServer().getPluginManager().callEvent(new EntityExplodeEvent(arrow,loc,blocks,0F));
-					//loc.getWorld().createExplosion(loc, 3F, true);
-					net.minecraft.server.v1_7_R1.Entity arrowtest = (net.minecraft.server.v1_7_R1.Entity)((CraftEntity)arrow).getHandle();
-					Explosion explosion = new Explosion(arrowtest.world, arrowtest, arrowtest.locX, arrowtest.locY, arrowtest.locZ, 3F);
-					explosion.a=true;
-					explosion.a(true);
-					//arrow.remove();
-					return;
-				} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("freeze")) {
-					List<BlockState> blocks = Util.circle(loc, 3, 3, false, true, 0,Material.ICE);
-					Util.restoreState(plugin, blocks);
-					for(BlockState block:blocks){
-						if (block.getBlock().getType().equals(Material.AIR)) {
-							block.getBlock().setType(Material.ICE);
+			if(arrow.getShooter() instanceof Player){
+				Player player = (Player) arrow.getShooter();
+				ArrowType myarrow = ArrowType.valueOf(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none"));
+				if(!myarrow.equals(ArrowType.NONE)){
+					switch(myarrow){
+					case BLINDNESS: //EntityDamageEntityEvent
+					case POISON: //EntityDamageEntityEvent
+					case EXPLOSIVE:
+						blocks = Util.region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE);
+						Util.restoreState(plugin, blocks);
+						ExplosiveArrowEvent explosivearrowevent = new ExplosiveArrowEvent(arrow,loc,blocks);
+						plugin.getServer().getPluginManager().callEvent(explosivearrowevent);
+						if (!explosivearrowevent.isCancelled()) {
+							//plugin.getServer().getPluginManager().callEvent(new EntityExplodeEvent(arrow,loc,blocks,0F));
+							loc.getWorld().createExplosion(loc, 3F, true);
+							arrow.remove();
 						}
-					}
-					arrow.remove();
-					return;
-				} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("soul")) {
-					List<BlockState> blocks = Util.circle(loc.clone().add(0, -1, 0),3,1,false,true,0,Material.SOUL_SAND);
-					Util.restoreState(plugin, blocks);
-					for(BlockState block:blocks){
-						if(!block.getBlock().getType().equals(Material.AIR)){
-							block.getBlock().setType(Material.SOUL_SAND);
+					case WEB:
+						blocks = Util.circle(loc,3,3,false,true,0,Material.WEB);
+						Util.restoreState(plugin, blocks);
+						for(BlockState block:blocks){
+							if(block.getBlock().getType().equals(Material.AIR)){
+								block.getBlock().setType(Material.WEB);
+							}
 						}
-					}
-					arrow.remove();
-					return;
-				} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("web")) {
-					List<BlockState> blocks = Util.circle(loc,3,3,false,true,0,Material.WEB);
-					plugin.getServer().broadcastMessage(Integer.toString(blocks.size()));
-					Util.restoreState(plugin, blocks);
-					for(BlockState block:blocks){
-						if(block.getBlock().getType().equals(Material.AIR)){
-							block.getBlock().setType(Material.WEB);
+						arrow.remove();
+					case SOUL:
+						blocks = Util.circle(loc.clone().add(0, -1, 0),3,1,false,true,0,Material.SOUL_SAND);
+						Util.restoreState(plugin, blocks);
+						for(BlockState block:blocks){
+							if(!block.getBlock().getType().equals(Material.AIR)){
+								block.getBlock().setType(Material.SOUL_SAND);
+							}
 						}
+						arrow.remove();
+					case SAND: //Task
+					case LIGHTNING:
+						arrow.getWorld().strikeLightning(arrow.getLocation());
+						arrow.remove();
+					case FIREWORKS: //Task
+					case DRUNK: //EntityDamageEntityEvent
+					case FREEZE:
+						blocks = Util.circle(loc, 3, 3, false, true, 0,Material.ICE);
+						Util.restoreState(plugin, blocks);
+						for(BlockState block:blocks){
+							if (block.getBlock().getType().equals(Material.AIR)) {
+								block.getBlock().setType(Material.ICE);
+							}
+						}
+						arrow.remove();
+					default:
+						
 					}
-					arrow.remove();
-					return;
-				} else if (Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("lightning")){
-					arrow.getWorld().strikeLightning(arrow.getLocation());
-					arrow.remove();
 				}
 			}
 		}
@@ -738,9 +703,11 @@ public class OasisExtrasListener implements Listener{
 
 		for(Player msgplayer:plugin.getServer().getOnlinePlayers()){
 			OasisPlayer oPlayer = plugin.oasisplayer.get(msgplayer.getName());
-			if(!oPlayer.isIgnoring()){
-				if (!oPlayer2.staff) {
-					oPlayer.SendMsg(plugin.joinmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
+			if (oPlayer!=null) {
+				if (!oPlayer.isIgnoring()) {
+					if (!oPlayer2.staff) {
+						oPlayer.SendMsg(plugin.joinmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
+					}
 				}
 			}
 		}

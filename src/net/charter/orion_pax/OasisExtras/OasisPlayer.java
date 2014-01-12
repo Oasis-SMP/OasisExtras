@@ -1,10 +1,13 @@
 package net.charter.orion_pax.OasisExtras;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+
+import net.minecraft.server.v1_7_R1.PacketPlayOutSetSlot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,6 +18,8 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
 import org.bukkit.entity.*;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -58,7 +63,7 @@ public class OasisPlayer {
 	public boolean disco,rCA = false,ftrail=false;
 	public int votes=0;
 	public float speed;
-	public Inventory etable;
+	public Inventory etable,quiver;
 
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
@@ -99,7 +104,62 @@ public class OasisPlayer {
 		auraname.setLore(auralore);
 		auraitem.setItemMeta(auraname);
 		
+		quiver = Bukkit.createInventory(null, 9, "Quiver");
 		etable = Bukkit.createInventory(null, InventoryType.ENCHANTING);
+		
+		if(playerfile.getConfig().contains("arrows")){
+			if(playerfile.getConfig().contains("arrows.explosive")){
+				ItemStack arrow = new ItemStack(plugin.explosivearrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.explosive.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.poison")){
+				ItemStack arrow = new ItemStack(plugin.poisonarrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.poison.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.blindness")){
+				ItemStack arrow = new ItemStack(plugin.blindarrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.blindness.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.freeze")){
+				ItemStack arrow = new ItemStack(plugin.freezearrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.freeze.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.drunk")){
+				ItemStack arrow = new ItemStack(plugin.drunkarrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.drunk.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.sand")){
+				ItemStack arrow = new ItemStack(plugin.sandarrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.sand.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.web")){
+				ItemStack arrow = new ItemStack(plugin.webarrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.web.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.soul")){
+				ItemStack arrow = new ItemStack(plugin.soularrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.soul.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.fireworks")){
+				ItemStack arrow = new ItemStack(plugin.fireworksarrow.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.fireworks.amount"));
+				quiver.addItem(arrow);
+				
+			} else if(playerfile.getConfig().contains("arrows.lightning")){
+				ItemStack arrow = new ItemStack(plugin.lightningarrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.lightning.amount"));
+				quiver.addItem(arrow);
+				
+			}
+		}
 
 		saveMe();
 	}
@@ -119,14 +179,53 @@ public class OasisPlayer {
 		playerfile.getConfig().set("friendschatcolor", fchat);
 		playerfile.getConfig().set("joinquitkickignore", joinquitkickignore);
 		playerfile.getConfig().set("votes", votes);
+		saveArrows();
 		playerfile.saveConfig();
+	}
+	
+	public void saveArrows(){
+		for(ItemStack arrow:quiver.getContents()){
+			if (arrow!=null) {
+				playerfile.getConfig().set("arrows." + arrow.getItemMeta().getLore().get(0).toLowerCase() + ".amount", arrow.getAmount());
+			}
+		}
 	}
 
 	public void onLine(){
-		speed=getPlayer().getWalkSpeed();
+		CraftPlayer p = (CraftPlayer) getPlayer();
+		net.minecraft.server.v1_7_R1.ItemStack item = new net.minecraft.server.v1_7_R1.ItemStack(net.minecraft.server.v1_7_R1.Items.ARROW);
+		
+		PacketPlayOutSetSlot packet = new PacketPlayOutSetSlot();
+		try {
+			Field field = packet.getClass().getDeclaredField("a");
+			field.setAccessible(true);
+			field.setInt(packet, 0);
+			field.setAccessible(false);
+			field = packet.getClass().getDeclaredField("b");
+			field.setAccessible(true);
+			field.setInt(packet, 9);
+			field.setAccessible(false);
+			field = packet.getClass().getDeclaredField("c");
+			field.setAccessible(true);
+			field.set(packet, item);
+			field.setAccessible(false);
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		p.getHandle().playerConnection.sendPacket(packet);
 		online=true;
 		setLoc(getPlayer().getLocation());
-		staff = plugin.getServer().getPlayer(name).hasPermission("oasischat.staff.staff") ? true : false;
+		staff = getPlayer().hasPermission("oasischat.staff.staff") ? true : false;
 
 		if(frozen){SendMsg("&6Your &bFROZEN&g!");}
 		if(glow){SendMsg("&eGlowing &aEnabled");}
@@ -135,6 +234,7 @@ public class OasisPlayer {
 		}
 		if(trail){SendMsg("&cTrail is &aEnabled!");}
 		if(weatherman){SendMsg("&bWeather Channel is &aEnabled!");}
+		if(joinquitkickignore){SendMsg("&eJoin/leave/kick notification &aEnabled!");}
 	}
 
 	public void Disco(){
@@ -219,6 +319,7 @@ public class OasisPlayer {
 			friends.add(name);
 		}
 		SendMsg(fchat + name + " added to firends list!");
+		saveMe();
 	}
 
 	public void delFriend(String name){
@@ -226,6 +327,7 @@ public class OasisPlayer {
 			friends.remove(name);
 		}
 		SendMsg(fchat + name + " remvoed from friends list!");
+		saveMe();
 	}
 
 	public void listFriends(){
@@ -234,14 +336,17 @@ public class OasisPlayer {
 
 	public void setFCHAT(String string){
 		this.fchat = string;
+		saveMe();
 	}
 
 	public void setFPREFIX(String string){
 		this.fprefix = string;
+		saveMe();
 	}
 
 	public void setBCOLOR(String string){
 		this.bcolor = string;
+		saveMe();
 	}
 
 	public boolean isRaging(){
@@ -379,12 +484,13 @@ public class OasisPlayer {
 
 	public void offLine(){
 		ftrail=false;
-		getPlayer().setWalkSpeed(speed);
+		getPlayer().setWalkSpeed(0.5F);
 		online=false;
 		if(auratoggle){
 			cancelAura();
 		}
 		if(trail){this.toggleTrail();}
+		saveMe();
 	}
 
 	public boolean isOnline(){
@@ -407,8 +513,7 @@ public class OasisPlayer {
 
 	public void setAnimals(List<String> list){
 		animals=list;
-		playerfile.getConfig().set("animals", animals);
-		playerfile.saveConfig();
+		saveMe();
 	}
 
 	public List<String> getAnimals(){
@@ -416,7 +521,11 @@ public class OasisPlayer {
 	}
 
 	public boolean delAnimal(String string){
-		return animals.remove(string);
+		if(animals.remove(string)){
+			saveMe();
+			return true;
+		}
+		return false;
 	}
 
 	public String getName(){
@@ -438,7 +547,6 @@ public class OasisPlayer {
 		} else {
 			frozen=true;
 			saveMe();
-			playerfile.saveConfig();
 			return true;
 		}
 	}
@@ -446,7 +554,6 @@ public class OasisPlayer {
 	public void unFreezeMe(){
 		frozen=false;
 		saveMe();
-		playerfile.saveConfig();
 	}
 
 	public void lockAnimal(Entity entity){
@@ -462,7 +569,6 @@ public class OasisPlayer {
 				SendMsg("&e" + entity.getType().toString() + " &aUNLOCKED!");
 			}
 			saveMe();
-			playerfile.saveConfig();
 		}
 	}
 
@@ -506,16 +612,16 @@ public class OasisPlayer {
 					if(item.getItemMeta().getLore().get(0).equalsIgnoreCase("speed boots")){
 						getPlayer().setWalkSpeed(1F);
 					} else { 
-						getPlayer().setWalkSpeed(speed);
+						getPlayer().setWalkSpeed(0.5F);
 					}
 				} else { 
-					getPlayer().setWalkSpeed(speed);
+					getPlayer().setWalkSpeed(0.5F);
 				}
 			} else { 
-				getPlayer().setWalkSpeed(speed);
+				getPlayer().setWalkSpeed(0.5F);
 			}
 		} else { 
-			getPlayer().setWalkSpeed(speed);
+			getPlayer().setWalkSpeed(0.5F);
 		}
 	}
 
@@ -573,6 +679,10 @@ public class OasisPlayer {
 		if (rCA) {
 			randomColorArmor.cancel();
 		}
+	}
+	
+	public void openQuiver(){
+		getPlayer().openInventory(quiver);
 	}
 	
 	public static ItemStack setColor(ItemStack item, Color color){
