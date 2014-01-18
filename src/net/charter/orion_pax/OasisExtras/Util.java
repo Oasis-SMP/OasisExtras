@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.minecraft.server.v1_7_R1.ChunkPosition;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -410,6 +412,23 @@ public class Util {
 		}
 		return false;
 	}
+	
+	public static boolean arrowCheck(ItemStack[] items, String name){
+		if (items!=null) {
+			for (ItemStack item : items) {
+				if (item!=null) {
+					if (item.hasItemMeta()) {
+						if (item.getItemMeta().hasLore()) {
+							if (item.getItemMeta().getLore().get(0).equalsIgnoreCase(name)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
 
 	public static List<BlockState> region(Location loc1, Location loc2, Material... mat)
 	{
@@ -434,6 +453,36 @@ public class Util {
 					Block block = loc1.getWorld().getBlockAt(x, y, z);
 					if(matCheck(mat,block.getType())){
 						blocks.add(block.getState());
+					}
+				}
+			}
+		}
+
+		return blocks;
+	}
+	
+	public static List<ChunkPosition> region1(Location loc1, Location loc2, Material... mat)
+	{
+		List<ChunkPosition> blocks = new ArrayList<ChunkPosition>();
+
+		int topBlockX = (loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+		int bottomBlockX = (loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX());
+
+		int topBlockY = (loc1.getBlockY() < loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+		int bottomBlockY = (loc1.getBlockY() > loc2.getBlockY() ? loc2.getBlockY() : loc1.getBlockY());
+
+		int topBlockZ = (loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+		int bottomBlockZ = (loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ());
+
+		for(int x = bottomBlockX; x <= topBlockX; x++)
+		{
+			for(int z = bottomBlockZ; z <= topBlockZ; z++)
+			{
+				for(int y = bottomBlockY; y <= topBlockY; y++)
+				{
+					Block block = loc1.getWorld().getBlockAt(x, y, z);
+					if(matCheck(mat,block.getType())){
+						blocks.add(new ChunkPosition(block.getX(),block.getY(),block.getZ()));
 					}
 				}
 			}

@@ -45,6 +45,8 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
@@ -54,6 +56,7 @@ import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -74,21 +77,11 @@ public class OasisExtrasListener implements Listener{
 
 	public OasisExtrasListener(OasisExtras plugin){
 		this.plugin = plugin;
-		setupEconomy();
 	}
 
 	int joinTimer = 30;
 	int mytask,mytask2,arrowTask;
 	private Map<String, OasisPlayer> syncOasisPlayer;
-	private boolean arrowTest = false;
-	private Boolean setupEconomy(){
-		RegisteredServiceProvider<Economy> economyProvider = plugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-		if (economyProvider != null) {
-			economy = economyProvider.getProvider();
-		}
-
-		return (economy != null);
-	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerChat(AsyncPlayerChatEvent event){
@@ -357,45 +350,82 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 	}
-	
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnCraftItem(CraftItemEvent event){
-		event.setCancelled(true);
-	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnArrowShot(ProjectileLaunchEvent event){
-		if (event.getEntity() instanceof Arrow) {
-			Arrow arrow = (Arrow) event.getEntity();
-			if (event.getEntity().getShooter() instanceof Player) {
-				Player player = (Player) event.getEntity().getShooter();
-				OasisPlayer oPlayer = Util.getOPlayer(plugin, player.getName());
-				if (player.getWorld().getName().equals("pvpworld") || oPlayer.staff) {
-					ArrowType myarrow = ArrowType.valueOf(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none"));
-					for(ItemStack item:oPlayer.quiver.getContents()){
-						if(item.getItemMeta().getLore().get(0).equalsIgnoreCase(myarrow.toString())){
-							if(item.getAmount()==1){
-								oPlayer.quiver.remove(item);
-								oPlayer.saveMe();
-							} else {
-								oPlayer.quiver.remove(item);
-								item.setAmount(item.getAmount() - 1);
-								oPlayer.quiver.addItem(item);
+	public void OnCraftItem(CraftItemEvent event){
+		for(Recipe recipe: plugin.recipes){
+			if(event.getRecipe().getResult().hasItemMeta()){
+				if(event.getRecipe().getResult().getItemMeta().hasLore()){
+					if(event.getRecipe().getResult().getItemMeta().getLore().get(0).equals(recipe.getResult().getItemMeta().getLore().get(0))){
+						if(event.getWhoClicked() instanceof Player){
+							Player player = (Player) event.getWhoClicked();
+							if(!player.hasPermission("oasisextras.arrow." + recipe.getResult().getItemMeta().getLore().get(0))){
+								event.setCancelled(true);
+								player.updateInventory();
+								Util.SendMsg(player, "&cYou do not have permissions to craft that!");
+								return;
 							}
-							event.setCancelled(true);
-							Arrow newarrow = player.launchProjectile(Arrow.class);
-							arrow.setVelocity(event.getEntity().getVelocity());
-							return;
 						}
 					}
 				}
 			}
 		}
 	}
-	
+
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnMyEvent(ExplosiveArrowEvent event){
-		
+	public void OnArrowShot(EntityShootBowEvent event){
+		if (event.getEntity() instanceof Player) {
+			Player player = (Player) event.getEntity();
+			OasisPlayer oPlayer = Util.getOPlayer(plugin, player.getName());
+			if (player.getWorld().getName().equals("pvpworld") || oPlayer.staff) {
+				String myarrow = plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none");
+				if(myarrow!="none"){
+					for(ItemStack item:oPlayer.quiver.getContents()){
+						if (item!=null) {
+							if (item.getItemMeta().getLore().get(0).equalsIgnoreCase(myarrow)) {
+								if (oPlayer.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
+									if (item.getAmount() == 1) {
+										oPlayer.quiver.removeItem(item);
+										oPlayer.saveMe();
+									} else {
+										oPlayer.quiver.removeItem(item);
+										item.setAmount(item.getAmount() - 1);
+										oPlayer.quiver.addItem(item);
+										oPlayer.saveMe();
+									}
+								}
+								Arrow newarrow = player.getWorld().spawn(event.getProjectile().getLocation(), Arrow.class);
+								newarrow.setVelocity(event.getProjectile().getVelocity());
+								event.setCancelled(true);
+								newarrow.setShooter(player);
+								player.updateInventory();
+								if(myarrow.equalsIgnoreCase("sand")){
+									Util.sandArrow(plugin, newarrow);
+								} else if (myarrow.equalsIgnoreCase("fireworks")){
+									Util.fireworksArrow(plugin, newarrow);
+								}
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void OnBoom(EntityExplodeEvent event){
+		if (!event.isCancelled()) {
+			if (event.getEntity() instanceof Arrow) {
+				List<BlockState> blocks = new ArrayList<BlockState>();
+				for (Block block : event.blockList()) {
+					blocks.add(block.getState());
+					block.setType(Material.AIR);
+				}
+				event.blockList().clear();
+				Util.restoreState(plugin, blocks);
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -406,57 +436,59 @@ public class OasisExtrasListener implements Listener{
 			Arrow arrow = (Arrow) event.getEntity();
 			if(arrow.getShooter() instanceof Player){
 				Player player = (Player) arrow.getShooter();
-				ArrowType myarrow = ArrowType.valueOf(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none"));
-				if(!myarrow.equals(ArrowType.NONE)){
-					switch(myarrow){
-					case BLINDNESS: //EntityDamageEntityEvent
-					case POISON: //EntityDamageEntityEvent
-					case EXPLOSIVE:
-						blocks = Util.region(loc.clone().add(5, 5, 5),loc.clone().add(-5, -5, -5),Material.AIR, Material.FIRE);
-						Util.restoreState(plugin, blocks);
-						ExplosiveArrowEvent explosivearrowevent = new ExplosiveArrowEvent(arrow,loc,blocks);
-						plugin.getServer().getPluginManager().callEvent(explosivearrowevent);
-						if (!explosivearrowevent.isCancelled()) {
-							//plugin.getServer().getPluginManager().callEvent(new EntityExplodeEvent(arrow,loc,blocks,0F));
-							loc.getWorld().createExplosion(loc, 3F, true);
-							arrow.remove();
+				String myarrow = plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none");
+				switch(myarrow){
+				case "none":
+					break;
+				case "explosion":
+					net.minecraft.server.v1_7_R1.Entity craftarrow = (net.minecraft.server.v1_7_R1.Entity)((CraftEntity)arrow).getHandle();
+					Explosion explosion = new Explosion(craftarrow.world,craftarrow,craftarrow.locX,craftarrow.locY,craftarrow.locZ,3F);
+					explosion.a();
+					explosion.a(true);
+					arrow.remove();
+					break;
+				case "web":
+					blocks = Util.circle(loc,3,3,false,true,0,Material.WEB);
+					Util.restoreState(plugin, blocks);
+					for(BlockState block:blocks){
+						if(block.getBlock().getType().equals(Material.AIR)){
+							block.getBlock().setType(Material.WEB);
 						}
-					case WEB:
-						blocks = Util.circle(loc,3,3,false,true,0,Material.WEB);
-						Util.restoreState(plugin, blocks);
-						for(BlockState block:blocks){
-							if(block.getBlock().getType().equals(Material.AIR)){
-								block.getBlock().setType(Material.WEB);
-							}
-						}
-						arrow.remove();
-					case SOUL:
-						blocks = Util.circle(loc.clone().add(0, -1, 0),3,1,false,true,0,Material.SOUL_SAND);
-						Util.restoreState(plugin, blocks);
-						for(BlockState block:blocks){
-							if(!block.getBlock().getType().equals(Material.AIR)){
-								block.getBlock().setType(Material.SOUL_SAND);
-							}
-						}
-						arrow.remove();
-					case SAND: //Task
-					case LIGHTNING:
-						arrow.getWorld().strikeLightning(arrow.getLocation());
-						arrow.remove();
-					case FIREWORKS: //Task
-					case DRUNK: //EntityDamageEntityEvent
-					case FREEZE:
-						blocks = Util.circle(loc, 3, 3, false, true, 0,Material.ICE);
-						Util.restoreState(plugin, blocks);
-						for(BlockState block:blocks){
-							if (block.getBlock().getType().equals(Material.AIR)) {
-								block.getBlock().setType(Material.ICE);
-							}
-						}
-						arrow.remove();
-					default:
-						
 					}
+					arrow.remove();
+					break;
+				case "soul":
+					blocks = Util.circle(loc.clone().add(0, -1, 0),3,1,false,true,0,Material.SOUL_SAND);
+					Util.restoreState(plugin, blocks);
+					for(BlockState block:blocks){
+						if(!block.getBlock().getType().equals(Material.AIR)){
+							block.getBlock().setType(Material.SOUL_SAND);
+						}
+					}
+					arrow.remove();
+					break;
+				case "lightning":
+					arrow.getWorld().strikeLightning(arrow.getLocation());
+					arrow.remove();
+					break;
+				case "freeze":
+					blocks = Util.circle(loc, 3, 3, false, true, 0,Material.ICE);
+					Util.restoreState(plugin, blocks);
+					for(BlockState block:blocks){
+						if (block.getBlock().getType().equals(Material.AIR)) {
+							block.getBlock().setType(Material.ICE);
+						}
+					}
+					arrow.remove();
+					break;
+				case "teleport":
+					player.teleport(loc);
+					arrow.remove();
+					break;
+				}
+				OasisPlayer oPlayer = Util.getOPlayer(plugin, player.getName());
+				if(!Util.arrowCheck(oPlayer.quiver.getContents(), myarrow)){
+					plugin.chat.setPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none");
 				}
 			}
 		}
@@ -696,23 +728,7 @@ public class OasisExtrasListener implements Listener{
 		final Player player = event.getPlayer();
 		if (plugin.oasisplayer.containsKey(player.getName())) {
 			plugin.oasisplayer.get(player.getName()).onLine();
-		}
-
-		OasisPlayer oPlayer2 = plugin.oasisplayer.get(event.getPlayer().getName());
-		event.setJoinMessage("");
-
-		for(Player msgplayer:plugin.getServer().getOnlinePlayers()){
-			OasisPlayer oPlayer = plugin.oasisplayer.get(msgplayer.getName());
-			if (oPlayer!=null) {
-				if (!oPlayer.isIgnoring()) {
-					if (!oPlayer2.staff) {
-						oPlayer.SendMsg(plugin.joinmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
-					}
-				}
-			}
-		}
-
-		if (!player.hasPlayedBefore()){
+		} else {
 			plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin,player.getName()));
 			if (!plugin.newbiejoin.isEmpty()) {
 				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -728,6 +744,20 @@ public class OasisExtrasListener implements Listener{
 					@SuppressWarnings("deprecation")
 					ItemStack item = new ItemStack(i);
 					player.getInventory().addItem(item);
+				}
+			}
+		}
+
+		OasisPlayer oPlayer2 = plugin.oasisplayer.get(event.getPlayer().getName());
+		event.setJoinMessage("");
+
+		for(Player msgplayer:plugin.getServer().getOnlinePlayers()){
+			OasisPlayer oPlayer = plugin.oasisplayer.get(msgplayer.getName());
+			if (oPlayer!=null) {
+				if (!oPlayer.isIgnoring()) {
+					if (!oPlayer2.staff) {
+						oPlayer.SendMsg(plugin.joinmsg.replace("{DISPLAYNAME}", event.getPlayer().getDisplayName()));
+					}
 				}
 			}
 		}
@@ -781,16 +811,6 @@ public class OasisExtrasListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnFrozenAttack(EntityDamageByEntityEvent event){
-		if (event.getDamager() instanceof Player){
-			if (plugin.oasisplayer.get(((Player) event.getDamager()).getName()).isFrozen()){
-				event.setCancelled(true);
-				return;
-			}
-		}
-	}
-
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void OnEntityDeath(EntityDeathEvent event){
 		if(event.getEntityType().equals(EntityType.GIANT)){
@@ -827,24 +847,25 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnPlayerAttackAnimal(EntityDamageByEntityEvent event){
+	public void OnEntityAttackEntity(EntityDamageByEntityEvent event){
+		//custom arrow code
 		if(event.getDamager() instanceof Arrow){
 			Arrow arrow = (Arrow) event.getDamager();
 			if(arrow.getShooter() instanceof Player){
 				Player player = (Player) arrow.getShooter();
-				if(Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("poison")){
+				if(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none").equalsIgnoreCase("poison")){
 					if(event.getEntity() instanceof Player){
 						Player poisoned = (Player) event.getEntity();
 						poisoned.addPotionEffect(new PotionEffect(PotionEffectType.POISON,100,1));
 						arrow.remove();
 					}
-				} else if(Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("drunk")){
+				} else if(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none").equalsIgnoreCase("confusion")){
 					if(event.getEntity() instanceof Player){
 						Player poisoned = (Player) event.getEntity();
-						poisoned.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION,100,100));
+						poisoned.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION,200,255));
 						arrow.remove();
 					}
-				} else if(Util.getMetadata(arrow, "name", plugin).equalsIgnoreCase("blindness")){
+				} else if(plugin.chat.getPlayerInfoString(player.getWorld(), player.getName(), "arrow", "none").equalsIgnoreCase("blindness")){
 					if(event.getEntity() instanceof Player){
 						Player poisoned = (Player) event.getEntity();
 						poisoned.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS,100,100));
@@ -854,6 +875,12 @@ public class OasisExtrasListener implements Listener{
 			}
 		}
 		if(event.getDamager() instanceof Player){
+			//frozen attack code
+			if (plugin.oasisplayer.get(((Player) event.getDamager()).getName()).isFrozen()){
+				event.setCancelled(true);
+				return;
+			}
+			//animal attack code
 			OasisPlayer owner = Util.getOwner(plugin, event.getEntity());
 			if (owner != null) {
 				Player player = (Player) event.getDamager();
@@ -1052,18 +1079,9 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority=EventPriority.NORMAL)
 	public void onVotifierEvent(VotifierEvent event) {
-		Vote vote = event.getVote();
-
-		String username = vote.getUsername();
-		Player player = plugin.getServer().getPlayer(username);
-
-		plugin.getServer().broadcastMessage(ChatColor.GREEN + "The server was voted for by " + ChatColor.RED + username + ChatColor.GREEN +  "!");
-		economy.depositPlayer(username, plugin.amount);
-
-		if (player != null){
-			((Player) player).sendMessage("Thanks for voting on " + vote.getServiceName() + "!");
-			((Player) player).sendMessage(plugin.amount + " has been added to your iConomy balance.");
-
+		OasisPlayer oPlayer = Util.getOPlayer(plugin, event.getVote().getUsername());
+		if(oPlayer!=null){
+			oPlayer.votes++;
 		}
 	}
 

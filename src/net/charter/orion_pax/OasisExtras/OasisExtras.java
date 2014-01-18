@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -87,10 +88,15 @@ public class OasisExtras extends JavaPlugin{
 	public long bcasttimer;
 	public MyConfigFile appletreefile;
 	public OasisExtrasTask task;
-	public Recipe shoes,explosivearrows,freezearrows,webarrows,soularrows,fireworksarrow,sandarrows,web,poisonarrows,blindarrows,drunkarrows,lightningarrows;
+	public Recipe shoes,explosionarrows,freezearrows,webarrows,soularrows,
+	fireworksarrow,sandarrows,web,poisonarrows,blindarrows,confusionarrows,
+	lightningarrows,tparrows;
+	public Recipe[] recipes = new Recipe[11];
 	public BukkitTask votecheck;
 	public FireworkEffectPlayer fplayer = new FireworkEffectPlayer();
 	public static Chat chat = null;
+	public OasisPlayer[] myplayers;
+	public static CustomArrowEnchantment ench = new CustomArrowEnchantment(69);
 	//public SLAPI slapi;
 
 	public String[] oasisextrassub = {
@@ -107,12 +113,12 @@ public class OasisExtras extends JavaPlugin{
 			,ChatColor.GOLD + "/oasisextras BCAST ADD - Adds a msg to the auto bcast list"
 			,ChatColor.GOLD + "/oasisextras BCAST REMOVE - Removes a msg from the auto bcast list"
 	};
-	
+
 	private boolean setupChat() {
-        RegisteredServiceProvider<Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
-        chat = rsp.getProvider();
-        return chat != null;
-    }
+		RegisteredServiceProvider<Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
+		chat = rsp.getProvider();
+		return chat != null;
+	}
 
 	@Override
 	public void onEnable() {
@@ -208,15 +214,13 @@ public class OasisExtras extends JavaPlugin{
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();
-		if (CoreProtect!=null){ //Ensure we have access to the API
-			CoreProtect.testAPI(); //Will print out "[CoreProtect] API Test Successful." in the console.
-		}
 
 		task = new OasisExtrasTask(this);
 		setup();
 		addRecipes();
 		console = Bukkit.getServer().getConsoleSender();
 		loadPlayerConfigs();
+		registerEnchants();
 		getLogger().info("OasisExtras has been enabled!");
 	}
 
@@ -253,7 +257,28 @@ public class OasisExtras extends JavaPlugin{
 		getLogger().info("OasisExtras has been disabled!");
 	}
 
+	public void registerEnchants(){
+		try{
+			try {
+				Field f = Enchantment.class.getDeclaredField("acceptingNew");
+				f.setAccessible(true);
+				f.set(null, true);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				Enchantment.registerEnchantment(ench);
+				getLogger().info("Custom Arrow Enchantments registered!");
+			} catch (IllegalArgumentException e){
+				//if this is thrown it means the id is already taken.
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
 	public void addRecipes(){
+		int count = 0;
 		//Speed shoes
 		ShapedRecipe recipe = new ShapedRecipe(PrepareItem(Material.DIAMOND_BOOTS,"Speed Boots",1));
 		recipe.shape("SSS","DSD","DGD");
@@ -261,18 +286,26 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.DIAMOND);
 		recipe.setIngredient('G', Material.GOLD_BOOTS);
 		getServer().addRecipe(recipe);
-
 		this.shoes = recipe;
+		
+		//Web block
+		recipe = new ShapedRecipe(new ItemStack(Material.WEB,1));
+		recipe.shape("S S"," S ","S S");
+		recipe.setIngredient('S', Material.STRING);
+		getServer().addRecipe(recipe);
+		this.web = recipe;
 
 		//explosivearrows
 
-		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Explosive",4));
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Explosion",4));
 		recipe.shape("DSD","SAS","DSD");
 		recipe.setIngredient('S', Material.TNT);
 		recipe.setIngredient('A', Material.ARROW);
 		recipe.setIngredient('D', Material.DIAMOND);
 		getServer().addRecipe(recipe);
-		this.explosivearrows = recipe;
+		this.explosionarrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//freezearrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Freeze",4));
@@ -281,6 +314,8 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.freezearrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//fireworksarrow
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Fireworks",4));
@@ -289,6 +324,8 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.fireworksarrow = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//soularrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Soul",4));
@@ -297,6 +334,8 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.soularrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//webarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Web",4));
@@ -305,6 +344,8 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.webarrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//sandarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Sand",4));
@@ -313,13 +354,8 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.sandarrows = recipe;
-
-		//Web block
-		recipe = new ShapedRecipe(new ItemStack(Material.WEB,1));
-		recipe.shape(" S ","SSS"," S ");
-		recipe.setIngredient('S', Material.STRING);
-		getServer().addRecipe(recipe);
-		this.web = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//blindarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Blindness",4));
@@ -328,6 +364,8 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.blindarrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
 		//poisonarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Poison",4));
@@ -336,16 +374,20 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
 		this.poisonarrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
 
-		//sandarrows
-		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Drunk",4));
+		//confusionarrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Confusion",4));
 		recipe.shape(" S ","SDS"," S ");
 		recipe.setIngredient('S', Material.POTION);
 		recipe.setIngredient('D', Material.ARROW);
 		getServer().addRecipe(recipe);
-		this.drunkarrows = recipe;
-		
-		//sandarrows
+		this.confusionarrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
+
+		//lightningarrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Lightning",1));
 		recipe.shape("DGD","GAG","DGD");
 		recipe.setIngredient('D', Material.DIAMOND);
@@ -353,15 +395,28 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('G', Material.SULPHUR);
 		getServer().addRecipe(recipe);
 		this.lightningarrows = recipe;
+		this.recipes[count]=recipe;
+		count++;
+		
+		//tparrows
+		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Teleport",1));
+		recipe.shape("DGD","GAG","DGD");
+		recipe.setIngredient('D', Material.DIAMOND);
+		recipe.setIngredient('A', Material.ARROW);
+		recipe.setIngredient('G', Material.ENDER_PEARL);
+		getServer().addRecipe(recipe);
+		this.tparrows = recipe;
+		this.recipes[count]=recipe;
+		
 	}
 
 	public ItemStack PrepareItem(Material mat, String name, int amount){
 		ItemStack item = new ItemStack(mat,amount);
 		ItemMeta meta = item.getItemMeta();
-		meta.addEnchant(Enchantment.PROTECTION_FALL, 1, true);
+		meta.addEnchant(ench, 1, true);
 		meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.translateAlternateColorCodes('&', name));
+		lore.add(ChatColor.translateAlternateColorCodes('&', name.toLowerCase()));
 		meta.setLore(lore);
 		item.setItemMeta(meta);
 		return item;
@@ -390,9 +445,15 @@ public class OasisExtras extends JavaPlugin{
 	}
 
 	public void loadPlayerConfigs(){
+		myplayers = new OasisPlayer[this.getServer().getOfflinePlayers().length];
+		int count = 0;
 		for(OfflinePlayer offPlayer:this.getServer().getOfflinePlayers()){
-			this.oasisplayer.put(offPlayer.getName(), new OasisPlayer(this,offPlayer.getName()));
+			OasisPlayer oPlayer = new OasisPlayer(this,offPlayer.getName());
+			this.oasisplayer.put(offPlayer.getName(), oPlayer);
+			myplayers[count] = oPlayer;
+			count++;
 		}
+
 	}
 
 	public void setup(){

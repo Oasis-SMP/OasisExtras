@@ -31,6 +31,7 @@ public class GiveCouponCommand implements CommandExecutor{
 			}
 			
 			coupmeta = coupon.getItemMeta();
+			coupmeta.addEnchant(plugin.ench, 1, true);
 			coupmeta.setDisplayName("Coupon");
 			coupon.setItemMeta(coupmeta);
 			

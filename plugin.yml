@@ -531,8 +531,53 @@ permissions:
     oasisextras.staff.erase:
         description: Erases all items in a range!
         
-    oasisextras.player.customarrows:
-        description: Custom Arrows!
+    oasisextras.arrow.explosion:
+        description: Explosion Arrows!
+        
+    oasisextras.arrow.freeze:
+        description: Freeze Arrows!
+        
+    oasisextras.arrow.fireworks:
+        description: Fireworks Arrows!
+        
+    oasisextras.arrow.poison:
+        description: Poison Arrows!
+        
+    oasisextras.arrow.sand:
+        description: Sand Arrows!
+        
+    oasisextras.arrow.teleport:
+        description: TP Arrows!
+        
+    oasisextras.arrow.web:
+        description: Web Arrows!
+        
+    oasisextras.arrow.soul:
+        description: Soul Arrows!
+        
+    oasisextras.arrow.confusion:
+        description: Confusion Arrows!
+        
+    oasisextras.arrow.blindness:
+        description: Blindness Arrows!
+        
+    oasisextras.arrow.lightning:
+        description: Lightning Arrows!
+        
+    oasisextras.arrow.*:
+        description: Gives access to all custom arrows!
+        children:
+            oasisextras.arrow.lightning: true
+            oasisextras.arrow.blindness: true
+            oasisextras.arrow.confusion: true
+            oasisextras.arrow.soul: true
+            oasisextras.arrow.web: true
+            oasisextras.arrow.teleport: true
+            oasisextras.arrow.sand: true
+            oasisextras.arrow.poison: true
+            oasisextras.arrow.freeze: true
+            oasisextras.arrow.explosion: true
+            oasisextras.arrow.fireworks: true
         
     oasisextras.player.*:
         description: Gives access to all player commands
