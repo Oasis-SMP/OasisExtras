@@ -527,6 +527,10 @@ public class Util {
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
 	}
 	
+	public static void SendListMsg(Player player, String msg){
+		player.sendMessage(ChatColor.translateAlternateColorCodes('~', msg));
+	}
+	
 	public static String ColorChat(String msg){
 		return ChatColor.translateAlternateColorCodes('&', msg);
 	}

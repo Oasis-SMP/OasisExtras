@@ -30,6 +30,10 @@ public class OECommand implements CommandExecutor{
 			return true;
 		}
 		
+		if(args.length>1 && args[0].equalsIgnoreCase("set")){
+			new SetSubCommand(plugin,sender,args);
+		}
+		
 		if (args.length==1) {
 			if (args[0].equalsIgnoreCase("reload")) {
 				new ReloadSubCommand(plugin, sender);
@@ -49,12 +53,10 @@ public class OECommand implements CommandExecutor{
 		if (args.length>2) {
 			if (args[0].equalsIgnoreCase("add")) {
 				StringBuffer buffer = new StringBuffer();
-				buffer.append(args[1]);
-				for (int i = 2; i < args.length; i++) {
-					buffer.append(" ");
-					buffer.append(args[i]);
+				for (int i = 1; i < args.length; i++) {
+					buffer.append(args[i] + " ");
 				}
-				String message = buffer.toString();
+				String message = buffer.deleteCharAt(buffer.length()-1).toString();
 				new AddSubCommand(plugin, sender, message);
 			}
 			

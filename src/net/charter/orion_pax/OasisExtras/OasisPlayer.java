@@ -53,7 +53,7 @@ public class OasisPlayer {
 	public boolean joinquitkickignore = false;
 	public Location ssloc1,ssloc2;
 	public List<String> friends = new ArrayList<String>();
-	public String bcolor,fprefix,fchat;
+	public String bcolor,fprefix,fchat,address;
 	private BukkitTask discotask,randomColorArmor;
 	private List<BlockState> floor = new ArrayList<BlockState>();
 	public boolean disco,rCA = false,ftrail=false;
@@ -94,6 +94,8 @@ public class OasisPlayer {
 		weatherman = playerfile.getConfig().getBoolean("weatherman", false);
 
 		joinquitkickignore = playerfile.getConfig().getBoolean("joinquitkickignore", false);
+		
+		address = playerfile.getConfig().getString("address", "none");
 
 		auralore.add("NO");
 
@@ -182,6 +184,7 @@ public class OasisPlayer {
 		playerfile.getConfig().set("friendschatcolor", fchat);
 		playerfile.getConfig().set("joinquitkickignore", joinquitkickignore);
 		playerfile.getConfig().set("votes", votes);
+		playerfile.getConfig().set("address", address);
 		saveArrows();
 		playerfile.saveConfig();
 	}
@@ -207,9 +210,10 @@ public class OasisPlayer {
 	}
 
 	public void onLine(){
-		CraftPlayer cPlayer = (CraftPlayer) getPlayer();
-		PacketPlayOutSetSlot packet = new PacketPlayOutSetSlot(0,1,new net.minecraft.server.v1_7_R1.ItemStack(net.minecraft.server.v1_7_R1.Items.ARROW));
-		cPlayer.getHandle().playerConnection.sendPacket(packet);
+
+		address=getPlayer().getAddress().getAddress().toString().substring(1);
+		playerfile.getConfig().set("address", address);
+		saveMe();
 		online=true;
 		setLoc(getPlayer().getLocation());
 		staff = getPlayer().hasPermission("oasischat.staff.staff") ? true : false;
@@ -474,6 +478,10 @@ public class OasisPlayer {
 		online=false;
 		if(auratoggle){
 			cancelAura();
+		}
+		if(rCA){
+			this.randomColorArmor.cancel();
+			rCA=!rCA;
 		}
 		if(trail){this.toggleTrail();}
 		saveMe();

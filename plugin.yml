@@ -5,7 +5,20 @@ description: Oasis Extra commands!
 author: Paxination
 depend: [Votifier, CoreProtect,Vault]
 commands:
-    
+
+  setcmd:
+    description: Changes a command blocks command!
+    aliases: [scmd, setcommand]
+    usage: "Usage: /<command> Commandblock command here with arguments"
+    permission: oasisextras.staff.setcmd
+    permission-message: You don't have permissions for <permission>
+
+  msgall:
+    description: Changes a command blocks command!
+    usage: "Usage: /<command> message"
+    permission: oasisextras.staff.msgall
+    permission-message: You don't have permissions for <permission>
+        
   blackmarket:
     description: Blackmarket broadcast
     aliases: [bm, bmarket]
@@ -320,12 +333,6 @@ commands:
     permission: oasisextras.staff.throw
     permission-message: You don't have permissions for <permission>
     
-  raining:
-    description: Rains items, blocks and mobs!
-    usage: "Usage: /<command> item/mob/block type"
-    permission: oasisextras.staff.raining
-    permission-message: You don't have permissions for <permission>
-    
   quiver:
     description: Open custom arrow inventory!
     usage: "Usage: /<command>"
@@ -333,11 +340,14 @@ commands:
     permission-message: You don't have permissions for <permission>
     
 permissions:
+    oasisextras.staff.msgall:
+        description: Send a msg to all players!  Ignores staff!
+        
+    oasisextras.staff.setcmd:
+        description: Change command blocks command!
+        
     oasisextras.player.quiver:
         description: Open custom arrow inventory!
-        
-    oasisextras.staff.raining:
-        description: Rains items, blocks and mobs!
         
     oasisextras.staff.throw:
         description: Throws item in hand!
@@ -605,6 +615,7 @@ permissions:
             oasisextras.staff.comcast: true
             oasisextras.staff.blackmarket: true
             oasisextras.staff.givecoupon: true
+            oasisextras.staff.setcmd: true
             
     oasisextras.staff.mod:
         description: Mod perm nodes

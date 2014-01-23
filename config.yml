@@ -1,26 +1,22 @@
-oasisextras:
-
-  # random min and max values
-  min_default_location: -2500
-  max_default_location: 2500
-
-  joinignore: 30
-
-  Votifier: 150
-
-  # random settings
-  default_invulnerability_ticks: 300
-
-  # also in minutes
-  broadcasttimer: 15
-
-  #New player join msg
-  newplayermsg: '&dWelcome &f{DISPLAYNAME}&d to Oasis SMP!'
+# random min and max values
+min_default_location: -2500
+max_default_location: 2500
   
-  #Custom join/quit/kick msgs!
-  join: '&e{DISPLAYNAME} joined the game!'
-  quit: '&e{DISPLAYNAME} left the game!'
-  kick: '&e{DISPLAYNAME} was &cKICKED &efrom the game!'
+motd: 'Welcome to Oasis SMP!'
+motdcolor: 'random'
+  
+msgallformat: '&6[{DISPLAYNAME}&6-> me] {MESSAGE}'
+
+# random settings
+default_invulnerability_ticks: 300
+
+# also in minutes
+broadcasttimer: 15
+  
+#Custom join/quit/kick msgs!
+join: '&e{DISPLAYNAME} joined the game!'
+quit: '&e{DISPLAYNAME} left the game!'
+kick: '&e{DISPLAYNAME} was &cKICKED &efrom the game!'
   
 #Auto broadcast settings
 broadcastmessages:
@@ -28,14 +24,6 @@ broadcastmessages:
   - Apply for member at bit.ly/OasisMember
   - Donate for the server at bit.ly/ODonate
   - Want to switch worlds? Type /warp world1 for the old world, and /warp world2 for the new world!
-
-#New player kit
-newbiekit:
-  - 268
-  - 269
-  - 270
-  - 271
-  - 290
   
 #Apple Tree settings
 #Delay before a new tree produces apples, in ticks.

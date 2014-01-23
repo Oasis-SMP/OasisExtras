@@ -1,30 +1,32 @@
 package net.charter.orion_pax.OasisExtras.Commands.SubCommands;
 
-import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import net.charter.orion_pax.OasisExtras.OasisExtras;
+import net.charter.orion_pax.OasisExtras.Util;
 
 public class ListSubCommand {
 
 	private OasisExtras plugin;
-	
+
 	public ListSubCommand(OasisExtras plugin, CommandSender sender){
 		this.plugin = plugin;
-		sender.sendMessage(ChatColor.GOLD + "In game editable sections:");
-		List<String> configsection = (List<String>) plugin.getConfig().getConfigurationSection("oasisextras");
-		for(String msg:configsection){
-			if(msg!="broadcastmessages"){
-				sender.sendMessage(msg);
+		int count = 0;
+		Player player = (Player)sender;
+		Util.SendListMsg(player, "~6OasisExtras config:");
+		for(String key:plugin.getConfig().getKeys(false)){
+			if(key.equalsIgnoreCase("broadcastmessages")){
+				Util.SendListMsg(player, "~2Broadcast messages:");
+				for (String msg : this.plugin.getConfig().getStringList("broadcastmessages")){
+					count++;
+					Util.SendListMsg(player, "*  ~6[~1" + count + "~6] - ~a" + msg);
+				}
+			} else {
+				count++;
+				Util.SendListMsg(player, "~6[~1" + count + "~6] - ~2" + key + "~r: ~a" + plugin.getConfig().getString(key));
 			}
-		}
-		sender.sendMessage(ChatColor.GOLD + "Broadcast messages:");
-		int count=0;
-		for (String msg : this.plugin.getConfig().getStringList("broadcastmessages")){
-			count++;
-			String thismsg = ChatColor.GOLD + "[" + ChatColor.BLUE + count + ChatColor.GOLD + "] - " + msg;
-			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', thismsg));
 		}
 	}
 }

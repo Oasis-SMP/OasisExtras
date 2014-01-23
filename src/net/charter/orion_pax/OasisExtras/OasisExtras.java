@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 
-import org.anjocaido.groupmanager.GroupManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -29,6 +28,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
@@ -46,13 +46,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import com.daemitus.deadbolt.Deadbolt;
+
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 
 import net.charter.orion_pax.OasisExtras.Commands.*;
-import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.chat.Chat;
-import net.milkbowl.vault.permission.Permission;
 
 //@Paxination:
 //
@@ -72,6 +72,7 @@ import net.milkbowl.vault.permission.Permission;
 public class OasisExtras extends JavaPlugin{
 
 	public ConsoleCommandSender console;
+	public RemoteConsoleCommandSender rcon;
 	public List<Chunk> eList = new ArrayList<Chunk>();
 	public List<Item> aura = new ArrayList<Item>();
 	public HashMap<String,Event> events = new HashMap<String,Event>();
@@ -82,8 +83,7 @@ public class OasisExtras extends JavaPlugin{
 	public HashMap<Location, Runnable> appletree = new HashMap<Location, Runnable>();
 	public HashMap<String, OasisPlayer> tptimer = new HashMap<String, OasisPlayer>();
 	public CoreProtectAPI CoreProtect;
-	public String effectslist,newbiejoin,joinmsg,kickmsg,quitmsg;
-	public List<Integer> newbiekit;
+	public String effectslist,joinmsg,kickmsg,quitmsg;
 	public int default_min, default_max, ndt, treecount=0,amount,joinignore;
 	public long bcasttimer;
 	public MyConfigFile appletreefile;
@@ -209,8 +209,9 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("anvil").setExecutor(new AnvilCommand(this));
 		getCommand("etable").setExecutor(new ETableCommand(this));
 		getCommand("throw").setExecutor(new ThrowCommand(this));
-		getCommand("raining").setExecutor(new RainingCommand(this));
 		getCommand("quiver").setExecutor(new QuiverCommand(this));
+		getCommand("setcmd").setExecutor(new SetCMDCommand(this));
+		getCommand("msgall").setExecutor(new MsgAllCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();
@@ -458,23 +459,21 @@ public class OasisExtras extends JavaPlugin{
 
 	public void setup(){
 		setupChat();
-		joinmsg=getConfig().getString("oasisextras.join");
-		quitmsg=getConfig().getString("oasisextras.quit");
-		kickmsg=getConfig().getString("oasisextras.kick");
-		joinignore = getConfig().getInt("oasisextras.joinignore",30);
-		amount = getConfig().getInt("oasisextras.Votifier",150);
-		newbiekit = getConfig().getIntegerList("newbiekit");
-		newbiejoin = getConfig().getString("oasisextras.newplayermsg");
-		bcasttimer = getConfig().getInt("oasisextras.broadcasttimer",15*1200)*1200;
-		default_min = getConfig().getInt("oasisextras.min_default_location",-2500);
-		default_max = getConfig().getInt("oasisextras.max_default_location",2500);
-		ndt = getConfig().getInt("oasisextras.default_invulnerability_ticks",300);
+		joinmsg=getConfig().getString("join");
+		quitmsg=getConfig().getString("quit");
+		kickmsg=getConfig().getString("kick");
+		if (getConfig().contains("votifier")) {
+			amount = getConfig().getInt("votifier");
+		}
+		bcasttimer = getConfig().getInt("broadcasttimer",15*1200)*1200;
+		default_min = getConfig().getInt("min_default_location",-2500);
+		default_max = getConfig().getInt("max_default_location",2500);
+		ndt = getConfig().getInt("default_invulnerability_ticks",300);
 		task.bcasttask.runTaskTimer(this, Util.randomNum(0, 18000), bcasttimer);
 		if (!appletreefile.getConfig().contains("appletrees")){
 			appletreefile.getConfig().createSection("appletrees");
 		}
 		CoreProtect = getCoreProtect();
-		CoreProtect.testAPI();
 		loadTree();
 		voteCheck();
 	}
