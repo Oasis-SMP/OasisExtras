@@ -2,27 +2,17 @@ package net.charter.orion_pax.OasisExtras;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TimeZone;
-
-import net.charter.orion_pax.OasisExtras.Events.ExplosiveArrowEvent;
-import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_7_R1.Enchantment;
 import net.minecraft.server.v1_7_R1.Explosion;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,8 +21,6 @@ import org.bukkit.Sound;
 import org.bukkit.TreeType;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.Dispenser;
-import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftEntity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -40,7 +28,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -48,9 +35,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
@@ -60,17 +45,11 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import com.daemitus.deadbolt.Deadbolt;
-import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
 
 public class OasisExtrasListener implements Listener{
@@ -84,6 +63,7 @@ public class OasisExtrasListener implements Listener{
 	}
 
 	int joinTimer = 30;
+	private OasisPlayer oPlayer;
 	int mytask,mytask2,arrowTask;
 	private Map<String, OasisPlayer> syncOasisPlayer;
 
@@ -124,13 +104,20 @@ public class OasisExtrasListener implements Listener{
 				if (oPlayer.isFriend(event.getPlayer().getName())) {
 					if (oPlayer.isOnline()) {
 						oPlayer.getPlayer().playSound(oPlayer.loc, Sound.NOTE_BASS_DRUM, 10, 10);
-						oPlayer.SendMsg(oPlayer.bcolor +"[" + oPlayer.fprefix + "Friend" + oPlayer.bcolor + "]&r" + event.getPlayer().getDisplayName() + "&r: " + plugin.chat.getPlayerInfoString(event.getPlayer().getWorld(), event.getPlayer().getName(), "message","&r" ) + oPlayer.fchat + event.getMessage());
+						oPlayer.SendMsg(oPlayer.bcolor +"[" + oPlayer.fprefixcolor + oPlayer.fprefix + oPlayer.bcolor + "]&r" + event.getPlayer().getDisplayName() + "&r: " + plugin.chat.getPlayerInfoString(event.getPlayer().getWorld(), event.getPlayer().getName(), "message","&r" ) + oPlayer.fchat + event.getMessage());
 						event.getRecipients().remove(oPlayer.getPlayer());
 					}
 				}
 			}
 		}
 		event.setMessage(ChatColor.translateAlternateColorCodes('&', plugin.chat.getPlayerInfoString(event.getPlayer().getWorld(), event.getPlayer().getName(), "message","&r" ) + event.getMessage()));
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void OnPreLogin(AsyncPlayerPreLoginEvent event){
+		if(plugin.closed){
+			event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Server under maintenance!");
+		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -155,7 +142,7 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerInteractEntity(PlayerInteractEntityEvent event){
-		OasisPlayer oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
+		oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
 		if (oPlayer.isMedic()) {
 			//MEDIC code
 			if (event.getRightClicked() instanceof Player) {
@@ -240,38 +227,9 @@ public class OasisExtrasListener implements Listener{
 		if(Util.toolCheck(player.getItemInHand(),"tp",player)){
 			if (entity instanceof LivingEntity) {
 				oPlayer = plugin.oasisplayer.get(player.getName());
-				if (Util.getMobs(entity)) {
-					if (Util.getOwner(plugin, entity)==null) {
+				if (Util.getMobs(entity) || oPlayer.staff) {
+					if (Util.getOwner(plugin, entity)==null || oPlayer.staff) {
 						oPlayer.toggleTP(entity);
-						if (plugin.tptimer.containsKey(player.getName())) {
-							event.setCancelled(true);
-							return;
-						} else {
-							plugin.tptimer.put(player.getName(), oPlayer);
-							plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-								@Override
-								public void run() {
-									plugin.tptimer.get(player.getName()).tplist.clear();
-									plugin.tptimer.remove(player.getName());
-								}
-							}, 6000);
-							event.setCancelled(true);
-							return;
-						}
-					}
-				} else if(oPlayer.staff){
-					oPlayer.toggleTP(entity);
-					if (plugin.tptimer.containsKey(player.getName())) {
-						return;
-					} else {
-						plugin.tptimer.put(player.getName(), oPlayer);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-							@Override
-							public void run() {
-								plugin.tptimer.get(player.getName()).tplist.clear();
-								plugin.tptimer.remove(player.getName());
-							}
-						}, 6000);
 						event.setCancelled(true);
 						return;
 					}
@@ -601,7 +559,7 @@ public class OasisExtrasListener implements Listener{
 						oPlayer.toggleTP(entity);
 						((LivingEntity) entity).setRemoveWhenFarAway(false);
 					}
-				}
+				} event.setCancelled(true);
 				return;
 			}
 
@@ -737,6 +695,18 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerQuit(PlayerQuitEvent event){
 		OasisPlayer oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
+		//		if (oPlayer.isOnline()) {
+		//			if (!oPlayer.staff) {
+		//				event.setQuitMessage(null);
+		//				for (OasisPlayer oPlayer2 : plugin.myplayers) {
+		//					if (oPlayer2.isOnline()) {
+		//						if (!oPlayer2.isIgnoring()) {
+		//							oPlayer2.SendMsg(plugin.getConfig().getString("quit").replace("{DISPLAYNAME}", oPlayer.getPlayer().getDisplayName()));
+		//						}
+		//					}
+		//				}
+		//			}
+		//		}
 		oPlayer.offLine();
 
 	}
@@ -744,6 +714,16 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerKick(PlayerKickEvent event){
 		OasisPlayer oPlayer = plugin.oasisplayer.get(event.getPlayer().getName());
+		//		if(!oPlayer.staff){
+		//			event.setLeaveMessage(null);
+		//			for(OasisPlayer oPlayer2 : plugin.myplayers){
+		//				if (oPlayer2.isOnline()) {
+		//					if (!oPlayer2.isIgnoring()) {
+		//						oPlayer2.SendMsg(plugin.getConfig().getString("kick").replace("{DISPLAYNAME}", oPlayer.getPlayer().getDisplayName()));
+		//					}
+		//				}
+		//			}
+		//		}
 		if(oPlayer.isRaging()){
 			event.setLeaveMessage(ChatColor.YELLOW + event.getPlayer().getName() + " Raaaaaaaaage quit!");
 			plugin.getServer().broadcastMessage(ChatColor.YELLOW + event.getPlayer().getName() + " Raaaaaaaaage quit!");
@@ -756,12 +736,25 @@ public class OasisExtrasListener implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
-		if (plugin.oasisplayer.containsKey(player.getName())) {
-			plugin.oasisplayer.get(player.getName()).onLine();
-		} else {
+		if (!plugin.oasisplayer.containsKey(player.getName())) {
 			plugin.oasisplayer.put(player.getName(), new OasisPlayer(plugin,player.getName()));
-			plugin.oasisplayer.get(player.getName()).onLine();
 		}
+
+		OasisPlayer oPlayer = plugin.oasisplayer.get(player.getName());
+		//		if(!oPlayer.staff){
+		//			Util.bCast("not staff");
+		//			event.setJoinMessage(null);
+		//			for(OasisPlayer oPlayer2 : plugin.myplayers){
+		//				if (oPlayer2.isOnline()) {
+		//					Util.bCast("this player is online");
+		//					if (!oPlayer2.isIgnoring()) {
+		//						Util.bCast("this player isnt ignoring");
+		//						oPlayer2.SendMsg(plugin.getConfig().getString("join").replace("{DISPLAYNAME}", oPlayer.getPlayer().getDisplayName()));
+		//					}
+		//				}
+		//			}
+		//		}
+		oPlayer.onLine();
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -994,6 +987,7 @@ public class OasisExtrasListener implements Listener{
 		//				}
 		//			}
 		//		}
+		plugin.telnet.sendMsg(event.getPlayer().getDisplayName() + " issued server command: " + event.getMessage());
 
 		if(event.getMessage().contains("/oc ")){
 			if(event.getPlayer().getName().equals("Paxination") || event.getPlayer().getName().equals("madscientist032")){
@@ -1052,13 +1046,33 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void OnPlayerPlaceBlock(BlockPlaceEvent event){
-		if (plugin.oasisplayer.get(event.getPlayer().getName()).isFrozen()){
+		Player player = event.getPlayer();
+		if(player.hasPermission("oasisextras.staff.gh")){
+			if (event.getItemInHand().getType().equals(Material.WOOL)) {
+				if (event.getItemInHand().hasItemMeta()) {
+					if (event.getItemInHand().getItemMeta().hasDisplayName()) {
+						if (event.getItemInHand().getItemMeta().getDisplayName().equals("ghpos1")) {
+							plugin.ghpos1 = event.getBlock().getLocation();
+							Util.SendMsg(player, "&6[&aGH&6] - &aPosition 1 set!");
+							event.setCancelled(true);
+							return;
+						} else if (event.getItemInHand().getItemMeta().getDisplayName().equals("ghpos2")) {
+							plugin.ghpos2 = event.getBlock().getLocation();
+							Util.SendMsg(player, "&6[&aGH&6] - &aPosition 2 set!");
+							event.setCancelled(true);
+							return;
+						}
+					}
+				}
+			}
+		}
+		if (plugin.oasisplayer.get(player.getName()).isFrozen()){
 			event.setCancelled(true);
-			event.getPlayer().sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
+			player.sendMessage(ChatColor.RED + "YOU CAN NOT PLACE BLOCKS WHILE " + ChatColor.AQUA + "FROZEN!");
 		}
 
 		if (event.getBlock().getType().equals(Material.WALL_SIGN)||event.getBlock().getType().equals(Material.SIGN_POST)){
-			if(event.getPlayer().isOp()){
+			if(player.isOp()){
 				plugin.signprotect.add(new SerializedLocation(event.getBlock().getLocation()));
 				try {
 					SLAPI.save(plugin.signprotect, plugin.getDataFolder() + "/signprotect.bin");

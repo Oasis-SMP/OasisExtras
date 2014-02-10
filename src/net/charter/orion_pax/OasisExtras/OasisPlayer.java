@@ -22,6 +22,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
@@ -53,8 +54,9 @@ public class OasisPlayer {
 	public boolean joinquitkickignore = false;
 	public Location ssloc1,ssloc2;
 	public List<String> friends = new ArrayList<String>();
-	public String bcolor,fprefix,fchat,address;
+	public String bcolor,fprefixcolor,fchat,address,fprefix;
 	private BukkitTask discotask,randomColorArmor;
+	private BukkitRunnable tptimer;
 	private List<BlockState> floor = new ArrayList<BlockState>();
 	public boolean disco,rCA = false,ftrail=false;
 	public int votes=0;
@@ -64,6 +66,8 @@ public class OasisPlayer {
 	public OasisPlayer(OasisExtras plugin, String myname){
 		this.plugin = plugin;
 		name = myname;
+		
+		newTPTimer();
 
 		String filename = "players/" + name + ".yml";
 		playerfile = new MyConfigFile(plugin, filename);
@@ -72,8 +76,9 @@ public class OasisPlayer {
 		frozen=playerfile.getConfig().getBoolean("frozen",frozen);
 
 		friends=playerfile.getConfig().getStringList("friends");
+		fprefix=playerfile.getConfig().getString("friendprefix", "Friend");
 		bcolor=playerfile.getConfig().getString("friendlistbracketcolor","&c");
-		fprefix=playerfile.getConfig().getString("friendprefixcolor", "&b");
+		fprefixcolor=playerfile.getConfig().getString("friendprefixcolor", "&b");
 		fchat=playerfile.getConfig().getString("friendschatcolor", "&b");
 		auramat = Material.getMaterial(playerfile.getConfig().getString("auramat",Material.GHAST_TEAR.toString()));
 		auraitem = new ItemStack(auramat,1);
@@ -164,9 +169,32 @@ public class OasisPlayer {
 				arrow.setAmount(playerfile.getConfig().getInt("arrows.lightning.amount"));
 				quiver.addItem(arrow);
 			}
+			
+			if(playerfile.getConfig().contains("arrows.teleport")){
+				ItemStack arrow = new ItemStack(plugin.tparrows.getResult());
+				arrow.setAmount(playerfile.getConfig().getInt("arrows.teleport.amount"));
+				quiver.addItem(arrow);
+			}
 		}
 
 		saveMe();
+	}
+	
+	public void newTPTimer(){
+		tptimer = new BukkitRunnable(){
+			@Override
+			public void run() {
+				tplist.clear();
+				SendMsg("&cTimer ran out for animal tp list!  Please re-add to continue again!");
+				tptimer = new BukkitRunnable(){
+					@Override
+					public void run() {
+						tplist.clear();
+						SendMsg("&cTimer ran out for animal tp list!  Please re-add to continue again!");
+					}
+				};
+			}
+		};
 	}
 
 	public void saveMe(){
@@ -180,11 +208,12 @@ public class OasisPlayer {
 		playerfile.getConfig().set("weatherman", weatherman);
 		playerfile.getConfig().set("friends", friends);
 		playerfile.getConfig().set("friendlistbracketcolor", bcolor);
-		playerfile.getConfig().set("friendprefixcolor", fprefix);
+		playerfile.getConfig().set("friendprefixcolor", fprefixcolor);
 		playerfile.getConfig().set("friendschatcolor", fchat);
 		playerfile.getConfig().set("joinquitkickignore", joinquitkickignore);
 		playerfile.getConfig().set("votes", votes);
 		playerfile.getConfig().set("address", address);
+		playerfile.getConfig().set("friendprefix", fprefix);
 		saveArrows();
 		playerfile.saveConfig();
 	}
@@ -330,6 +359,11 @@ public class OasisPlayer {
 	}
 
 	public void setFPREFIX(String string){
+		this.fprefixcolor = string;
+		saveMe();
+	}
+	
+	public void setPREFIX(String string){
 		this.fprefix = string;
 		saveMe();
 	}
@@ -409,7 +443,9 @@ public class OasisPlayer {
 
 	public void CleanUp(){
 		if(glow){
-			gbstate.update(true);
+			if (gbstate!=null) {
+				gbstate.update(true);
+			}
 		}
 
 		if(disco){
@@ -632,16 +668,25 @@ public class OasisPlayer {
 			}
 			SendMsg("&6Animals have been teleported!");
 			tplist.clear();
+			tptimer.cancel();
+			newTPTimer();
 		}
 	}
 
 	public void toggleTP(Entity entity){
 		if (!tplist.contains(entity)){
+			if(tplist.isEmpty()){
+				tptimer.runTaskLater(plugin, 6000L);
+			}
 			tplist.add(entity);
-			SendMsg("&6" + entity.getClass().getSimpleName() + " added to tplist!");
+			SendMsg("&6" + entity.getType().toString() + " added to tplist!");
 		} else {
 			tplist.remove(entity);
-			SendMsg("&6" + entity.getClass().getSimpleName() + " removed from tplist!");
+			SendMsg("&6" + entity.getType().toString() + " removed from tplist!");
+		}
+		if(tplist.isEmpty()){
+			tptimer.cancel();
+			newTPTimer();
 		}
 	}
 

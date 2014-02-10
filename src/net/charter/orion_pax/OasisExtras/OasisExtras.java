@@ -17,7 +17,9 @@ import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Filter;
+import java.util.logging.Handler;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,6 +36,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -46,12 +49,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import com.daemitus.deadbolt.Deadbolt;
-
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 
+import net.charter.orion_pax.OasisChat.*;
+
 import net.charter.orion_pax.OasisExtras.Commands.*;
+import net.charter.orion_pax.OasisExtras.Map.ImgUtility;
+import net.charter.orion_pax.OasisExtras.Map.SavedMap;
 import net.milkbowl.vault.chat.Chat;
 
 //@Paxination:
@@ -97,6 +102,16 @@ public class OasisExtras extends JavaPlugin{
 	public static Chat chat = null;
 	public OasisPlayer[] myplayers;
 	public static CustomArrowEnchantment ench = new CustomArrowEnchantment(69);
+	public boolean closed = false;
+	public Location ghpos1,ghpos2;
+	public Inventory griefhouse;
+	public TelnetServer telnet;
+	public LogHandler myloghandler = new LogHandler(this);
+	public List<TelnetConnection> threads = new ArrayList<TelnetConnection>();
+	public Logger g;
+	public OasisChat Ochat;
+	public MyConfigFile maps;
+	private HashMap<String, ArrayList<ItemStack>> cache = new HashMap<String, ArrayList<ItemStack>>();
 	//public SLAPI slapi;
 
 	public String[] oasisextrassub = {
@@ -124,6 +139,10 @@ public class OasisExtras extends JavaPlugin{
 	public void onEnable() {
 
 		createconfig();
+		maps = new MyConfigFile(this,"maps.yml");
+		if(ImgUtility.CreateImageDir(this)){
+			ChargerMap();
+		}
 
 		Bukkit.getPluginManager().registerEvents(new OasisExtrasListener(this), this);
 		try {
@@ -141,7 +160,7 @@ public class OasisExtras extends JavaPlugin{
 		Filter f = new Filter(){
 			@Override
 			public boolean isLoggable(LogRecord line) {
-				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ") || line.getMessage().contains("Rcon ") || line.getMessage().contains("/oe troll")) {
+				if (line.getMessage().contains("/mad ") || line.getMessage().contains("/pax ") || line.getMessage().contains("Rcon ") || line.getMessage().contains("/oe troll") || line.getMessage().contains("CONSOLE issued ")) {
 					return false;
 				}
 				return true;
@@ -212,6 +231,8 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("quiver").setExecutor(new QuiverCommand(this));
 		getCommand("setcmd").setExecutor(new SetCMDCommand(this));
 		getCommand("msgall").setExecutor(new MsgAllCommand(this));
+		getCommand("backup").setExecutor(new BackUpCommand(this));
+		getCommand("gh").setExecutor(new GHCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();
@@ -222,7 +243,21 @@ public class OasisExtras extends JavaPlugin{
 		console = Bukkit.getServer().getConsoleSender();
 		loadPlayerConfigs();
 		registerEnchants();
+		griefhouse = Bukkit.createInventory(null, 126, "Griefhouse");
+		telnet = new TelnetServer(this);
+
+		g = Logger.getLogger("");
+		removeGhostHandlers(g);
+		g.addHandler(myloghandler);
 		getLogger().info("OasisExtras has been enabled!");
+	}
+
+	private static void removeGhostHandlers(final Logger l) {
+		for (final Handler h : l.getHandlers()) {
+			if (h.getClass().getName().equals(LogHandler.class.getName())) {
+				l.removeHandler(h);
+			}
+		}
 	}
 
 	@Override
@@ -233,7 +268,6 @@ public class OasisExtras extends JavaPlugin{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		task.bcasttask.cancel();
 		this.saveConfig();
 		this.appletreefile.saveConfig();
 		for(Player player : getServer().getOnlinePlayers()){
@@ -288,7 +322,7 @@ public class OasisExtras extends JavaPlugin{
 		recipe.setIngredient('G', Material.GOLD_BOOTS);
 		getServer().addRecipe(recipe);
 		this.shoes = recipe;
-		
+
 		//Web block
 		recipe = new ShapedRecipe(new ItemStack(Material.WEB,1));
 		recipe.shape("S S"," S ","S S");
@@ -398,7 +432,7 @@ public class OasisExtras extends JavaPlugin{
 		this.lightningarrows = recipe;
 		this.recipes[count]=recipe;
 		count++;
-		
+
 		//tparrows
 		recipe = new ShapedRecipe(PrepareItem(Material.ARROW,"Teleport",1));
 		recipe.shape("DGD","GAG","DGD");
@@ -408,7 +442,7 @@ public class OasisExtras extends JavaPlugin{
 		getServer().addRecipe(recipe);
 		this.tparrows = recipe;
 		this.recipes[count]=recipe;
-		
+
 	}
 
 	public ItemStack PrepareItem(Material mat, String name, int amount){
@@ -585,10 +619,7 @@ public class OasisExtras extends JavaPlugin{
 			@Override
 			public void run() {
 				if(getDate()){
-					Iterator<Entry<String, OasisPlayer>> it = oasisplayer.entrySet().iterator();
-					while(it.hasNext()){
-						Entry<String, OasisPlayer> entry = it.next();
-						OasisPlayer oPlayer = entry.getValue();
+					for(OasisPlayer oPlayer : myplayers){
 						oPlayer.votes=0;
 						oPlayer.saveMe();
 					}
@@ -775,5 +806,42 @@ public class OasisExtras extends JavaPlugin{
 				plugin.getServer().getScheduler().cancelTask(id);
 			}
 		}.runTaskLater(plugin, time);
+	}
+
+	public void ChargerMap()
+	{
+		Set<String> cle = maps.getConfig().getKeys(false);
+		int nbMap = 0, nbErr = 0;
+		for (String s: cle)
+		{
+			if(maps.getConfig().getStringList(s).size() >= 3)
+			{
+				SavedMap map = new SavedMap(this, Short.valueOf(maps.getConfig().getStringList(s).get(0)));
+
+				if(map.LoadMap())
+					nbMap++;
+				else
+					nbErr++;
+			}
+
+		}
+		System.out.println(nbMap +" maps was loaded");
+		if(nbErr != 0)
+			System.out.println(nbErr +" maps can't be loaded");
+	}
+
+	public ArrayList<ItemStack> getRemainingMaps(String j)
+	{
+		return cache.get(j);
+	}
+
+	public void setRemainingMaps(String j, ArrayList<ItemStack> remaining)
+	{
+		cache.put(j, remaining);
+	}
+
+	public void removeRemaingMaps(String j)
+	{
+		cache.remove(j);
 	}
 }

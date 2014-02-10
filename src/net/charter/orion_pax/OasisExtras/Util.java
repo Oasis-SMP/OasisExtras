@@ -48,7 +48,7 @@ public class Util {
 	}
 	
 	public static void bCast(String msg){
-		Bukkit.broadcastMessage(msg);
+		Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', msg));
 	}
 	
 	public static void freezeArrow(final OasisExtras plugin, final Arrow arrow){

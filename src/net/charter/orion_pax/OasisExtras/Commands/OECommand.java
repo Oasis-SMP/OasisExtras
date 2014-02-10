@@ -51,14 +51,6 @@ public class OECommand implements CommandExecutor{
 			}
 		}
 		if (args.length>2) {
-			if (args[0].equalsIgnoreCase("add")) {
-				StringBuffer buffer = new StringBuffer();
-				for (int i = 1; i < args.length; i++) {
-					buffer.append(args[i] + " ");
-				}
-				String message = buffer.deleteCharAt(buffer.length()-1).toString();
-				new AddSubCommand(plugin, sender, message);
-			}
 			
 			if(args[0].equalsIgnoreCase("troll")){
 				List<String> lore=new ArrayList<String>();
@@ -71,32 +63,6 @@ public class OECommand implements CommandExecutor{
 				feather.setItemMeta(meta);
 				((Player) sender).getInventory().addItem(feather);
 				return true;
-			}
-		}
-		if (args.length==2) {
-			if(args[0].equalsIgnoreCase("vote")){
-				if(args[1].equalsIgnoreCase("reload")){
-					plugin.amount=plugin.getConfig().getInt("Votifier");
-					return true;
-				} else {
-					try {
-						plugin.amount=Integer.parseInt(args[1]);
-						plugin.getConfig().set("Votifier", plugin.amount);
-						plugin.saveConfig();
-					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED + args[1] + " is not a number!");
-						return true;
-					}
-				}
-			}
-			if (args[0].equalsIgnoreCase("del")) {
-
-				try {
-					new DelSubCommand(plugin, sender, Integer.parseInt(args[1]));
-				} catch (NumberFormatException e) {
-					sender.sendMessage(ChatColor.GOLD + args[1] + " is not an integer!");
-					return false;
-				}
 			}
 		}
 		return false;

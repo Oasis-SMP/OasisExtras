@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="C:/Users/Orion Pax/Desktop/eclipse/workspace/craftbukkit.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Orion Pax/Desktop/eclipse/workspace/javax.mail.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Orion Pax/Desktop/eclipse/workspace/DeadBolt-15.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Orion Pax/Desktop/eclipse/workspace/OasisChat.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

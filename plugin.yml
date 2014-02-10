@@ -6,6 +6,13 @@ author: Paxination
 depend: [Votifier, CoreProtect,Vault]
 commands:
 
+  backup:
+    description: Backup server command!
+    usage: "Usage: /<command>"
+    aliases: [kbackup]
+    permission: oasisextras.staff.backup
+    permission-message: You don't have permissions for <permission>
+
   setcmd:
     description: Changes a command blocks command!
     aliases: [scmd, setcommand]
@@ -336,10 +343,23 @@ commands:
   quiver:
     description: Open custom arrow inventory!
     usage: "Usage: /<command>"
+    aliases: [q]
     permission: oasisextras.player.quiver
     permission-message: You don't have permissions for <permission>
     
+  gh:
+    description: Griefhouse reset arena command!
+    usage: "Usage: /<command> <set/reset/tools>"
+    permission: oasisextras.staff.gh
+    permission-message: You don't have permissions for <permission>
+    
 permissions:
+    oasisextras.staff.gh:
+        description: Griefhouse reset arena command!
+        
+    oasisextras.staff.backup:
+        description: Backup the server!
+        
     oasisextras.staff.msgall:
         description: Send a msg to all players!  Ignores staff!
         

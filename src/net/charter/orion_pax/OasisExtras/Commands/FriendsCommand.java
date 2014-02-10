@@ -31,7 +31,8 @@ public class FriendsCommand implements CommandExecutor {
 			oPlayer.SendMsg("&aUsage: /friends del playername - removes a friend from your list");
 			oPlayer.SendMsg("&aUsage: /friends chat colorcode - changes your friends chat color");
 			oPlayer.SendMsg("&aUsage: /friends bracket colorcode - changes the color of the brackets around the friend prefix");
-			oPlayer.SendMsg("&aUsage: /friends prefix colorcode - changes the color of the FRIEND prefix");
+			oPlayer.SendMsg("&aUsage: /friends prefixcolor colorcode - changes the color of the FRIEND prefix");
+			oPlayer.SendMsg("&aUsage: /friends prefix name - changes the prefix of the FRIEND prefix");
 			return true;
 		}
 		
@@ -66,8 +67,13 @@ public class FriendsCommand implements CommandExecutor {
 				}
 			}
 			
-			if(args[0].equalsIgnoreCase("prefix")){
+			if(args[0].equalsIgnoreCase("prefixcolor")){
 				oPlayer.setFPREFIX(args[1]);
+				return true;
+			}
+			
+			if(args[0].equalsIgnoreCase("prefix")){
+				oPlayer.setPREFIX(args[1]);
 				return true;
 			}
 			
