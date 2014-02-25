@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
+
+import net.charter.orion_pax.OasisExtras.Entity.OasisEntityPlayer;
 import net.milkbowl.vault.economy.Economy;
+import net.minecraft.server.v1_7_R1.EntityPlayer;
 import net.minecraft.server.v1_7_R1.Explosion;
 
 import org.bukkit.Bukkit;
@@ -162,6 +165,8 @@ public class OasisExtrasListener implements Listener{
 								event.getPlayer().getItemInHand().setAmount(event.getPlayer().getItemInHand().getAmount() - 1);
 							}
 						}
+						event.setCancelled(true);
+						return;
 					}
 				}
 			}
@@ -176,6 +181,15 @@ public class OasisExtrasListener implements Listener{
 			player.sendMessage(entity.getType().toString());
 			event.setCancelled(true);
 			return;
+		}
+		
+		if(Util.toolCheck(player.getItemInHand(), "declone", player)){
+			if(((CraftEntity) entity).getHandle() instanceof OasisEntityPlayer){
+				String name = ((OasisEntityPlayer) ((CraftEntity)entity).getHandle()).getName();
+				plugin.OEPManager.despawnNPC((OasisEntityPlayer) ((CraftEntity)entity).getHandle());
+				Util.SendMsg(player, "&6" + name + " despawned!");
+				return;
+			}
 		}
 
 		//GETOWNER feather tool
@@ -799,6 +813,12 @@ public class OasisExtrasListener implements Listener{
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void OnEntityDeath(EntityDeathEvent event){
+		Entity e = event.getEntity();
+		if(((CraftEntity)e).getHandle() instanceof OasisEntityPlayer){
+			plugin.OEPManager.despawnNPC((OasisEntityPlayer) ((CraftEntity)e).getHandle());
+			return;
+		}
+		
 		if(event.getEntityType().equals(EntityType.GIANT)){
 			if(event.getEntity().getLocation().getWorld().getName().equals("world")){
 				event.setDroppedExp(1000);

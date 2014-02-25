@@ -17,6 +17,7 @@ public class ToolsSubCommand {
 		this.plugin = plugin;
 		Player player = (Player) sender;
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"tpall"));
+		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"declone"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.TNT,1),"boom"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"float"));
 		player.getInventory().addItem(setItem(new ItemStack(Material.FEATHER,1),"drop"));

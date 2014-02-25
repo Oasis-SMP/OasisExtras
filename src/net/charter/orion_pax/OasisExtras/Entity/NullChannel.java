@@ -1,4 +1,4 @@
-package net.charter.orion_pax.OasisExtras;
+package net.charter.orion_pax.OasisExtras.Entity;
 
 import net.minecraft.util.io.netty.channel.*;
 

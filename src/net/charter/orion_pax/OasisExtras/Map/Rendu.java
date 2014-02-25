@@ -15,6 +15,8 @@ public class Rendu extends MapRenderer implements Runnable
 	Image touhou;
 	private Thread TRendu;
 	public MapCanvas canvas;
+	public Player player;
+	public MapView map;
 
 	public Rendu(Image img)
 	{
@@ -25,6 +27,8 @@ public class Rendu extends MapRenderer implements Runnable
 	@Override
 	public void render(MapView v, final MapCanvas mc, Player p)
 	{
+		player = p;
+		map=v;
 		canvas = mc;
 
 
@@ -34,6 +38,7 @@ public class Rendu extends MapRenderer implements Runnable
 			TRendu = new Thread(this);
 			TRendu.start();
 			estRendu = true;
+			player.sendMap(map);
 		}
 	}
 

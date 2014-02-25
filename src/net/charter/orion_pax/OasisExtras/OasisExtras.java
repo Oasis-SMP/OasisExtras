@@ -55,6 +55,7 @@ import net.coreprotect.CoreProtectAPI;
 import net.charter.orion_pax.OasisChat.*;
 
 import net.charter.orion_pax.OasisExtras.Commands.*;
+import net.charter.orion_pax.OasisExtras.Entity.OasisEntityPlayerManager;
 import net.charter.orion_pax.OasisExtras.Map.ImgUtility;
 import net.charter.orion_pax.OasisExtras.Map.SavedMap;
 import net.milkbowl.vault.chat.Chat;
@@ -112,6 +113,7 @@ public class OasisExtras extends JavaPlugin{
 	public OasisChat Ochat;
 	public MyConfigFile maps;
 	private HashMap<String, ArrayList<ItemStack>> cache = new HashMap<String, ArrayList<ItemStack>>();
+	public OasisEntityPlayerManager OEPManager = new OasisEntityPlayerManager(this);
 	//public SLAPI slapi;
 
 	public String[] oasisextrassub = {
@@ -233,6 +235,9 @@ public class OasisExtras extends JavaPlugin{
 		getCommand("msgall").setExecutor(new MsgAllCommand(this));
 		getCommand("backup").setExecutor(new BackUpCommand(this));
 		getCommand("gh").setExecutor(new GHCommand(this));
+		getCommand("clones").setExecutor(new ClonesCommand(this));
+		getCommand("tpclone").setExecutor(new TPCloneCommand(this));
+		getCommand("declone").setExecutor(new DECloneCommand(this));
 		appletreefile = new MyConfigFile(this,"appletree.yml");
 
 		CoreProtect = getCoreProtect();

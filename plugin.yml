@@ -12,6 +12,27 @@ commands:
     aliases: [kbackup]
     permission: oasisextras.staff.backup
     permission-message: You don't have permissions for <permission>
+    
+  clones:
+    description: List all the clones/NPC's in game!
+    usage: "Usage: /<command>"
+    aliases: [clonelist]
+    permission: oasisextras.staff.clones
+    permission-message: You don't have permissions for <permission>
+    
+  tpclone:
+    description: Teleport clone/NPC to you.  Use /clones to get NUMBER!
+    usage: "Usage: /<command> <NUMBER> - Use /clones to get NUMBER!"
+    aliases: [tpc,teleportclone]
+    permission: oasisextras.staff.tpclone
+    permission-message: You don't have permissions for <permission>
+
+  declone:
+    description: Despawns clone/NPC.  Use /clones to get NUMBER!
+    usage: "Usage: /<command> <NUMBER> - Use /clones to get NUMBER!"
+    aliases: [dc]
+    permission: oasisextras.staff.declone
+    permission-message: You don't have permissions for <permission>
 
   setcmd:
     description: Changes a command blocks command!
@@ -354,6 +375,15 @@ commands:
     permission-message: You don't have permissions for <permission>
     
 permissions:
+    oasisextras.staff.clones:
+        description: Shows a list of clones/NPC's in game!
+        
+    oasisextras.staff.tpclone:
+        description: Teleports a clone/NPC to you!
+
+    oasisextras.staff.declone:
+        description: Despawns NPC's/Clones!
+        
     oasisextras.staff.gh:
         description: Griefhouse reset arena command!
         
@@ -594,9 +624,13 @@ permissions:
     oasisextras.arrow.lightning:
         description: Lightning Arrows!
         
+    oasisextras.arrow.clone:
+        description:  Clone arrow!
+        
     oasisextras.arrow.*:
         description: Gives access to all custom arrows!
         children:
+            oasisextras.arrow.clone: true
             oasisextras.arrow.lightning: true
             oasisextras.arrow.blindness: true
             oasisextras.arrow.confusion: true
@@ -646,10 +680,13 @@ permissions:
             oasisextras.staff.thunderstruck: true
             oasisextras.staff.mount: true
             oasisextras.staff.sheepcast: true
+            oasisextras.staff.declone: true
                         
     oasisextras.staff.jrmod:
         description: JrMod perm nodes
         children:
+            oasisextras.staff.clones: true
+            oasisextras.staff.tpclone: true
             oasisextras.staff.etable: true
             oasisextras.staff.anvil: true
             oasisextras.staff.notify: true

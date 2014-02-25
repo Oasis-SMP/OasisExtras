@@ -1,4 +1,4 @@
-package net.charter.orion_pax.OasisExtras;
+package net.charter.orion_pax.OasisExtras.Entity;
 
 import net.minecraft.server.v1_7_R1.NetworkManager;
 import java.lang.reflect.Field;
