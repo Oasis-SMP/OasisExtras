@@ -18,6 +18,9 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class RandomCommand implements CommandExecutor{
 	
+	//current permission node: oasisextras.player.random
+	//current usage: teleports player to random location.
+	
 	private OasisExtras plugin;
 	
 	public RandomCommand (OasisExtras plugin){
@@ -31,13 +34,13 @@ public class RandomCommand implements CommandExecutor{
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		Player player = (Player) sender;
-		if (!(sender instanceof Player)) {
+		if (!(sender instanceof Player)) { //if command is issued from console
 			if (args.length==0) {
-				sender.sendMessage("This command cannot be used from the console.");
+				sender.sendMessage("/random cannot teleport console!");
 				return true;
-			} else if (args.length==1){
+			} else if (args.length==1){ //if command is issued like /random <playername>
 				Player rplayer = plugin.getServer().getPlayer(args[0]);
-				if (rplayer==null){
+				if (rplayer==null){ //this is a check to prevent a NPE from happening
 					sender.sendMessage(ChatColor.RED + "Player not online!");
 					return true;
 				}
