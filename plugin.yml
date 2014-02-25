@@ -1,6 +1,6 @@
 name: OasisExtras
 main: net.charter.orion_pax.OasisExtras.OasisExtras
-version: 2.0
+version: V2 Build 022414a
 description: Oasis Extra commands!
 author: Paxination
 depend: [Votifier, CoreProtect,Vault]
