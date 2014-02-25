@@ -23,7 +23,7 @@ public class RandomCommand implements CommandExecutor{
 	public RandomCommand (OasisExtras plugin){
 		this.plugin = plugin;
 	}
-	
+	//BLARGH
 	BukkitTask randomTask;
 	Location newloc;
 	Horse horse;
@@ -105,12 +105,23 @@ public class RandomCommand implements CommandExecutor{
 		}
 	}
 	
-	public int randomNum(Integer lownum, double d) {
+	public int randomNum(Integer lownum, double d) { //DO NOT CHANGE THIS FUNCTION AT ALL
 		//Random rand = new Random();
 		int randomNum = lownum + (int)(Math.random() * ((d - lownum) + 1));
 		//int randomNum = rand.nextInt(highnum - lownum + 1) + lownum;
 		return randomNum;
 	}
+	
+	
+	//public void runBlockCheck()
+	//check if player is in vehicle
+		// if yes, cancel event competely.
+		//else proceed down.
+	//check world that player will be TP'd INTO
+	//maybe echo world and/or coords?
+	//maybe a yes/no option (debuggin only)
+	//check for blocks that are NOT safe to be TP'd to
+	//then check 
 	
 	public void getRandomLoc(final Player player, final int min, final int max, final boolean vehicle){
 		final Location loc = player.getLocation();
