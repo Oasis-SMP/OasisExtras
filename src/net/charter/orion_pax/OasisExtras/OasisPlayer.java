@@ -606,6 +606,7 @@ public class OasisPlayer {
 	public void setLoc(Location loc){
 		this.loc = loc;
 		if(trail){
+			//PENIS
 			loc.getWorld().playEffect(loc, Effect.MOBSPAWNER_FLAMES, 0);
 		}
 		
